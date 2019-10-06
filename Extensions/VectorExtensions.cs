@@ -4,6 +4,27 @@ using System.Collections.Generic;
 //===========================================================//===========================================================
 public static class VectorExtensions {
 	
+#region Invalids
+	public static Vector2 Invalid2 {
+		get {
+			return new Vector2( float.NaN, float.NaN );
+		}
+	}
+	
+	public static Vector3 Invalid3 {
+		get {
+			return new Vector3( float.NaN, float.NaN, float.NaN );
+		}
+	}
+	
+	public static Vector4 Invalid4 {
+		get {
+			return new Vector4( float.NaN, float.NaN, float.NaN, float.NaN );
+		}
+	}
+#endregion
+	
+	
 #region Vector2 converters
 	//===========================================================
 	public static Vector3 XY0( this Vector2 value ) { return new Vector3( value.x, value.y, 0 ); }
