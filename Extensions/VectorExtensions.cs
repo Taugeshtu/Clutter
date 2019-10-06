@@ -236,6 +236,29 @@ public static class VectorExtensions {
 #endregion
 	
 	
+#region Comparison
+	//===========================================================
+	public static bool EpsilonEquals( this Vector2 a, Vector2 b ) {
+		if( !a.x.EpsilonEquals( b.x ) ) { return false; }
+		if( !a.y.EpsilonEquals( b.y ) ) { return false; }
+		return true;
+	}
+	public static bool EpsilonEquals( this Vector3 a, Vector3 b ) {
+		if( !a.x.EpsilonEquals( b.x ) ) { return false; }
+		if( !a.y.EpsilonEquals( b.y ) ) { return false; }
+		if( !a.z.EpsilonEquals( b.z ) ) { return false; }
+		return true;
+	}
+	public static bool EpsilonEquals( this Vector4 a, Vector4 b ) {
+		if( !a.x.EpsilonEquals( b.x ) ) { return false; }
+		if( !a.y.EpsilonEquals( b.y ) ) { return false; }
+		if( !a.z.EpsilonEquals( b.z ) ) { return false; }
+		if( !a.w.EpsilonEquals( b.w ) ) { return false; }
+		return true;
+	}
+#endregion
+	
+	
 #region Logging
 	//===========================================================
 	public static string LogExact( this Vector2 a ) {

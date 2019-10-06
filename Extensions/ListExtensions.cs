@@ -75,6 +75,68 @@ public static class ListExtensions {
 #endregion
 	
 	
+#region Logging
+	public static string Dump<T>( this IEnumerable<T> list, System.Func<T, string> printer, string separator = ", " ) {
+		return list.Dump( separator, printer );
+	}
+	public static string Dump<T>( this IEnumerable<T> list, string separator = ", ", System.Func<T, string> printer = null ) {
+		var builder = new System.Text.StringBuilder();
+		var hasPrinter = (printer != null);
+		var canBeNull = (default( T ) == null);
+		var counter = 0;
+		
+		foreach( var item in list ) {
+			if( canBeNull && item.Equals( default( T ) ) ) {
+				builder.Append( "-null-" );
+			}
+			else {
+				builder.Append( hasPrinter ? printer( item ) : item.ToString() );
+			}
+			builder.Append( separator );
+			
+			counter += 1;
+		}
+		
+		var removeStart = builder.Length - separator.Length;
+		builder.Remove( removeStart, separator.Length );
+		
+		return "("+counter+")"+separator+builder.ToString();
+	}
+	
+	public static string Dump<TKey, TValue>( this Dictionary<TKey, TValue> dictionary, System.Func<TValue, string> printer, string separator = "\n" ) {
+		return dictionary.Dump( separator, printer );
+	}
+	public static string Dump<TKey, TValue>( this Dictionary<TKey, TValue> dictionary, string separator = "\n", System.Func<TValue, string> printer = null ) {
+		var builder = new System.Text.StringBuilder();
+		var hasPrinter = (printer != null);
+		var canBeNull = (default( TValue ) == null);
+		var counter = 0;
+		
+		foreach( var pair in dictionary ) {
+			builder.Append( "[" );
+			builder.Append( pair.Key.ToString() );
+			builder.Append( ":" );
+			if( canBeNull && pair.Value.Equals( default( TValue ) ) ) {
+				builder.Append( "-null-" );
+			}
+			else {
+				builder.Append( hasPrinter ? printer( pair.Value ) : pair.Value.ToString() );
+			}
+			builder.Append( "]" );
+			
+			builder.Append( separator );
+			
+			counter += 1;
+		}
+		
+		var removeStart = builder.Length - separator.Length;
+		builder.Remove( removeStart, separator.Length );
+		
+		return "("+counter+")"+separator+builder.ToString();
+	}
+#endregion
+	
+	
 #region Temporary
 #endregion
 }
