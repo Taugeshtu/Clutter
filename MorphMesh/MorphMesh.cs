@@ -3,23 +3,14 @@ using System.Collections.Generic;
 
 namespace Clutter.Mesh {
 
-
-/* Implementation Notes:
- - vertices are addressed via ID. NOT INDEX
- - This ought to help with sorting and stuff?
-
-First thing that's needed:
- - Store positions in a sensical manner
- - Store triangles data - which vertices make which triangles
- - Make that data double-linked with a big-ass (x6 per vertex) "static" matrix of triangles-for-vertex
- - Make additional "expansion" sparse storage for vertices that do participate in more than 6 triangles
-*/
-
-
-/* New notes:
+/* Notes:
  - Vertices are addressed via Index
  - Triangles - via ID; internally treated via indexes
 
+ "m_vertexOwnership" layout: 
+ - [0] == how many triangles share the vertex
+ - [1-5] == triangles that take that vertex
+ - excess goes into expansion structure
 */
 
 
@@ -31,19 +22,16 @@ public class MorphMesh {
 	// - - - - VERTEX DATA - - - -
 	private List<Vector3> m_positions = new List<Vector3>( c_initialVertexCapacity );
 	
-	// slot #0 == how many triangles share the vertex
-	// slots ##1-5 == triangles that take that vertex
-	// excess goes into expansion structure
 	private List<int> m_vertexOwnership = new List<int>( c_initialVertexCapacity *(Vertex.c_ownersFast + 1) );	// Note: not sure how worth it this optimization is
 	private Dictionary<int, List<int>> m_vertexOwnershipExt = new Dictionary<int, List<int>>();
 	// - - - - - - - - - - - - - -
 	
-	
-	// this is index buffer; but I don't like it!
+	// - - - - TRIANGLE DATA - - - -
 	private Dictionary<int, int> m_trianglesMap = new Dictionary<int, int>( c_initialVertexCapacity /3 );
-	private List<int> m_triangles = new List<int>( c_initialVertexCapacity );
+	private List<int> m_triangles = new List<int>( c_initialVertexCapacity );	// index buffer, basically
+	// - - - - - - - - - - - - - - -
 	
-	private int m_generation = 0;
+	private long m_generation = 0;	// should never be reset!
 	private int m_topVertexID = c_invalidID;
 	private int m_topTriangleID = c_invalidID;
 	

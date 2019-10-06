@@ -6,7 +6,7 @@ namespace Clutter.Mesh {
 public struct Vertex {
 	public const int c_ownersFast = 5;
 	
-	public int Generation;
+	public long Generation;
 	public int Index;
 	public Vector3 Position;
 	
@@ -23,7 +23,7 @@ public struct Vertex {
 		}
 	}
 	
-	public Vertex( int generation, int id, Vector3 position ) {
+	public Vertex( long generation, int id, Vector3 position ) {
 		Generation = generation;
 		Index = id;
 		Position = position;

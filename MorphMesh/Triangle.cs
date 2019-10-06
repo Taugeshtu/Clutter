@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Clutter.Mesh {
 // This gonna be a TEMPORARY struct to get/set triangle data
 public struct Triangle {
-	public int Generation;
+	public long Generation;
 	public int ID;
 	
 	public Vertex A;
@@ -12,7 +12,7 @@ public struct Triangle {
 	public Vertex C;
 	
 #region Implementation
-	public Triangle( int generation, int ownID ) {
+	public Triangle( long generation, int ownID ) {
 		Generation = generation;
 		ID = ownID;
 		
@@ -21,7 +21,7 @@ public struct Triangle {
 		C = Vertex.Invalid;
 	}
 	
-	public Triangle( int generation, int ownID, ref Vertex a, ref Vertex b, ref Vertex c ) {
+	public Triangle( long generation, int ownID, ref Vertex a, ref Vertex b, ref Vertex c ) {
 		Generation = generation;
 		ID = ownID;
 		
