@@ -69,7 +69,22 @@ public class MorphMesh {
 	
 	public void Read( Component target = null ) {
 		var filterTarget = _GetFilterTarget( target );
-		// TODO: implement actual reading from the mesh
+		if( filterTarget == null ) { return; }
+		
+		Clear();
+		var mesh = filterTarget.mesh;
+		mesh.GetTriangles( m_triangles, 0 );
+		mesh.GetVertices( m_positions );
+		
+		m_vertexOwnership.PadUpTo( m_positions.Count *_ownershipDataSize, -1 );
+		
+		var trianglesCount = m_triangles.Count /3;
+		for( var triangleIndex = 0; triangleIndex < trianglesCount; triangleIndex++ ) {
+			for( var i = 0; i < 3; i++ ) {
+				var vertexIndex = m_triangles[triangleIndex *3 + i];
+				_RegisterOwnership( vertexIndex, triangleIndex );
+			}
+		}
 	}
 	
 	public void Write( GameObject target ) {
@@ -78,18 +93,30 @@ public class MorphMesh {
 	
 	public void Write( Component target = null ) {
 		var filterTarget = _GetFilterTarget( target );
+		if( filterTarget == null ) { return; }
 		
 		// _Compactify();
-		var mesh = filterTarget.sharedMesh;
+		var mesh = filterTarget.mesh;
 		mesh.Clear();
 		mesh.SetVertices( m_positions );
 		mesh.SetTriangles( m_triangles, 0 );
 		
-		Debug.LogError( "Vertices: "+m_positions.Count+", triangles: "+m_triangles.Count+", in map: "+m_trianglesMap.Count );
-		// mesh.RecalculateNormals();
+		// Debug.LogError( "Vertices: "+m_positions.Count+", triangles: "+m_triangles.Count+", in map: "+m_trianglesMap.Count );
+		mesh.RecalculateNormals();
 	}
 	
-	public void Clear() {}
+	public void Clear() {
+		m_positions.Clear();
+		m_vertexOwnership.Clear();
+		m_vertexOwnershipExt.Clear();
+		
+		m_trianglesMap.Clear();
+		m_triangles.Clear();
+		
+		// Note: not clearing out generation in here!!
+		m_topVertexID = c_invalidID;
+		m_topTriangleID = c_invalidID;
+	}
 #endregion
 	
 	
@@ -128,6 +155,25 @@ public class MorphMesh {
 				}
 				m_vertexOwnershipExt[vertexIndex].Add( triangleID );
 			}
+		}
+	}
+	
+	private void _RegisterOwnership( int vertexIndex, int triangleID ) {
+		var ownershipIndex = vertexIndex *_ownershipDataSize;
+		var currentKnownOwners = m_vertexOwnership[ownershipIndex];
+		
+		if( currentKnownOwners < 0 ) {
+			currentKnownOwners = 0;
+		}
+		
+		if( currentKnownOwners < Vertex.c_ownersFast ) {
+			m_vertexOwnership[ownershipIndex + currentKnownOwners + 1] = triangleID;
+		}
+		else {
+			if( !m_vertexOwnershipExt.ContainsKey( vertexIndex ) ) {
+				m_vertexOwnershipExt[vertexIndex] = new List<int>();
+			}
+			m_vertexOwnershipExt[vertexIndex].Add( triangleID );
 		}
 	}
 #endregion
