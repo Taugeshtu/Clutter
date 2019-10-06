@@ -139,41 +139,10 @@ public class MorphMesh {
 		
 		var ownershipIndex = vertexIndex *_ownershipDataSize;
 		m_vertexOwnership.PadUpTo( ownershipIndex + _ownershipDataSize );
-		m_vertexOwnership[ownershipIndex] = vertex.Triangles.Count;
-		
-		var ownerDataIndex = 0;
+		m_vertexOwnership[ownershipIndex] = -1;
+		m_vertexOwnershipExt.Remove( vertexIndex );
 		foreach( var triangleID in vertex.Triangles ) {
-			if( triangleID == c_invalidID ) { continue; }
-			
-			if( ownerDataIndex < Vertex.c_ownersFast ) {
-				ownerDataIndex += 1;
-				m_vertexOwnership[ownershipIndex + ownerDataIndex] = triangleID;
-			}
-			else {
-				if( !m_vertexOwnershipExt.ContainsKey( vertexIndex ) ) {
-					m_vertexOwnershipExt[vertexIndex] = new List<int>();
-				}
-				m_vertexOwnershipExt[vertexIndex].Add( triangleID );
-			}
-		}
-	}
-	
-	private void _RegisterOwnership( int vertexIndex, int triangleID ) {
-		var ownershipIndex = vertexIndex *_ownershipDataSize;
-		var currentKnownOwners = m_vertexOwnership[ownershipIndex];
-		
-		if( currentKnownOwners < 0 ) {
-			currentKnownOwners = 0;
-		}
-		
-		if( currentKnownOwners < Vertex.c_ownersFast ) {
-			m_vertexOwnership[ownershipIndex + currentKnownOwners + 1] = triangleID;
-		}
-		else {
-			if( !m_vertexOwnershipExt.ContainsKey( vertexIndex ) ) {
-				m_vertexOwnershipExt[vertexIndex] = new List<int>();
-			}
-			m_vertexOwnershipExt[vertexIndex].Add( triangleID );
+			_RegisterOwnership( vertexIndex, triangleID );
 		}
 	}
 #endregion
@@ -223,6 +192,25 @@ public class MorphMesh {
 	
 	
 #region Private
+	private void _RegisterOwnership( int vertexIndex, int triangleID ) {
+		var ownershipIndex = vertexIndex *_ownershipDataSize;
+		var currentKnownOwners = m_vertexOwnership[ownershipIndex];
+		
+		if( currentKnownOwners < 0 ) {
+			currentKnownOwners = 0;
+		}
+		
+		if( currentKnownOwners < Vertex.c_ownersFast ) {
+			m_vertexOwnership[ownershipIndex + currentKnownOwners + 1] = triangleID;
+		}
+		else {
+			if( !m_vertexOwnershipExt.ContainsKey( vertexIndex ) ) {
+				m_vertexOwnershipExt[vertexIndex] = new List<int>();
+			}
+			m_vertexOwnershipExt[vertexIndex].Add( triangleID );
+		}
+	}
+	
 	private void _Compactify() {
 		foreach( var triangleNote in m_trianglesMap ) {
 			var indexIndex = triangleNote.Value *3;

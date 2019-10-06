@@ -14,6 +14,12 @@ public class WatchDog {
 		}
 	}
 	
+	public long MCS {
+		get {
+			return m_watch.ElapsedTicks /10;
+		}
+	}
+	
 #region Implementation
 	public WatchDog( string name, bool autoStart = true ) {
 		m_watch = new Stopwatch();
