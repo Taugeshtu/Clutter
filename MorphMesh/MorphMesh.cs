@@ -195,6 +195,7 @@ public class MorphMesh {
 	
 #region Private
 	private void _RebuildTriangleData() {
+		// Note: here we KNOW FOR CERTAIN our m_trianglesMap is linear
 		var trianglesCount = m_triangles.Count /3;
 		for( var i = 0; i < trianglesCount; i++ ) {
 			m_trianglesMap.Add( i, i );
@@ -204,7 +205,7 @@ public class MorphMesh {
 		m_ownershipFast.PadUpTo( m_positions.Count *Vertex.c_ownersFast );
 		
 		for( var triangleIndex = 0; triangleIndex < trianglesCount; triangleIndex++ ) {
-			var triangleID = m_trianglesMap.GetByValue( triangleIndex );
+			var triangleID = triangleIndex;
 			for( var i = 0; i < 3; i++ ) {
 				var vertexIndex = m_triangles[triangleIndex *3 + i];
 				_UpdateOwnership( vertexIndex, triangleID, true );

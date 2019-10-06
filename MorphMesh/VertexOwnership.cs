@@ -5,7 +5,7 @@ namespace Clutter.Mesh {
 internal struct VertexOwnership {
 	public bool IsInitialized;
 	public int Index;
-	public int OwnersCount;
+		public int OwnersCount;	// Note: this should be moved into a separate List<int> inside MorphMesh itself! Will allow for transient struct
 	
 	private List<int> m_ownersFast;
 	private List<int> m_ownersExt;
