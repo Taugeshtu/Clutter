@@ -7,27 +7,21 @@ namespace Clutter.Mesh {
  - Vertices are addressed via Index
  - Triangles - via ID; internally treated via indexes
 
- "m_vertexOwnership" layout: 
- - [0] == how many triangles share the vertex
- - [1-5] == triangles that take that vertex
- - excess goes into expansion structure
 */
-
 
 public class MorphMesh {
 	public const int c_invalidID = -1;
 	private const int c_initialVertexCapacity = 300;
 	
-	
 	// - - - - VERTEX DATA - - - -
 	private List<Vector3> m_positions = new List<Vector3>( c_initialVertexCapacity );
 	
-	private List<int> m_vertexOwnership = new List<int>( c_initialVertexCapacity *(Vertex.c_ownersFast + 1) );	// Note: not sure how worth it this optimization is
-	private Dictionary<int, List<int>> m_vertexOwnershipExt = new Dictionary<int, List<int>>();
+	private List<VertexOwnership> m_vertexOwnership = new List<VertexOwnership>( c_initialVertexCapacity );
+	private List<int> m_ownershipFast = new List<int>( c_initialVertexCapacity *Vertex.c_ownersFast );	// Note: not sure how worth it this optimization is
 	// - - - - - - - - - - - - - -
 	
 	// - - - - TRIANGLE DATA - - - -
-	private Dictionary<int, int> m_trianglesMap = new Dictionary<int, int>( c_initialVertexCapacity /3 );
+	private Mapping<int, int> m_trianglesMap = new Mapping<int, int>( c_initialVertexCapacity /3 );
 	private List<int> m_triangles = new List<int>( c_initialVertexCapacity );	// index buffer, basically
 	// - - - - - - - - - - - - - - -
 	
@@ -37,8 +31,6 @@ public class MorphMesh {
 	
 	public MeshFilter Target { get; private set; }
 	
-	private int _ownershipDataSize { get { return Vertex.c_ownersFast + 1; } }
-	
 #region Implementation
 	public MorphMesh() {}
 	
@@ -46,6 +38,54 @@ public class MorphMesh {
 	
 	public MorphMesh( Component target ) {
 		Target = _GetFilterTarget( target );
+	}
+#endregion
+	
+	
+#region General
+	public void Clear() {
+		m_positions.Clear();
+		m_vertexOwnership.Clear();
+		m_ownershipFast.Clear();
+		
+		m_trianglesMap.Clear();
+		m_triangles.Clear();
+		
+		// Note: not clearing out generation in here!!
+		m_topVertexID = c_invalidID;
+		m_topTriangleID = c_invalidID;
+	}
+	
+	public string Dump() {
+		var result = new System.Text.StringBuilder();
+		result.Append( "Mesh data" );
+		result.Append( "\n" );
+		result.Append( "Vertices: " );
+		result.Append( m_positions.Count );
+		
+		m_vertexOwnership.PadUpTo( m_positions.Count );
+		for( var i = 0; i < m_vertexOwnership.Count; i++ ) {
+			var ownershipData = m_vertexOwnership[i];
+			result.Append( "\n" );
+			result.Append( ownershipData.ToString() );
+		}
+		
+		result.Append( "\n" );
+		result.Append( "Triangles: " );
+		result.Append( m_trianglesMap.Count );
+		result.Append( "\n" );
+		result.Append( m_trianglesMap.Dump() );
+		
+		result.Append( "\n" );
+		result.Append( "Indeces: " );
+		result.Append( "\n" );
+		result.Append( m_triangles.Dump() );
+		
+		return result.ToString();
+	}
+	
+	public void Log() {
+		Debug.Log( Dump() );
 	}
 #endregion
 	
@@ -64,15 +104,7 @@ public class MorphMesh {
 		mesh.GetTriangles( m_triangles, 0 );
 		mesh.GetVertices( m_positions );
 		
-		m_vertexOwnership.PadUpTo( m_positions.Count *_ownershipDataSize, -1 );
-		
-		var trianglesCount = m_triangles.Count /3;
-		for( var triangleIndex = 0; triangleIndex < trianglesCount; triangleIndex++ ) {
-			for( var i = 0; i < 3; i++ ) {
-				var vertexIndex = m_triangles[triangleIndex *3 + i];
-				_RegisterOwnership( vertexIndex, triangleIndex );
-			}
-		}
+		_RebuildTriangleData();
 	}
 	
 	public void Write( GameObject target ) {
@@ -83,7 +115,7 @@ public class MorphMesh {
 		var filterTarget = _GetFilterTarget( target );
 		if( filterTarget == null ) { return; }
 		
-		// _Compactify();
+		_Compactify();
 		var mesh = filterTarget.mesh;
 		mesh.Clear();
 		mesh.SetVertices( m_positions );
@@ -91,19 +123,6 @@ public class MorphMesh {
 		
 		// Debug.LogError( "Vertices: "+m_positions.Count+", triangles: "+m_triangles.Count+", in map: "+m_trianglesMap.Count );
 		mesh.RecalculateNormals();
-	}
-	
-	public void Clear() {
-		m_positions.Clear();
-		m_vertexOwnership.Clear();
-		m_vertexOwnershipExt.Clear();
-		
-		m_trianglesMap.Clear();
-		m_triangles.Clear();
-		
-		// Note: not clearing out generation in here!!
-		m_topVertexID = c_invalidID;
-		m_topTriangleID = c_invalidID;
 	}
 #endregion
 	
@@ -125,13 +144,8 @@ public class MorphMesh {
 		m_positions.PadUpTo( vertexIndex + 1 );
 		m_positions[vertexIndex] = vertex.Position;
 		
-		var ownershipIndex = vertexIndex *_ownershipDataSize;
-		m_vertexOwnership.PadUpTo( ownershipIndex + _ownershipDataSize );
-		m_vertexOwnership[ownershipIndex] = -1;
-		m_vertexOwnershipExt.Remove( vertexIndex );
-		foreach( var triangleID in vertex.Triangles ) {
-			_RegisterOwnership( vertexIndex, triangleID );
-		}
+		m_vertexOwnership.PadUpTo( vertexIndex + 1 );
+		m_vertexOwnership[vertexIndex] = new VertexOwnership( ref vertex, m_ownershipFast );
 	}
 #endregion
 	
@@ -180,73 +194,130 @@ public class MorphMesh {
 	
 	
 #region Private
-	private void _RegisterOwnership( int vertexIndex, int triangleID ) {
-		var ownershipIndex = vertexIndex *_ownershipDataSize;
-		var currentKnownOwners = m_vertexOwnership[ownershipIndex];
-		
-		if( currentKnownOwners < 0 ) {
-			currentKnownOwners = 0;
+	private void _RebuildTriangleData() {
+		var trianglesCount = m_triangles.Count /3;
+		for( var i = 0; i < trianglesCount; i++ ) {
+			m_trianglesMap.Add( i, i );
 		}
 		
-		if( currentKnownOwners < Vertex.c_ownersFast ) {
-			m_vertexOwnership[ownershipIndex + currentKnownOwners + 1] = triangleID;
-		}
-		else {
-			if( !m_vertexOwnershipExt.ContainsKey( vertexIndex ) ) {
-				m_vertexOwnershipExt[vertexIndex] = new List<int>();
+		m_vertexOwnership.PadUpTo( m_positions.Count );
+		m_ownershipFast.PadUpTo( m_positions.Count *Vertex.c_ownersFast );
+		
+		for( var triangleIndex = 0; triangleIndex < trianglesCount; triangleIndex++ ) {
+			var triangleID = m_trianglesMap.GetByValue( triangleIndex );
+			for( var i = 0; i < 3; i++ ) {
+				var vertexIndex = m_triangles[triangleIndex *3 + i];
+				_UpdateOwnership( vertexIndex, triangleID, true );
 			}
-			m_vertexOwnershipExt[vertexIndex].Add( triangleID );
 		}
 	}
 	
+	private void _UpdateOwnership( int vertexIndex, int triangleID, bool isOwned ) {
+		var ownershipData = m_vertexOwnership[vertexIndex];
+		if( !ownershipData.IsInitialized ) {
+			ownershipData = new VertexOwnership( vertexIndex, m_ownershipFast );
+		}
+		
+		if( isOwned ) {
+			ownershipData.RegisterOwner( triangleID );
+		}
+		else {
+			ownershipData.UnRegisterOwner( triangleID );
+		}
+		
+		m_vertexOwnership[vertexIndex] = ownershipData;
+	}
+	
 	private void _Compactify() {
-		foreach( var triangleNote in m_trianglesMap ) {
-			var indexIndex = triangleNote.Value *3;
-			if( m_triangles[indexIndex] == c_invalidID ) {
-				// this is dead!
-			}
-		}
+		_CompactifyTriangles();
+		_CompactifyVertices();
 		
-		var lastAliveIndex = m_positions.Count - 1;
-		var index = 0;
-		while( index <= lastAliveIndex ) {
-			var ownershipIndex = index *_ownershipDataSize;
-			var ownersCount = m_vertexOwnership[ownershipIndex];
-			if( ownersCount != 0 ) {
-				index += 1;
-			}
-			else {
-				// it is dead! We need swaps
-				_DestroyVertex( index, lastAliveIndex );
-				lastAliveIndex -= 1;
-			}
-		}
-		
-		var firstDeadIndex = lastAliveIndex + 1;
-		var itemsToRemove = m_positions.Count - firstDeadIndex;
-		m_positions.RemoveRange( firstDeadIndex, itemsToRemove );
-		m_vertexOwnership.RemoveRange( firstDeadIndex * _ownershipDataSize, itemsToRemove * _ownershipDataSize);
-		// TODO: also other data, should it arise!
+		// TODO: linerialize IDs and indeces!
 		
 		m_generation += 1;
 		// TODO: m_topVertexID, m_topTriangleID
 	}
 	
-	private void _DestroyTriangle( int deadIndex, int aliveIndex ) {
+	private void _CompactifyTriangles() {
+		var trianglesCount = m_triangles.Count /3;
+		var lastAliveIndex = trianglesCount - 1;
+		var index = 0;
+		while( index <= lastAliveIndex ) {
+			var indexIndex = index *3;
+			var isDead = (m_triangles[indexIndex] == c_invalidID);
+			isDead = (m_triangles[indexIndex + 1] == c_invalidID) || isDead;
+			isDead = (m_triangles[indexIndex + 2] == c_invalidID) || isDead;
+			
+			if( isDead ) {
+				_DestroyTriangle( index, lastAliveIndex );
+				lastAliveIndex -= 1;
+			}
+			else {
+				index += 1;
+			}
+		}
 		
+		var firstDeadIndex = lastAliveIndex + 1;
+		var itemsToRemove = trianglesCount - firstDeadIndex;
+		m_triangles.RemoveRange( firstDeadIndex *3, itemsToRemove *3 );
+	}
+	
+	private void _DestroyTriangle( int deadIndex, int aliveIndex ) {
+		var deadID = m_trianglesMap.GetByValue( deadIndex );
+		var aliveID = m_trianglesMap.GetByValue( aliveIndex );
+		
+		for( var i = 0; i < 3; i++ ) {
+			var vertexIndex = m_triangles[deadIndex *3 + i];
+			_UpdateOwnership( vertexIndex, deadID, true );
+		}
+		
+		m_triangles.HalfSwap( deadIndex *3, aliveIndex *3, 3 );
+		m_trianglesMap[deadID] = aliveIndex;
+		m_trianglesMap[aliveID] = deadIndex;
+	}
+	
+	private void _CompactifyVertices() {
+		var vertexCount = m_positions.Count;
+		var lastAliveIndex = vertexCount - 1;
+		var index = 0;
+		while( index <= lastAliveIndex ) {
+			var isDead = (m_vertexOwnership[index].OwnersCount == 0);
+			if( isDead ) {
+				_DestroyVertex( index, lastAliveIndex );
+				lastAliveIndex -= 1;
+			}
+			else {
+				index += 1;
+			}
+		}
+		
+		var firstDeadIndex = lastAliveIndex + 1;
+		var itemsToRemove = vertexCount - firstDeadIndex;
+		m_positions.RemoveRange( firstDeadIndex, itemsToRemove );
+		m_ownershipFast.RemoveRange( firstDeadIndex *Vertex.c_ownersFast, itemsToRemove *Vertex.c_ownersFast );
 	}
 	
 	private void _DestroyVertex( int deadIndex, int aliveIndex ) {
 		m_positions.HalfSwap( deadIndex, aliveIndex );
-		m_vertexOwnership.HalfSwap( deadIndex, aliveIndex, _ownershipDataSize );
+		m_ownershipFast.HalfSwap( deadIndex *Vertex.c_ownersFast, aliveIndex *Vertex.c_ownersFast, Vertex.c_ownersFast );
 		// TODO: also other data, should it arise!
 		
-		if( m_vertexOwnershipExt.ContainsKey( deadIndex ) ) {
-			m_vertexOwnershipExt.Remove( deadIndex );
-		}
-		if( m_vertexOwnershipExt.ContainsKey( aliveIndex ) ) {
-			m_vertexOwnershipExt[deadIndex] = m_vertexOwnershipExt[aliveIndex];
-			m_vertexOwnershipExt.Remove( aliveIndex );
+		var newOwnership = m_vertexOwnership[aliveIndex];
+		newOwnership.UpdateIndex( deadIndex );
+		_MoveVertexInIndeces( aliveIndex, ref newOwnership );
+		m_vertexOwnership[deadIndex] = newOwnership;
+	}
+	
+	private void _MoveVertexInIndeces( int oldIndex, ref VertexOwnership ownership ) {
+		for( var ownerIndex = 0; ownerIndex < ownership.OwnersCount; ownerIndex++ ) {
+			var triangleID = ownership[ownerIndex];
+			var triangleIndex = m_trianglesMap[triangleID];
+			for( var i = 0; i < 3; i++ ) {
+				var vertexIndex = m_triangles[triangleIndex *3 + i];
+				if( vertexIndex == oldIndex ) {
+					m_triangles[triangleIndex *3 + i] = ownership.Index;
+				}
+			}
 		}
 	}
 #endregion
