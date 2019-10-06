@@ -12,6 +12,11 @@ public static class Extensions {
 		}
 	}
 	
+	public static void TrimEnd( this System.Text.StringBuilder builder, int count ) {
+		var removeStart = builder.Length - count;
+		builder.Remove( removeStart, count );
+	}
+	
 #region Temporary
 #endregion
 }

@@ -97,9 +97,7 @@ public static class ListExtensions {
 			counter += 1;
 		}
 		
-		var removeStart = builder.Length - separator.Length;
-		builder.Remove( removeStart, separator.Length );
-		
+		if( counter > 0 ) { builder.TrimEnd( separator.Length ); }
 		return "("+counter+")"+separator+builder.ToString();
 	}
 	
@@ -129,9 +127,7 @@ public static class ListExtensions {
 			counter += 1;
 		}
 		
-		var removeStart = builder.Length - separator.Length;
-		builder.Remove( removeStart, separator.Length );
-		
+		if( counter > 0 ) { builder.TrimEnd( separator.Length ); }
 		return "("+counter+")"+separator+builder.ToString();
 	}
 #endregion
