@@ -16,10 +16,10 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 	
 	public int OwnersCount {
 		get {
-			return m_ownersCount.GetAt( Index );
+			return m_ownersCount[Index];
 		}
 		private set {
-			m_ownersCount.AddAt( value, Index );
+			m_ownersCount[Index] = value;
 		}
 	}
 	
