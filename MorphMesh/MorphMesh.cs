@@ -16,9 +16,9 @@ public class MorphMesh {
 	// - - - - VERTEX DATA - - - -
 	private List<Vector3> m_positions = new List<Vector3>( c_initialVertexCapacity );
 	
-	// private List<VertexOwnership> m_vertexOwnership = new List<VertexOwnership>( c_initialVertexCapacity );
-	private List<int> m_vertexOwnersCount = new List<int>( c_initialVertexCapacity );
-	private List<int> m_ownershipFast = new List<int>( c_initialVertexCapacity *Vertex.c_ownersFast );	// Note: not sure how worth it this optimization is
+	private List<int> m_ownersCount = new List<int>( c_initialVertexCapacity );
+	private List<int> m_ownersFast = new List<int>( c_initialVertexCapacity *Vertex.c_ownersFast );	// Note: not sure how worth it this optimization is
+	private Dictionary<int, HashSet<int>> m_ownersExt = new Dictionary<int, HashSet<int>>();
 	// - - - - - - - - - - - - - -
 	
 	// - - - - TRIANGLE DATA - - - -
@@ -46,8 +46,10 @@ public class MorphMesh {
 #region General
 	public void Clear() {
 		m_positions.Clear();
-		m_vertexOwnersCount.Clear();
-		m_ownershipFast.Clear();
+		
+		m_ownersCount.Clear();
+		m_ownersFast.Clear();
+		m_ownersExt.Clear();
 		
 		m_trianglesMap.Clear();
 		m_triangles.Clear();
@@ -64,10 +66,10 @@ public class MorphMesh {
 		result.Append( "Vertices: " );
 		result.Append( m_positions.Count );
 		
-		m_vertexOwnersCount.PadUpTo( m_positions.Count );
-		m_ownershipFast.PadUpTo( (m_positions.Count + 1) *Vertex.c_ownersFast, -1 );
-		for( var i = 0; i < m_vertexOwnersCount.Count; i++ ) {
-			var ownershipData = _GetOwnershipData( i );
+		m_ownersCount.PadUpTo( m_positions.Count );
+		m_ownersFast.PadUpTo( (m_positions.Count + 1) *Vertex.c_ownersFast, -1 );
+		for( var i = 0; i < m_ownersCount.Count; i++ ) {
+			var ownershipData = _MakeOwnershipData( i );
 			result.Append( "\n" );
 			result.Append( ownershipData.ToString() );
 		}
@@ -146,8 +148,8 @@ public class MorphMesh {
 		m_positions.PadUpTo( vertexIndex + 1 );
 		m_positions[vertexIndex] = vertex.Position;
 		
-		m_vertexOwnership.PadUpTo( vertexIndex + 1 );
-		m_vertexOwnership[vertexIndex] = new VertexOwnership( ref vertex, m_ownershipFast );
+		// This op alone will set all the ownership data needed
+		_MakeOwnershipData( ref vertex );
 	}
 #endregion
 	
@@ -203,32 +205,16 @@ public class MorphMesh {
 			m_trianglesMap.Add( i, i );
 		}
 		
-		m_vertexOwnership.PadUpTo( m_positions.Count );
-		m_ownershipFast.PadUpTo( m_positions.Count *Vertex.c_ownersFast );
+		m_ownersFast.PadUpTo( m_positions.Count *Vertex.c_ownersFast );
 		
 		for( var triangleIndex = 0; triangleIndex < trianglesCount; triangleIndex++ ) {
 			var triangleID = triangleIndex;
 			for( var i = 0; i < 3; i++ ) {
 				var vertexIndex = m_triangles[triangleIndex *3 + i];
-				_UpdateOwnership( vertexIndex, triangleID, true );
+				var ownershipData = _MakeOwnershipData( vertexIndex );
+				ownershipData.AddOwner( triangleID );
 			}
 		}
-	}
-	
-	private void _UpdateOwnership( int vertexIndex, int triangleID, bool isOwned ) {
-		var ownershipData = m_vertexOwnership[vertexIndex];
-		if( !ownershipData.IsInitialized ) {
-			ownershipData = new VertexOwnership( vertexIndex, m_ownershipFast );
-		}
-		
-		if( isOwned ) {
-			ownershipData.RegisterOwner( triangleID );
-		}
-		else {
-			ownershipData.UnRegisterOwner( triangleID );
-		}
-		
-		m_vertexOwnership[vertexIndex] = ownershipData;
 	}
 	
 	private void _Compactify() {
@@ -271,7 +257,8 @@ public class MorphMesh {
 		
 		for( var i = 0; i < 3; i++ ) {
 			var vertexIndex = m_triangles[deadIndex *3 + i];
-			_UpdateOwnership( vertexIndex, deadID, true );
+			var ownershipData = _MakeOwnershipData( vertexIndex );
+			ownershipData.RemoveOwner( deadID );
 		}
 		
 		m_triangles.HalfSwap( deadIndex *3, aliveIndex *3, 3 );
@@ -284,7 +271,7 @@ public class MorphMesh {
 		var lastAliveIndex = vertexCount - 1;
 		var index = 0;
 		while( index <= lastAliveIndex ) {
-			var isDead = (m_vertexOwnership[index].OwnersCount == 0);
+			var isDead = (m_ownersCount[index] == 0);
 			if( isDead ) {
 				_DestroyVertex( index, lastAliveIndex );
 				lastAliveIndex -= 1;
@@ -297,24 +284,23 @@ public class MorphMesh {
 		var firstDeadIndex = lastAliveIndex + 1;
 		var itemsToRemove = vertexCount - firstDeadIndex;
 		m_positions.RemoveRange( firstDeadIndex, itemsToRemove );
-		m_ownershipFast.RemoveRange( firstDeadIndex *Vertex.c_ownersFast, itemsToRemove *Vertex.c_ownersFast );
+		m_ownersFast.RemoveRange( firstDeadIndex *Vertex.c_ownersFast, itemsToRemove *Vertex.c_ownersFast );
 	}
 	
 	private void _DestroyVertex( int deadIndex, int aliveIndex ) {
 		m_positions.HalfSwap( deadIndex, aliveIndex );
-		m_ownershipFast.HalfSwap( deadIndex *Vertex.c_ownersFast, aliveIndex *Vertex.c_ownersFast, Vertex.c_ownersFast );
 		// TODO: also other data, should it arise!
 		
-		var newOwnership = m_vertexOwnership[aliveIndex];
-		newOwnership.UpdateIndex( deadIndex );
-		_MoveVertexInIndeces( aliveIndex, ref newOwnership );
-		m_vertexOwnership[deadIndex] = newOwnership;
+		var deadOwner = _MakeOwnershipData( deadIndex );
+		var aliveOwner = _MakeOwnershipData( aliveIndex );
+		deadOwner.CopyOwnershipFrom( ref aliveOwner );
+		
+		_MoveVertexInIndeces( aliveIndex, ref deadOwner );
 	}
 	
 	private void _MoveVertexInIndeces( int oldIndex, ref VertexOwnership ownership ) {
-		for( var ownerIndex = 0; ownerIndex < ownership.OwnersCount; ownerIndex++ ) {
-			var triangleID = ownership[ownerIndex];
-			var triangleIndex = m_trianglesMap[triangleID];
+		foreach( var ownerID in ownership ) {
+			var triangleIndex = m_trianglesMap[ownerID];
 			for( var i = 0; i < 3; i++ ) {
 				var vertexIndex = m_triangles[triangleIndex *3 + i];
 				if( vertexIndex == oldIndex ) {
@@ -346,8 +332,13 @@ public class MorphMesh {
 		return filterTarget;
 	}
 	
-	private VertexOwnership _GetOwnershipData( int vertexIndex ) {
-		var result = new VertexOwnership( vertexIndex, m_vertexOwnersCount, m_ownershipFast );
+	private VertexOwnership _MakeOwnershipData( int vertexIndex ) {
+		var result = new VertexOwnership( vertexIndex, m_ownersCount, m_ownersFast, m_ownersExt );
+		return result;
+	}
+	
+	private VertexOwnership _MakeOwnershipData( ref Vertex vertex ) {
+		var result = new VertexOwnership( ref vertex, m_ownersCount, m_ownersFast, m_ownersExt );
 		return result;
 	}
 #endregion
