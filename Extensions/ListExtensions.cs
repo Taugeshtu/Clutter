@@ -25,6 +25,31 @@ public static class ListExtensions {
 #endregion
 	
 	
+#region At-s
+	public static T GetAt<T>( this IList<T> list, int index ) {
+		return list.GetAt( index, default( T ) );
+	}
+	public static T GetAt<T>( this IList<T> list, int index, T template ) {
+		if( index < 0 ) { return template; }
+		if( index >= list.Count ) { return template; }
+		return list[index];
+	}
+	
+	public static void AddAt<T>( this IList<T> list, T item, int index ) {
+		list.AddAt( item, index, default( T ) );
+	}
+	public static void AddAt<T>( this IList<T> list, T item, int index, T paddingTemplate ) {
+		if( index == list.Count ) {
+			list.Add( item );
+			return;
+		}
+		
+		list.PadUpTo( index + 1, paddingTemplate );
+		list[index] = item;
+	}
+#endregion
+	
+	
 #region Swaps
 	public static void SwapBack<T>( this IList<T> list, int elementIndex, bool silentFail = false ) {
 		var lastIndex = list.Count - 1;
