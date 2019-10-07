@@ -16,7 +16,8 @@ public class MorphMesh {
 	// - - - - VERTEX DATA - - - -
 	private List<Vector3> m_positions = new List<Vector3>( c_initialVertexCapacity );
 	
-	private List<VertexOwnership> m_vertexOwnership = new List<VertexOwnership>( c_initialVertexCapacity );
+	// private List<VertexOwnership> m_vertexOwnership = new List<VertexOwnership>( c_initialVertexCapacity );
+	private List<int> m_vertexOwnersCount = new List<int>( c_initialVertexCapacity );
 	private List<int> m_ownershipFast = new List<int>( c_initialVertexCapacity *Vertex.c_ownersFast );	// Note: not sure how worth it this optimization is
 	// - - - - - - - - - - - - - -
 	
@@ -45,7 +46,7 @@ public class MorphMesh {
 #region General
 	public void Clear() {
 		m_positions.Clear();
-		m_vertexOwnership.Clear();
+		m_vertexOwnersCount.Clear();
 		m_ownershipFast.Clear();
 		
 		m_trianglesMap.Clear();
@@ -63,9 +64,10 @@ public class MorphMesh {
 		result.Append( "Vertices: " );
 		result.Append( m_positions.Count );
 		
-		m_vertexOwnership.PadUpTo( m_positions.Count );
-		for( var i = 0; i < m_vertexOwnership.Count; i++ ) {
-			var ownershipData = m_vertexOwnership[i];
+		m_vertexOwnersCount.PadUpTo( m_positions.Count );
+		m_ownershipFast.PadUpTo( (m_positions.Count + 1) *Vertex.c_ownersFast, -1 );
+		for( var i = 0; i < m_vertexOwnersCount.Count; i++ ) {
+			var ownershipData = _GetOwnershipData( i );
 			result.Append( "\n" );
 			result.Append( ownershipData.ToString() );
 		}
@@ -342,6 +344,11 @@ public class MorphMesh {
 			Debug.LogWarning( "Tried to find filter target on '"+target.gameObject.name+"', but no MeshFilter was found there!" );
 		}
 		return filterTarget;
+	}
+	
+	private VertexOwnership _GetOwnershipData( int vertexIndex ) {
+		var result = new VertexOwnership( vertexIndex, m_vertexOwnersCount, m_ownershipFast );
+		return result;
 	}
 #endregion
 }

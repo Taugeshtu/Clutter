@@ -2,15 +2,23 @@
 using System.Collections.Generic;
 
 namespace Clutter.Mesh {
+// Transient internal structure: get it, mod it & forget it!
 internal struct VertexOwnership {
 	public bool IsInitialized;
 	public int Index;
-		public int OwnersCount;	// Note: this should be moved into a separate List<int> inside MorphMesh itself! Will allow for transient struct
+		// public int OwnersCount;	// Note: this should be moved into a separate List<int> inside MorphMesh itself! Will allow for transient struct
 	
+	private List<int> m_ownersCount;
 	private List<int> m_ownersFast;
 	private List<int> m_ownersExt;
 	
 	private int _fastIndex { get { return Index *Vertex.c_ownersFast; } }
+	
+	public int OwnersCount {
+		get {
+			return m_ownersCount[Index];
+		}
+	}
 	
 	public int this[int ownerIndex] {
 		get {
@@ -39,19 +47,19 @@ internal struct VertexOwnership {
 	}
 	
 #region Implementation
-	public VertexOwnership( ref Vertex vertex, List<int> ownersFast ) : this( vertex.Index, ownersFast ) {
+	public VertexOwnership( ref Vertex vertex, List<int> ownersCount, List<int> ownersFast ) : this( vertex.Index, ownersCount, ownersFast ) {
 		foreach( var triangleID in vertex.Triangles ) {
 			if( triangleID == MorphMesh.c_invalidID ) { continue; }
 			RegisterOwner( triangleID );
 		}
 	}
-	public VertexOwnership( int vertexIndex, List<int> ownersFast ) {
+	public VertexOwnership( int vertexIndex, List<int> ownersCount, List<int> ownersFast ) {
 		IsInitialized = true;
+		m_ownersCount = ownersCount;
 		m_ownersFast = ownersFast;
 		m_ownersExt = null;
 		
 		Index = vertexIndex;
-		OwnersCount = 0;
 	}
 	
 	public override string ToString() {
