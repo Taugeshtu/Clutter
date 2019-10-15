@@ -65,6 +65,7 @@ public static class RNG {
 	}
 	
 	public static string Generate( int hash, Format format = Format.PascalCase ) {
+		hash = Mathf.Abs( hash );
 		var adjectiveCode = (hash /100) %10;
 		var colorCode = (hash /10) %10;
 		var nounCode = (hash) %10;
