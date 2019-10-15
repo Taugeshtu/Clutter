@@ -78,11 +78,11 @@ public static class RNG {
 		if( isSpaced ) { s_builder.Append( ' ' ); }
 		
 		var colorStart = s_builder.Length;
-		s_builder.Append( s_adjectives[colorCode] );
+		s_builder.Append( s_colors[colorCode] );
 		if( isSpaced ) { s_builder.Append( ' ' ); }
 		
 		var nounStart = s_builder.Length;
-		s_builder.Append( s_adjectives[nounCode] );
+		s_builder.Append( s_nouns[nounCode] );
 		
 		if( isPascal ) {
 			s_builder[0] = char.ToUpperInvariant( s_builder[0] );
