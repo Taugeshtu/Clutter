@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
+namespace Clutter {
 public class Mapping<TKey, TValue> : Dictionary<TKey, TValue> {
 	private Dictionary<TValue, TKey> m_invertedMap;
 	
@@ -58,4 +59,5 @@ public class Mapping<TKey, TValue> : Dictionary<TKey, TValue> {
 	
 #region Temporary
 #endregion
+}
 }

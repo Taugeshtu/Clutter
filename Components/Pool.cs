@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
+namespace Clutter {
 public class Pool<T> where T : UnityEngine.Object {
 	private bool m_isGOPool = false;
 	private T m_prefab;
@@ -76,4 +77,5 @@ public class Pool<T> where T : UnityEngine.Object {
 	
 #region Temporary
 #endregion
+}
 }
