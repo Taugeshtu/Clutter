@@ -9,7 +9,7 @@ public enum SinShape {
 }
 
 public static class Sin {
-	private static float _halfPI { get { return Mathf.PI *0.5f; } }
+	private const float c_halfPI = Mathf.PI *0.5f;
 	
 #region Implementation
 #endregion
@@ -25,21 +25,20 @@ public static class Sin {
 		var lift = 0f;
 		switch( shape ) {
 			case SinShape.CFalling:
-				shift = _halfPI;
+				shift = c_halfPI;
 				break;
 			case SinShape.JRising:
-				shift = 3 *_halfPI;
+				shift = 3 *c_halfPI;
 				lift = 1f;
 				break;
 			case SinShape.JFalling:
-				shift = 2 *_halfPI;
+				shift = 2 *c_halfPI;
 				lift = 1f;
 				break;
 		}
 		
-		var result01 = lift + Mathf.Sin( shift + factor *_halfPI );
+		var result01 = lift + Mathf.Sin( shift + factor *c_halfPI );
 		return Mathf.Lerp( min, max, result01 );
-		// return a + (1f - b) *result01;
 	}
 #endregion
 	
