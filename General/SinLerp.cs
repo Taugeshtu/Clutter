@@ -5,7 +5,9 @@ public enum SinShape {
 	CRising,	// [0 -> 1] First quarter of Sin()
 	CFalling,	// [1 -> 0] Second quarter
 	JRising,	// [0 -> 1] Fourth quater + 1
-	JFalling	// [1 -> 0] Third quarter + 1
+	JFalling,	// [1 -> 0] Third quarter + 1
+	LinearRising,	// [0 -> 1] linear
+	LinearFalling,	// [1 -> 0] linear
 }
 
 public static class Sin {
@@ -21,6 +23,13 @@ public static class Sin {
 	}
 	
 	public static float Lerp( float min, float max, float factor, SinShape shape ) {
+		if( shape == SinShape.LinearRising ) {
+			return Mathf.Lerp( min, max, factor );
+		}
+		if( shape == SinShape.LinearFalling ) {
+			return Mathf.Lerp( min, max, 1f - factor );
+		}
+		
 		var shift = 0f;
 		var lift = 0f;
 		switch( shape ) {
