@@ -74,7 +74,14 @@ public static class Draw {
 #endregion
 	
 	
-#region Cross
+#region Marks
+	public static void V( Vector3 position, Color? color = null, float size = c_crossSize, float duration = 0f ) {
+		var p1 = position + Vector3.up *size + Vector3.right *(size *0.37f);
+		var p2 = position + Vector3.up *size + Vector3.forward *(size *0.37f);
+		Draw.Line( position, p1, color, duration );
+		Draw.Line( position, p2, color, duration );
+	}
+	
 	public static void Cross( Vector3 position, Color? color = null, float size = c_crossSize, float duration = 0f ) {
 		var drawColor = (color.HasValue) ? color.Value : s_color;
 		
@@ -102,11 +109,27 @@ public static class Draw {
 		Cube( corner, Vector3.up *size, Vector3.right *size, Vector3.forward *size, color, duration );
 	}
 	
-	public static void CubeCentered( Vector3 center, Vector3 up, Vector3 right, Vector3 forward, Color? color = null, float duration = 0f ) {
-		var corner = center - up - right - forward;
-		Cube( corner, up *2, right *2, forward *2, color, duration );
+	public static void CubeCentered( Vector3 center, Vector3 halfUp, Vector3 halfRight, Vector3 halfForward, Color? color = null, float duration = 0f ) {
+		var corner = center - halfUp - halfRight - halfForward;
+		Cube( corner, halfUp *2, halfRight *2, halfForward *2, color, duration );
+	}
+	public static void CubeCentered( Vector3 center, Quaternion rotation, Color? color = null, float duration = 0f ) {
+		Cube( center, rotation, Vector3.one *c_crossSize, color, duration );
+	}
+	public static void CubeCentered( Vector3 center, Quaternion rotation, Vector3 size, Color? color = null, float duration = 0f ) {
+		var corner = center - rotation *(size *0.5f);
+		Cube( corner, rotation, size, color, duration );
 	}
 	
+	public static void Cube( Vector3 corner, Quaternion rotation, Color? color = null, float duration = 0f ) {
+		Cube( corner, rotation, Vector3.one *c_crossSize, color, duration );
+	}
+	public static void Cube( Vector3 corner, Quaternion rotation, Vector3 size, Color? color = null, float duration = 0f ) {
+		var up = (rotation *Vector3.up) *size.y;
+		var right = (rotation *Vector3.right) *size.x;
+		var forward = (rotation *Vector3.forward) *size.z;
+		Cube( corner, up, right, forward, color, duration );
+	}
 	public static void Cube( Vector3 corner, Vector3 up, Vector3 right, Vector3 forward, Color? color = null, float duration = 0f ) {
 		var drawColor = (color.HasValue) ? color.Value : s_color;
 		

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-public static class RNG {
+public static partial class RNG {
 	public enum Format {
 		PascalCase,
 		camelCase,
