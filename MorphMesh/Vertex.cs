@@ -19,7 +19,7 @@ public struct Vertex {
 #region Implementation
 	public static Vertex Invalid {
 		get {
-			return new Vertex( MorphMesh.c_invalidID, MorphMesh.c_invalidID, VectorExtensions.Invalid3 );
+			return new Vertex( MorphMesh.c_invalidID, MorphMesh.c_invalidID, Vector.Invalid3 );
 		}
 	}
 	

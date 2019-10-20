@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 
 //===========================================================//===========================================================
-public static class VectorExtensions {
-	
+public static class Vector {
 #region Invalids
 	public static Vector2 Invalid2 {
 		get {
@@ -23,7 +22,9 @@ public static class VectorExtensions {
 		}
 	}
 #endregion
-	
+}
+
+public static class VectorExtensions {
 	
 #region Vector2 converters
 	//===========================================================
