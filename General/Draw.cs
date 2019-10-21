@@ -5,6 +5,7 @@ using UnityEngine;
 public static class Draw {
 	private const float c_crossSize = 0.5f;
 	private const float c_arrowSize = 0.1f;
+	private const float c_arrowCrossRatio = c_arrowSize /c_crossSize;
 	
 	private static Color s_color = Color.magenta;
 	
@@ -78,8 +79,8 @@ public static class Draw {
 	public static void V( Vector3 position, Color? color = null, float size = c_crossSize, float duration = 0f ) {
 		var p1 = position + Vector3.up *size + Vector3.right *(size *0.37f);
 		var p2 = position + Vector3.up *size + Vector3.forward *(size *0.37f);
-		Draw.Line( position, p1, color, duration );
-		Draw.Line( position, p2, color, duration );
+		Line( position, p1, color, duration );
+		Line( position, p2, color, duration );
 	}
 	
 	public static void Cross( Vector3 position, Color? color = null, float size = c_crossSize, float duration = 0f ) {
@@ -88,6 +89,18 @@ public static class Draw {
 		Debug.DrawRay( position - Vector3.up *size, Vector3.up *size *2, drawColor, duration );
 		Debug.DrawRay( position - Vector3.right *size, Vector3.right *size *2, drawColor, duration );
 		Debug.DrawRay( position - Vector3.forward *size, Vector3.forward *size *2, drawColor, duration );
+	}
+	
+	public static void Pose( Pose pose, Color? color = null, float size = c_crossSize, float duration = 0f ) {
+		var right = pose.rotation *(Vector3.right *size);
+		var up = pose.rotation *(Vector3.up *size);
+		var forward = pose.rotation *(Vector3.forward *size);
+		
+		var arrowSize = size *c_arrowCrossRatio;
+		V( pose.position, color, arrowSize, duration );
+		RayFromTo( pose.position, pose.position + right, Palette.red, arrowSize, duration );
+		RayFromTo( pose.position, pose.position + up, Palette.green, arrowSize, duration );
+		RayFromTo( pose.position, pose.position + forward, Palette.blue, arrowSize, duration );
 	}
 #endregion
 	
