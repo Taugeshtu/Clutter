@@ -97,7 +97,7 @@ public static class Draw {
 		var forward = pose.rotation *(Vector3.forward *size);
 		
 		var arrowSize = size *c_arrowCrossRatio;
-		V( pose.position, color, arrowSize, duration );
+		V( pose.position, color, arrowSize *2, duration );
 		RayFromTo( pose.position, pose.position + right, Palette.red, arrowSize, duration );
 		RayFromTo( pose.position, pose.position + up, Palette.green, arrowSize, duration );
 		RayFromTo( pose.position, pose.position + forward, Palette.blue, arrowSize, duration );
