@@ -21,6 +21,19 @@ public static class Vector {
 			return new Vector4( float.NaN, float.NaN, float.NaN, float.NaN );
 		}
 	}
+	
+	// VectorInt-s
+	public static Vector2Int Invalid2Int {
+		get {
+			return new Vector2Int( int.MinValue, int.MinValue );
+		}
+	}
+	
+	public static Vector3Int Invalid3Int {
+		get {
+			return new Vector3Int( int.MinValue, int.MinValue, int.MinValue );
+		}
+	}
 #endregion
 }
 

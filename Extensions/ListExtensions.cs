@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Text;
 
 public static class ListExtensions {
 	
@@ -106,6 +107,10 @@ public static class ListExtensions {
 	}
 	public static string Dump<T>( this IEnumerable<T> list, string separator = ", ", System.Func<T, string> printer = null ) {
 		var builder = new System.Text.StringBuilder();
+		var counter = list.DumpInto( builder, separator, printer );
+		return "("+counter+")"+separator+builder.ToString();
+	}
+	public static int DumpInto<T>( this IEnumerable<T> list, StringBuilder builder, string separator = ", ", System.Func<T, string> printer = null ) {
 		var hasPrinter = (printer != null);
 		var canBeNull = (default( T ) == null);
 		var counter = 0;
@@ -123,17 +128,20 @@ public static class ListExtensions {
 		}
 		
 		if( counter > 0 ) { builder.TrimEnd( separator.Length ); }
-		return "("+counter+")"+separator+builder.ToString();
+		return counter;
 	}
 	
 	public static string Dump<TKey, TValue>( this Dictionary<TKey, TValue> dictionary, System.Func<TValue, string> printer, string separator = "\n" ) {
 		return dictionary.Dump( separator, printer );
 	}
 	public static string Dump<TKey, TValue>( this Dictionary<TKey, TValue> dictionary, string separator = "\n", System.Func<TValue, string> printer = null ) {
-		var builder = new System.Text.StringBuilder();
+		var builder = new StringBuilder();
+		var counter = dictionary.DumpInto( builder, separator, printer );
+		return "("+counter+")"+separator+builder.ToString();
+	}
+	public static int DumpInto<TKey, TValue>( this Dictionary<TKey, TValue> dictionary, StringBuilder builder, string separator = "\n", System.Func<TValue, string> printer = null ) {
 		var hasPrinter = (printer != null);
 		var canBeNull = (default( TValue ) == null);
-		var counter = 0;
 		
 		foreach( var pair in dictionary ) {
 			builder.Append( "[" );
@@ -148,12 +156,11 @@ public static class ListExtensions {
 			builder.Append( "]" );
 			
 			builder.Append( separator );
-			
-			counter += 1;
 		}
 		
+		var counter = dictionary.Count;
 		if( counter > 0 ) { builder.TrimEnd( separator.Length ); }
-		return "("+counter+")"+separator+builder.ToString();
+		return counter;
 	}
 #endregion
 	
