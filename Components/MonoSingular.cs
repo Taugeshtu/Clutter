@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace Clutter {
-public abstract class MonoSingular<T> : MonoBehaviour where T: MonoSingular<T> {
+public abstract class MonoSingular<T> : MonoBehaviour where T: MonoSingular<T>, new() {
 	private static StringBuilder s_builder = new StringBuilder();
 	private static string s_typeString = typeof( T ).ToString();
 	private static T s_actualInstance;
@@ -14,9 +14,9 @@ public abstract class MonoSingular<T> : MonoBehaviour where T: MonoSingular<T> {
 	public static T s_Instance {
 		get {
 			if( s_behaviour == null ) {
-				var spawned = _SpawnInstance();
-				s_behaviour = spawned.Behaviour;
-				Destroy( spawned );
+				var mockSpawned = new T();
+				s_behaviour = mockSpawned.Behaviour;
+				DestroyImmediate( mockSpawned );
 			}
 			
 			if( s_actualInstance != null ) { return s_actualInstance; }
@@ -52,7 +52,7 @@ public abstract class MonoSingular<T> : MonoBehaviour where T: MonoSingular<T> {
 		public bool DontDestroy { get; private set; }
 		public bool SearchInactive { get; private set; }
 		
-		public BehaviourSettings( bool spawnIfMissing, bool dontDestroy, bool searchInactive ) {
+		public BehaviourSettings( bool spawnIfMissing, bool dontDestroy, bool searchInactive = true ) {
 			SpawnIfMissing = spawnIfMissing;
 			DontDestroy = dontDestroy;
 			SearchInactive = searchInactive;
@@ -70,17 +70,17 @@ public abstract class MonoSingular<T> : MonoBehaviour where T: MonoSingular<T> {
 #region Internals
 	protected static void _log( string message ) {
 		var formatted = _FormatMessage( message );
-		Debug.Log( formatted, s_Instance );
+		Debug.Log( formatted, s_actualInstance );
 	}
 	
 	protected static void _logWarning( string message ) {
 		var formatted = _FormatMessage( message );
-		Debug.LogWarning( formatted, s_Instance );
+		Debug.LogWarning( formatted, s_actualInstance );
 	}
 	
 	protected static void _logError( string message ) {
 		var formatted = _FormatMessage( message );
-		Debug.LogError( formatted, s_Instance );
+		Debug.LogError( formatted, s_actualInstance );
 	}
 #endregion
 	
