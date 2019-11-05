@@ -56,7 +56,7 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 		var fastIndex = _fastIndex;
 		for( var ownerIndex = 0; ownerIndex < ownersCount; ownerIndex++ ) {
 			if( ownerIndex < Vertex.c_ownersFast ) {
-				yield return fastIndex + ownerIndex;
+				yield return m_ownersFast[fastIndex + ownerIndex];
 			}
 			else {
 				break;
