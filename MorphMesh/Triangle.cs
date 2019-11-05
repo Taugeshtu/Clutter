@@ -11,18 +11,18 @@ public struct Triangle {
 	public Vertex B;
 	public Vertex C;
 	
-#region Implementation
-	public Triangle( long generation, int ownID ) {
-		Generation = generation;
-		ID = ownID;
-		
-		A = Vertex.Invalid;
-		B = Vertex.Invalid;
-		C = Vertex.Invalid;
+	private MorphMesh m_mesh;
+	
+	public bool IsValid {
+		get {
+			return (Generation == m_mesh.m_generation);
+		}
 	}
 	
-	public Triangle( long generation, int ownID, ref Vertex a, ref Vertex b, ref Vertex c ) {
-		Generation = generation;
+#region Implementation
+	public Triangle( MorphMesh mesh, int ownID, ref Vertex a, ref Vertex b, ref Vertex c ) {
+		m_mesh = mesh;
+		Generation = mesh.m_generation;
 		ID = ownID;
 		
 		A = a;

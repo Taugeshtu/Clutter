@@ -4,37 +4,40 @@ using System.Collections.Generic;
 
 namespace Clutter.Mesh {
 // Transient internal structure: get it, mod it & forget it!
-// Doesn't need generations since it's EN-TI-RE-LY internal!
 internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 	public const int c_ownersFast = 5;
 	
+	public long Generation;
 	public int Index;
 	
-	private List<int> m_ownersCount;
-	private List<int> m_ownersFast;
-	private Dictionary<int, HashSet<int>> m_ownersExt;
+	private MorphMesh m_mesh;
 	
 	private int _fastIndex { get { return Index *c_ownersFast; } }
+	private List<int> _ownersCount { get { return m_mesh.m_ownersCount; } }
+	private List<int> _ownersFast { get { return m_mesh.m_ownersFast; } }
+	private Dictionary<int, HashSet<int>> _ownersExt { get { return m_mesh.m_ownersExt; } }
 	
 	public int OwnersCount {
+		get { return _ownersCount[Index]; }
+		private set { _ownersCount[Index] = value; }
+	}
+	
+	public bool IsValid {
 		get {
-			return m_ownersCount[Index];
-		}
-		private set {
-			m_ownersCount[Index] = value;
+			return (Index != MorphMesh.c_invalidID) && (Generation == m_mesh.m_generation);
 		}
 	}
 	
 #region Implementation
-	public VertexOwnership( ref Vertex vertex, List<int> ownersCountList, List<int> ownersFast, Dictionary<int, HashSet<int>> ownersExt )
-	: this( vertex.Index, ownersCountList, ownersFast, ownersExt ) {
+	internal VertexOwnership( MorphMesh mesh, ref Vertex vertex )
+	: this( mesh, vertex.Index ) {
 		
 		var ownersCount = 0;
 		foreach( var triangleID in vertex.Triangles ) {
 			if( triangleID == MorphMesh.c_invalidID ) { continue; }
 			
 			if( ownersCount < c_ownersFast ) {
-				m_ownersFast[_fastIndex + ownersCount] = triangleID;
+				_ownersFast[_fastIndex + ownersCount] = triangleID;
 			}
 			else {
 				_AddToExt( triangleID );
@@ -44,10 +47,9 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 		OwnersCount = ownersCount;
 	}
 	
-	public VertexOwnership( int vertexIndex, List<int> ownersCount, List<int> ownersFast, Dictionary<int, HashSet<int>> ownersExt ) {
-		m_ownersCount = ownersCount;
-		m_ownersFast = ownersFast;
-		m_ownersExt = ownersExt;
+	internal VertexOwnership( MorphMesh mesh, int vertexIndex ) {
+		m_mesh = mesh;
+		Generation = mesh.m_generation;
 		
 		Index = vertexIndex;
 	}
@@ -58,15 +60,15 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 		var fastIndex = _fastIndex;
 		for( var ownerIndex = 0; ownerIndex < ownersCount; ownerIndex++ ) {
 			if( ownerIndex < c_ownersFast ) {
-				yield return m_ownersFast[fastIndex + ownerIndex];
+				yield return _ownersFast[fastIndex + ownerIndex];
 			}
 			else {
 				break;
 			}
 		}
 		
-		if( m_ownersExt.ContainsKey( Index ) ) {
-			var extOwners = m_ownersExt[Index];
+		if( _ownersExt.ContainsKey( Index ) ) {
+			var extOwners = _ownersExt[Index];
 			foreach( var extOwner in extOwners ) {
 				yield return extOwner;
 			}
@@ -95,10 +97,10 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 	
 	
 #region Public
-	public void AddOwner( int triangleID ) {
+	internal void AddOwner( int triangleID ) {
 		var ownersCount = OwnersCount;
 		if( ownersCount < c_ownersFast ) {
-			m_ownersFast[_fastIndex + ownersCount] = triangleID;
+			_ownersFast[_fastIndex + ownersCount] = triangleID;
 			OwnersCount = ownersCount + 1;
 			return;
 		}
@@ -107,7 +109,7 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 		OwnersCount = ownersCount + 1;
 	}
 	
-	public void RemoveOwner( int triangleID ) {
+	internal void RemoveOwner( int triangleID ) {
 		if( triangleID == MorphMesh.c_invalidID ) { return; }
 		
 		var ownersCount = OwnersCount;
@@ -115,9 +117,9 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 		var fastIndex = _fastIndex;
 		
 		for( var ownerIndex = 0; ownerIndex < fastLimit; ownerIndex++ ) {
-			var candidateID = m_ownersFast[fastIndex + ownerIndex];
+			var candidateID = _ownersFast[fastIndex + ownerIndex];
 			if( candidateID == triangleID ) {
-				m_ownersFast.HalfSwap( fastIndex + ownerIndex, fastIndex + c_ownersFast - 1 );
+				_ownersFast.HalfSwap( fastIndex + ownerIndex, fastIndex + c_ownersFast - 1 );
 				OwnersCount = ownersCount - 1;
 				return;
 			}
@@ -131,19 +133,19 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 		}
 	}
 	
-	public void CopyOwnershipFrom( ref VertexOwnership other ) {
+	internal void CopyOwnershipFrom( ref VertexOwnership other ) {
 		var deadIndex = Index;
 		var aliveIndex = other.Index;
 		
-		m_ownersCount.HalfSwap( deadIndex, aliveIndex );
-		m_ownersFast.HalfSwap( deadIndex *c_ownersFast, aliveIndex *c_ownersFast, c_ownersFast );
+		_ownersCount.HalfSwap( deadIndex, aliveIndex );
+		_ownersFast.HalfSwap( deadIndex *c_ownersFast, aliveIndex *c_ownersFast, c_ownersFast );
 		
-		if( m_ownersExt.ContainsKey( aliveIndex ) ) {
-			m_ownersExt[deadIndex] = m_ownersExt[aliveIndex];
-			m_ownersExt.Remove( aliveIndex );
+		if( _ownersExt.ContainsKey( aliveIndex ) ) {
+			_ownersExt[deadIndex] = _ownersExt[aliveIndex];
+			_ownersExt.Remove( aliveIndex );
 		}
 		else {
-			m_ownersExt.Remove( deadIndex );
+			_ownersExt.Remove( deadIndex );
 		}
 	}
 #endregion
@@ -152,12 +154,12 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 #region Private
 	private void _AddToExt( int triangleID ) {
 		HashSet<int> extOwners;
-		if( !m_ownersExt.ContainsKey( Index ) ) {
+		if( !_ownersExt.ContainsKey( Index ) ) {
 			extOwners = new HashSet<int>();
-			m_ownersExt[Index] = extOwners;
+			_ownersExt[Index] = extOwners;
 		}
 		else {
-			extOwners = m_ownersExt[Index];
+			extOwners = _ownersExt[Index];
 		}
 		
 		extOwners.Add( triangleID );
@@ -165,12 +167,12 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 	
 	private bool _RemoveFromExt( int triangleID ) {
 		var removed = false;
-		if( m_ownersExt.ContainsKey( Index ) ) {
-			var extOwners = m_ownersExt[Index];
+		if( _ownersExt.ContainsKey( Index ) ) {
+			var extOwners = _ownersExt[Index];
 			removed = extOwners.Remove( triangleID );
 			if( removed ) {
 				if( extOwners.Count == 0 ) {
-					m_ownersExt.Remove( Index );
+					_ownersExt.Remove( Index );
 				}
 			}
 		}

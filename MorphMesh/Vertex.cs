@@ -2,31 +2,31 @@
 using System.Collections.Generic;
 
 namespace Clutter.Mesh {
-// This gonna be a TEMPORARY struct to get/set vertex data
+// A transient struct to get/set vertex data
 public struct Vertex {
 	public long Generation;
 	public int Index;
-	public Vector3 Position;
 	
+	private MorphMesh m_mesh;
+	private List<Vector3> _positions { get { return m_mesh.m_positions; } }
 	// TODO: UVs, colors, etc
 	
-	public HashSet<int> Triangles;
-	
-	public bool IsValid { get { return Index != MorphMesh.c_invalidID; } }
-	
-#region Implementation
-	public static Vertex Invalid {
+	public bool IsValid {
 		get {
-			return new Vertex( MorphMesh.c_invalidID, MorphMesh.c_invalidID, Vector.Invalid3 );
+			return (Index != MorphMesh.c_invalidID) && (Generation == m_mesh.m_generation);
 		}
 	}
 	
-	public Vertex( long generation, int id, Vector3 position ) {
-		Generation = generation;
+	public Vector3 Postiion {
+		get { return _positions[Index]; }
+		set { _positions[Index] = value; }
+	}
+	
+#region Implementation
+	internal Vertex( MorphMesh mesh, int id ) {
+		m_mesh = mesh;
+		Generation = mesh.m_generation;
 		Index = id;
-		Position = position;
-		
-		Triangles = new HashSet<int>();
 	}
 #endregion
 	
@@ -36,13 +36,6 @@ public struct Vertex {
 	
 	
 #region Private
-	internal void RegisterTriangle( int triangleID ) {
-		Triangles.Add( triangleID );
-	}
-	
-	internal void UnRegisterTriangle( int triangleID ) {
-		Triangles.Remove( triangleID );
-	}
 #endregion
 	
 	

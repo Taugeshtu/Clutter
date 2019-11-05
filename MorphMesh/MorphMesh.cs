@@ -14,19 +14,19 @@ public class MorphMesh {
 	private const int c_initialVertexCapacity = 300;
 	
 	// - - - - VERTEX DATA - - - -
-	private List<Vector3> m_positions = new List<Vector3>( c_initialVertexCapacity );
+	internal List<Vector3> m_positions = new List<Vector3>( c_initialVertexCapacity );
 	
-	private List<int> m_ownersCount = new List<int>( c_initialVertexCapacity );
-	private List<int> m_ownersFast = new List<int>( c_initialVertexCapacity *VertexOwnership.c_ownersFast );	// Note: not sure how worth it this optimization is
-	private Dictionary<int, HashSet<int>> m_ownersExt = new Dictionary<int, HashSet<int>>();
+	internal List<int> m_ownersCount = new List<int>( c_initialVertexCapacity );
+	internal List<int> m_ownersFast = new List<int>( c_initialVertexCapacity *VertexOwnership.c_ownersFast );	// Note: not sure how worth it this optimization is
+	internal Dictionary<int, HashSet<int>> m_ownersExt = new Dictionary<int, HashSet<int>>();
 	// - - - - - - - - - - - - - -
 	
 	// - - - - TRIANGLE DATA - - - -
-	private Mapping<int, int> m_trianglesMap = new Mapping<int, int>( c_initialVertexCapacity /3 );
-	private List<int> m_triangles = new List<int>( c_initialVertexCapacity );	// index buffer, basically
+	internal Mapping<int, int> m_trianglesMap = new Mapping<int, int>( c_initialVertexCapacity /3 );	// ID <-> triangleIndex
+	internal List<int> m_indeces = new List<int>( c_initialVertexCapacity );	// index buffer, basically
 	// - - - - - - - - - - - - - - -
 	
-	private long m_generation = 0;	// should never be reset!
+	internal long m_generation = 0;	// should never be reset!
 	private int m_topVertexID = c_invalidID;
 	private int m_topTriangleID = c_invalidID;
 	
@@ -52,7 +52,7 @@ public class MorphMesh {
 		m_ownersExt.Clear();
 		
 		m_trianglesMap.Clear();
-		m_triangles.Clear();
+		m_indeces.Clear();
 		
 		// Note: not clearing out generation in here!!
 		m_topVertexID = c_invalidID;
@@ -81,7 +81,7 @@ public class MorphMesh {
 		result.Append( "\n" );
 		result.Append( "Indeces: " );
 		result.Append( "\n" );
-		result.Append( m_triangles.Dump() );
+		result.Append( m_indeces.Dump() );
 		
 		return result.ToString();
 	}
@@ -103,7 +103,7 @@ public class MorphMesh {
 		
 		Clear();
 		var mesh = filterTarget.mesh;
-		mesh.GetTriangles( m_triangles, 0 );
+		mesh.GetTriangles( m_indeces, 0 );
 		mesh.GetVertices( m_positions );
 		
 		_RebuildTriangleData();
@@ -121,7 +121,7 @@ public class MorphMesh {
 		var mesh = filterTarget.mesh;
 		mesh.Clear();
 		mesh.SetVertices( m_positions );
-		mesh.SetTriangles( m_triangles, 0 );
+		mesh.SetTriangles( m_indeces, 0 );
 		
 		// Debug.LogError( "Vertices: "+m_positions.Count+", triangles: "+m_triangles.Count+", in map: "+m_trianglesMap.Count );
 		mesh.RecalculateNormals();
@@ -132,15 +132,15 @@ public class MorphMesh {
 #region Vertex ops
 	public Vertex EmitVertex( Vector3 position ) {
 		m_topVertexID += 1;
-		var vertex = new Vertex( m_generation, m_topVertexID, position );
+		var vertex = new Vertex( this, m_topVertexID );
 		return vertex;
 	}
 	
 	public void PushVertex( Vertex vertex ) {
-		if( vertex.Generation != m_generation ) {
-			Debug.LogWarning( "Trying to add a vertex from another generation! Vertex: "+vertex.Generation+", now is "+m_generation );
-			return;
-		}
+		// if( vertex.Generation != m_generation ) {
+		// 	Debug.LogWarning( "Trying to add a vertex from another generation! Vertex: "+vertex.Generation+", now is "+m_generation );
+		// 	return;
+		// }
 		
 		var vertexIndex = vertex.Index;
 		m_positions.PadUpTo( vertexIndex + 1 );
@@ -149,7 +149,7 @@ public class MorphMesh {
 		// This op alone will set all the ownership data needed
 		m_ownersCount.PadUpTo( vertexIndex + 1 );
 		m_ownersFast.PadUpTo( (vertexIndex + 1) *VertexOwnership.c_ownersFast );
-		new VertexOwnership( ref vertex, m_ownersCount, m_ownersFast, m_ownersExt );
+		new VertexOwnership( this, ref vertex );
 	}
 #endregion
 	
@@ -165,7 +165,7 @@ public class MorphMesh {
 	
 	public Triangle EmitTriangle( ref Vertex vA, ref Vertex vB, ref Vertex vC ) {
 		m_topTriangleID += 1;
-		var triangle = new Triangle( m_generation, m_topTriangleID, ref vA, ref vB, ref vC );
+		var triangle = new Triangle( this, m_topTriangleID, ref vA, ref vB, ref vC );
 		return triangle;
 	}
 	
@@ -180,7 +180,7 @@ public class MorphMesh {
 		PushVertex( triangle.C );
 		
 		// This will put the data either in existing index/slot, OR create a new slot & pad up the index buffer for it
-		var triangleIndex = m_triangles.Count /3;
+		var triangleIndex = m_indeces.Count /3;
 		if( m_trianglesMap.ContainsKey( triangle.ID ) ) {
 			triangleIndex = m_trianglesMap[triangle.ID];
 		}
@@ -189,10 +189,10 @@ public class MorphMesh {
 		}
 		
 		var indexIndex = triangleIndex *3;	// Confusing, but: index in index buffer
-		m_triangles.PadUpTo( indexIndex + 3 );
-		m_triangles[indexIndex + 0] = triangle.A.Index;
-		m_triangles[indexIndex + 1] = triangle.B.Index;
-		m_triangles[indexIndex + 2] = triangle.C.Index;
+		m_indeces.PadUpTo( indexIndex + 3 );
+		m_indeces[indexIndex + 0] = triangle.A.Index;
+		m_indeces[indexIndex + 1] = triangle.B.Index;
+		m_indeces[indexIndex + 2] = triangle.C.Index;
 	}
 #endregion
 	
@@ -200,7 +200,7 @@ public class MorphMesh {
 #region Private
 	private void _RebuildTriangleData() {
 		// Note: here we KNOW FOR CERTAIN our m_trianglesMap is linear
-		var trianglesCount = m_triangles.Count /3;
+		var trianglesCount = m_indeces.Count /3;
 		for( var i = 0; i < trianglesCount; i++ ) {
 			m_trianglesMap.Add( i, i );
 		}
@@ -210,13 +210,15 @@ public class MorphMesh {
 		
 		for( var triangleIndex = 0; triangleIndex < trianglesCount; triangleIndex++ ) {
 			var indexShift = triangleIndex *3;
-			_MakeOwnershipData( m_triangles[indexShift + 0] ).AddOwner( triangleIndex );
-			_MakeOwnershipData( m_triangles[indexShift + 1] ).AddOwner( triangleIndex );
-			_MakeOwnershipData( m_triangles[indexShift + 2] ).AddOwner( triangleIndex );
+			_MakeOwnershipData( m_indeces[indexShift + 0] ).AddOwner( triangleIndex );
+			_MakeOwnershipData( m_indeces[indexShift + 1] ).AddOwner( triangleIndex );
+			_MakeOwnershipData( m_indeces[indexShift + 2] ).AddOwner( triangleIndex );
 		}
 	}
 	
 	private void _Compactify() {
+		Log();
+		
 		_CompactifyTriangles();
 		_CompactifyVertices();
 		
@@ -227,14 +229,14 @@ public class MorphMesh {
 	}
 	
 	private void _CompactifyTriangles() {
-		var trianglesCount = m_triangles.Count /3;
+		var trianglesCount = m_indeces.Count /3;
 		var lastAliveIndex = trianglesCount - 1;
 		var index = 0;
 		while( index <= lastAliveIndex ) {
 			var indexIndex = index *3;
-			var isDead = (m_triangles[indexIndex] == c_invalidID);
-			isDead = (m_triangles[indexIndex + 1] == c_invalidID) || isDead;
-			isDead = (m_triangles[indexIndex + 2] == c_invalidID) || isDead;
+			var isDead = (m_indeces[indexIndex] == c_invalidID);
+			isDead = (m_indeces[indexIndex + 1] == c_invalidID) || isDead;
+			isDead = (m_indeces[indexIndex + 2] == c_invalidID) || isDead;
 			
 			if( isDead ) {
 				_DestroyTriangle( index, lastAliveIndex );
@@ -247,7 +249,7 @@ public class MorphMesh {
 		
 		var firstDeadIndex = lastAliveIndex + 1;
 		var itemsToRemove = trianglesCount - firstDeadIndex;
-		m_triangles.RemoveRange( firstDeadIndex *3, itemsToRemove *3 );
+		m_indeces.RemoveRange( firstDeadIndex *3, itemsToRemove *3 );
 	}
 	
 	private void _DestroyTriangle( int deadIndex, int aliveIndex ) {
@@ -255,12 +257,12 @@ public class MorphMesh {
 		var aliveID = m_trianglesMap.GetByValue( aliveIndex );
 		
 		for( var i = 0; i < 3; i++ ) {
-			var vertexIndex = m_triangles[deadIndex *3 + i];
+			var vertexIndex = m_indeces[deadIndex *3 + i];
 			var ownershipData = _MakeOwnershipData( vertexIndex );
 			ownershipData.RemoveOwner( deadID );
 		}
 		
-		m_triangles.HalfSwap( deadIndex *3, aliveIndex *3, 3 );
+		m_indeces.HalfSwap( deadIndex *3, aliveIndex *3, 3 );
 		m_trianglesMap[deadID] = aliveIndex;
 		m_trianglesMap[aliveID] = deadIndex;
 	}
@@ -301,9 +303,9 @@ public class MorphMesh {
 		foreach( var ownerID in ownership ) {
 			var triangleIndex = m_trianglesMap[ownerID];
 			for( var i = 0; i < 3; i++ ) {
-				var vertexIndex = m_triangles[triangleIndex *3 + i];
+				var vertexIndex = m_indeces[triangleIndex *3 + i];
 				if( vertexIndex == oldIndex ) {
-					m_triangles[triangleIndex *3 + i] = ownership.Index;
+					m_indeces[triangleIndex *3 + i] = ownership.Index;
 				}
 			}
 		}
@@ -332,7 +334,7 @@ public class MorphMesh {
 	}
 	
 	private VertexOwnership _MakeOwnershipData( int vertexIndex ) {
-		return new VertexOwnership( vertexIndex, m_ownersCount, m_ownersFast, m_ownersExt );
+		return new VertexOwnership( this, vertexIndex );
 	}
 #endregion
 }
