@@ -76,8 +76,6 @@ public class MorphMesh {
 		
 		result.Append( "\n" );
 		result.Append( "Triangles: " );
-		result.Append( m_trianglesMap.Count );
-		result.Append( "\n" );
 		result.Append( m_trianglesMap.Dump() );
 		
 		result.Append( "\n" );
