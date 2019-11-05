@@ -17,7 +17,7 @@ public class MorphMesh {
 	private List<Vector3> m_positions = new List<Vector3>( c_initialVertexCapacity );
 	
 	private List<int> m_ownersCount = new List<int>( c_initialVertexCapacity );
-	private List<int> m_ownersFast = new List<int>( c_initialVertexCapacity *Vertex.c_ownersFast );	// Note: not sure how worth it this optimization is
+	private List<int> m_ownersFast = new List<int>( c_initialVertexCapacity *VertexOwnership.c_ownersFast );	// Note: not sure how worth it this optimization is
 	private Dictionary<int, HashSet<int>> m_ownersExt = new Dictionary<int, HashSet<int>>();
 	// - - - - - - - - - - - - - -
 	
@@ -67,7 +67,7 @@ public class MorphMesh {
 		result.Append( m_positions.Count );
 		
 		m_ownersCount.PadUpTo( m_positions.Count );
-		m_ownersFast.PadUpTo( (m_positions.Count + 1) *Vertex.c_ownersFast, -1 );
+		m_ownersFast.PadUpTo( (m_positions.Count + 1) *VertexOwnership.c_ownersFast, -1 );
 		for( var i = 0; i < m_ownersCount.Count; i++ ) {
 			var ownershipData = _MakeOwnershipData( i );
 			result.Append( "\n" );
@@ -148,7 +148,7 @@ public class MorphMesh {
 		
 		// This op alone will set all the ownership data needed
 		m_ownersCount.PadUpTo( vertexIndex + 1 );
-		m_ownersFast.PadUpTo( (vertexIndex + 1) *Vertex.c_ownersFast );
+		m_ownersFast.PadUpTo( (vertexIndex + 1) *VertexOwnership.c_ownersFast );
 		new VertexOwnership( ref vertex, m_ownersCount, m_ownersFast, m_ownersExt );
 	}
 #endregion
@@ -206,7 +206,7 @@ public class MorphMesh {
 		}
 		
 		m_ownersCount.PadUpTo( m_positions.Count );
-		m_ownersFast.PadUpTo( m_positions.Count *Vertex.c_ownersFast );
+		m_ownersFast.PadUpTo( m_positions.Count *VertexOwnership.c_ownersFast );
 		
 		for( var triangleIndex = 0; triangleIndex < trianglesCount; triangleIndex++ ) {
 			var indexShift = triangleIndex *3;
@@ -283,7 +283,7 @@ public class MorphMesh {
 		var firstDeadIndex = lastAliveIndex + 1;
 		var itemsToRemove = vertexCount - firstDeadIndex;
 		m_positions.RemoveRange( firstDeadIndex, itemsToRemove );
-		m_ownersFast.RemoveRange( firstDeadIndex *Vertex.c_ownersFast, itemsToRemove *Vertex.c_ownersFast );
+		m_ownersFast.RemoveRange( firstDeadIndex *VertexOwnership.c_ownersFast, itemsToRemove *VertexOwnership.c_ownersFast );
 	}
 	
 	private void _DestroyVertex( int deadIndex, int aliveIndex ) {

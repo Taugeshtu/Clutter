@@ -6,13 +6,15 @@ namespace Clutter.Mesh {
 // Transient internal structure: get it, mod it & forget it!
 // Doesn't need generations since it's EN-TI-RE-LY internal!
 internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
+	public const int c_ownersFast = 5;
+	
 	public int Index;
 	
 	private List<int> m_ownersCount;
 	private List<int> m_ownersFast;
 	private Dictionary<int, HashSet<int>> m_ownersExt;
 	
-	private int _fastIndex { get { return Index *Vertex.c_ownersFast; } }
+	private int _fastIndex { get { return Index *c_ownersFast; } }
 	
 	public int OwnersCount {
 		get {
@@ -31,7 +33,7 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 		foreach( var triangleID in vertex.Triangles ) {
 			if( triangleID == MorphMesh.c_invalidID ) { continue; }
 			
-			if( ownersCount < Vertex.c_ownersFast ) {
+			if( ownersCount < c_ownersFast ) {
 				m_ownersFast[_fastIndex + ownersCount] = triangleID;
 			}
 			else {
@@ -55,7 +57,7 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 		var ownersCount = OwnersCount;
 		var fastIndex = _fastIndex;
 		for( var ownerIndex = 0; ownerIndex < ownersCount; ownerIndex++ ) {
-			if( ownerIndex < Vertex.c_ownersFast ) {
+			if( ownerIndex < c_ownersFast ) {
 				yield return m_ownersFast[fastIndex + ownerIndex];
 			}
 			else {
@@ -95,7 +97,7 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 #region Public
 	public void AddOwner( int triangleID ) {
 		var ownersCount = OwnersCount;
-		if( ownersCount < Vertex.c_ownersFast ) {
+		if( ownersCount < c_ownersFast ) {
 			m_ownersFast[_fastIndex + ownersCount] = triangleID;
 			OwnersCount = ownersCount + 1;
 			return;
@@ -109,19 +111,19 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 		if( triangleID == MorphMesh.c_invalidID ) { return; }
 		
 		var ownersCount = OwnersCount;
-		var fastLimit = Mathf.Min( ownersCount, Vertex.c_ownersFast );
+		var fastLimit = Mathf.Min( ownersCount, c_ownersFast );
 		var fastIndex = _fastIndex;
 		
 		for( var ownerIndex = 0; ownerIndex < fastLimit; ownerIndex++ ) {
 			var candidateID = m_ownersFast[fastIndex + ownerIndex];
 			if( candidateID == triangleID ) {
-				m_ownersFast.HalfSwap( fastIndex + ownerIndex, fastIndex + Vertex.c_ownersFast - 1 );
+				m_ownersFast.HalfSwap( fastIndex + ownerIndex, fastIndex + c_ownersFast - 1 );
 				OwnersCount = ownersCount - 1;
 				return;
 			}
 		}
 		
-		if( ownersCount > Vertex.c_ownersFast ) {
+		if( ownersCount > c_ownersFast ) {
 			var removed = _RemoveFromExt( triangleID );
 			if( removed ) {
 				OwnersCount = ownersCount - 1;
@@ -134,7 +136,7 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 		var aliveIndex = other.Index;
 		
 		m_ownersCount.HalfSwap( deadIndex, aliveIndex );
-		m_ownersFast.HalfSwap( deadIndex *Vertex.c_ownersFast, aliveIndex *Vertex.c_ownersFast, Vertex.c_ownersFast );
+		m_ownersFast.HalfSwap( deadIndex *c_ownersFast, aliveIndex *c_ownersFast, c_ownersFast );
 		
 		if( m_ownersExt.ContainsKey( aliveIndex ) ) {
 			m_ownersExt[deadIndex] = m_ownersExt[aliveIndex];

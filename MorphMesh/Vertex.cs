@@ -4,8 +4,6 @@ using System.Collections.Generic;
 namespace Clutter.Mesh {
 // This gonna be a TEMPORARY struct to get/set vertex data
 public struct Vertex {
-	public const int c_ownersFast = 5;
-	
 	public long Generation;
 	public int Index;
 	public Vector3 Position;
