@@ -87,7 +87,23 @@ public static class ListExtensions {
 #endregion
 	
 	
+#region Adds
+	// Oh I'm a clever boi...
+	public static void Add<T>( this ICollection<T> collection, params T[] items ) {
+		foreach( var item in items ) {
+			collection.Add( item );
+		}
+	}
+#endregion
+	
+	
 #region Removes
+	public static void Remove<T>( this ICollection<T> collection, params T[] items ) {
+		foreach( var item in items ) {
+			collection.Remove( item );
+		}
+	}
+	
 	public static void FastRemove<T>( this IList<T> list, int elementIndex, bool silentFail = false ) {
 		var lastIndex = list.Count - 1;
 		if( silentFail ) {
