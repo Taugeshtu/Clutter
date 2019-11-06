@@ -7,11 +7,11 @@ public struct Triangle {
 	public long Generation;
 	public int ID;
 	
-	public Vertex A;
-	public Vertex B;
-	public Vertex C;
-	
 	private MorphMesh m_mesh;
+	
+	private int _indexIndex { get { return _trianglesMap[ID] *3; } }
+	private Mapping<int, int> _trianglesMap { get { return m_mesh.m_trianglesMap; } }
+	private List<int> _indeces { get { return m_mesh.m_indeces; } }
 	
 	public bool IsValid {
 		get {
@@ -19,60 +19,85 @@ public struct Triangle {
 		}
 	}
 	
+	private Vertex m_cachedA;
+	private Vertex m_cachedB;
+	private Vertex m_cachedC;
+	
+	public Vertex A {
+		get {
+			if( !m_cachedA.IsValid ) { m_cachedA = m_mesh.GetVertex( _indeces[_indexIndex + 0] ); }
+			return m_cachedA;
+		}
+	}
+	public Vertex B {
+		get {
+			if( !m_cachedB.IsValid ) { m_cachedB = m_mesh.GetVertex( _indeces[_indexIndex + 1] ); }
+			return m_cachedB;
+		}
+	}
+	public Vertex C {
+		get {
+			if( !m_cachedC.IsValid ) { m_cachedC = m_mesh.GetVertex( _indeces[_indexIndex + 2] ); }
+			return m_cachedC;
+		}
+	}
+	
 #region Implementation
-	public Triangle( MorphMesh mesh, int ownID, ref Vertex a, ref Vertex b, ref Vertex c ) {
+	public Triangle( MorphMesh mesh, int ownID ) {
 		m_mesh = mesh;
 		Generation = mesh.m_generation;
 		ID = ownID;
 		
-		A = a;
-		B = b;
-		C = c;
-		
-		_RegisterVertices();
+		m_cachedA = new Vertex( mesh, MorphMesh.c_invalidID );
+		m_cachedB = new Vertex( mesh, MorphMesh.c_invalidID );
+		m_cachedC = new Vertex( mesh, MorphMesh.c_invalidID );
 	}
 #endregion
 	
 	
 #region Public
 	public void SetVertices( ref Vertex a, ref Vertex b, ref Vertex c ) {
-		_UnRegisterVertices();
+		var indexIndex = _indexIndex;
 		
-		A = a;
-		B = b;
-		C = c;
+		var indexA = _indeces[indexIndex + 0];
+		var indexB = _indeces[indexIndex + 1];
+		var indexC = _indeces[indexIndex + 2];
 		
-		_RegisterVertices();
+		var oldSet = new HashSet<int>() { indexA, indexB, indexC };
+		var newSet = new HashSet<int>() { a.Index, b.Index, c.Index };
+		
+		oldSet.Remove( MorphMesh.c_invalidID, a.Index, b.Index, c.Index );
+		foreach( var oldVertexIndex in oldSet ) {
+			m_mesh.GetVertex( oldVertexIndex ).Ownership.RemoveOwner( ID );
+		}
+		
+		newSet.Remove( indexA, indexB, indexC );
+		foreach( var newVertexIndex in newSet ) {
+			m_mesh.GetVertex( newVertexIndex ).Ownership.AddOwner( ID );
+		}
+		
+		m_cachedA = a;
+		m_cachedB = b;
+		m_cachedC = c;
 	}
 	
 	public void Flip() {
-		var tempV = B;
-		B = C;
-		C = tempV;
+		var indexIndex = _indexIndex;
+		
+		var indexB = _indeces[indexIndex + 1];
+		var indexC = _indeces[indexIndex + 2];
+		
+		_indeces[indexIndex + 1] = indexC;
+		_indeces[indexIndex + 2] = indexB;
+		
+		var c = m_cachedC;
+		m_cachedC = m_cachedB;
+		m_cachedB = c;
 	}
 #endregion
 	
 	
 #region Private
-	private void _RegisterVertices() {
-		_RegisterVertex( ref A );
-		_RegisterVertex( ref B );
-		_RegisterVertex( ref C );
-	}
-	
-	private void _UnRegisterVertices() {
-		_UnRegisterVertex( ref A );
-		_UnRegisterVertex( ref B );
-		_UnRegisterVertex( ref C );
-	}
-	
-	private void _RegisterVertex( ref Vertex v ) {
-		v.RegisterTriangle( ID );
-	}
-	
-	private void _UnRegisterVertex( ref Vertex v ) {
-		v.UnRegisterTriangle( ID );
-	}
 #endregion
 	
 	

@@ -6,6 +6,7 @@ namespace Clutter.Mesh {
 public struct Vertex {
 	public long Generation;
 	public int Index;
+	internal VertexOwnership Ownership;
 	
 	private MorphMesh m_mesh;
 	private List<Vector3> _positions { get { return m_mesh.m_positions; } }
@@ -23,10 +24,11 @@ public struct Vertex {
 	}
 	
 #region Implementation
-	internal Vertex( MorphMesh mesh, int id ) {
+	internal Vertex( MorphMesh mesh, int index ) {
 		m_mesh = mesh;
 		Generation = mesh.m_generation;
-		Index = id;
+		Index = index;
+		Ownership = new VertexOwnership( mesh, index );
 	}
 #endregion
 	

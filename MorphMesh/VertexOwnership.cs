@@ -29,24 +29,7 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 	}
 	
 #region Implementation
-	internal VertexOwnership( MorphMesh mesh, ref Vertex vertex )
-	: this( mesh, vertex.Index ) {
-		
-		var ownersCount = 0;
-		foreach( var triangleID in vertex.Triangles ) {
-			if( triangleID == MorphMesh.c_invalidID ) { continue; }
-			
-			if( ownersCount < c_ownersFast ) {
-				_ownersFast[_fastIndex + ownersCount] = triangleID;
-			}
-			else {
-				_AddToExt( triangleID );
-			}
-			ownersCount += 1;
-		}
-		OwnersCount = ownersCount;
-	}
-	
+	internal VertexOwnership( MorphMesh mesh, ref Vertex vertex ) : this( mesh, vertex.Index ) {}
 	internal VertexOwnership( MorphMesh mesh, int vertexIndex ) {
 		m_mesh = mesh;
 		Generation = mesh.m_generation;

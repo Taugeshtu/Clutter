@@ -27,7 +27,7 @@ public class MorphMesh {
 	// - - - - - - - - - - - - - - -
 	
 	internal long m_generation = 0;	// should never be reset!
-	private int m_topVertexID = c_invalidID;
+	private int m_topVertexIndex = c_invalidID;
 	private int m_topTriangleID = c_invalidID;
 	
 	public MeshFilter Target { get; private set; }
@@ -55,7 +55,7 @@ public class MorphMesh {
 		m_indeces.Clear();
 		
 		// Note: not clearing out generation in here!!
-		m_topVertexID = c_invalidID;
+		m_topVertexIndex = c_invalidID;
 		m_topTriangleID = c_invalidID;
 	}
 	
@@ -131,25 +131,19 @@ public class MorphMesh {
 	
 #region Vertex ops
 	public Vertex EmitVertex( Vector3 position ) {
-		m_topVertexID += 1;
-		var vertex = new Vertex( this, m_topVertexID );
+		m_topVertexIndex += 1;
+		
+		m_positions.Add( position );
+		// TODO: other porperties
+		m_ownersCount.Add( 0 );
+		m_ownersFast.PadUpTo( (m_topVertexIndex + 1) *VertexOwnership.c_ownersFast, c_invalidID );
+		
+		var vertex = new Vertex( this, m_topVertexIndex );
 		return vertex;
 	}
 	
-	public void PushVertex( Vertex vertex ) {
-		// if( vertex.Generation != m_generation ) {
-		// 	Debug.LogWarning( "Trying to add a vertex from another generation! Vertex: "+vertex.Generation+", now is "+m_generation );
-		// 	return;
-		// }
-		
-		var vertexIndex = vertex.Index;
-		m_positions.PadUpTo( vertexIndex + 1 );
-		m_positions[vertexIndex] = vertex.Position;
-		
-		// This op alone will set all the ownership data needed
-		m_ownersCount.PadUpTo( vertexIndex + 1 );
-		m_ownersFast.PadUpTo( (vertexIndex + 1) *VertexOwnership.c_ownersFast );
-		new VertexOwnership( this, ref vertex );
+	public Vertex GetVertex( int index ) {
+		return new Vertex( this, index );
 	}
 #endregion
 	
@@ -165,34 +159,18 @@ public class MorphMesh {
 	
 	public Triangle EmitTriangle( ref Vertex vA, ref Vertex vB, ref Vertex vC ) {
 		m_topTriangleID += 1;
-		var triangle = new Triangle( this, m_topTriangleID, ref vA, ref vB, ref vC );
+		
+		var triangleIndex = m_indeces.Count /3;
+		m_trianglesMap.Add( m_topTriangleID, triangleIndex );
+		m_indeces.Add( vA.Index, vB.Index, vC.Index );
+		
+		var triangle = new Triangle( this, m_topTriangleID );
+		triangle.SetVertices( ref vA, ref vB, ref vC );	// this op registers ownership over vertices
 		return triangle;
 	}
 	
-	public void PushTriangle( Triangle triangle ) {
-		if( triangle.Generation != m_generation ) {
-			Debug.LogWarning( "Trying to add a triangle from another generation! Triangle: "+triangle.Generation+", now is "+m_generation );
-			return;
-		}
-		
-		PushVertex( triangle.A );
-		PushVertex( triangle.B );
-		PushVertex( triangle.C );
-		
-		// This will put the data either in existing index/slot, OR create a new slot & pad up the index buffer for it
-		var triangleIndex = m_indeces.Count /3;
-		if( m_trianglesMap.ContainsKey( triangle.ID ) ) {
-			triangleIndex = m_trianglesMap[triangle.ID];
-		}
-		else {
-			m_trianglesMap.Add( triangle.ID, triangleIndex );
-		}
-		
-		var indexIndex = triangleIndex *3;	// Confusing, but: index in index buffer
-		m_indeces.PadUpTo( indexIndex + 3 );
-		m_indeces[indexIndex + 0] = triangle.A.Index;
-		m_indeces[indexIndex + 1] = triangle.B.Index;
-		m_indeces[indexIndex + 2] = triangle.C.Index;
+	public Triangle GetTriangle( int id ) {
+		return new Triangle( this, id );
 	}
 #endregion
 	
@@ -217,7 +195,7 @@ public class MorphMesh {
 	}
 	
 	private void _Compactify() {
-		Log();
+		// Log();
 		
 		_CompactifyTriangles();
 		_CompactifyVertices();
