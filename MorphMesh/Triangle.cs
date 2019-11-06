@@ -43,7 +43,7 @@ public struct Triangle {
 	}
 	
 #region Implementation
-	public Triangle( MorphMesh mesh, int ownID ) {
+	internal Triangle( MorphMesh mesh, int ownID ) {
 		m_mesh = mesh;
 		Generation = mesh.m_generation;
 		ID = ownID;
