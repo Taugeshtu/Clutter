@@ -17,7 +17,7 @@ public struct Vertex {
 		}
 	}
 	
-	public Vector3 Postiion {
+	public Vector3 Position {
 		get { return _positions[Index]; }
 		set { _positions[Index] = value; }
 	}
