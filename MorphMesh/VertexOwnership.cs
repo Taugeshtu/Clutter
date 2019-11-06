@@ -82,13 +82,14 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 #region Public
 	internal void AddOwner( int triangleID ) {
 		var ownersCount = OwnersCount;
+		
 		if( ownersCount < c_ownersFast ) {
 			_ownersFast[_fastIndex + ownersCount] = triangleID;
-			OwnersCount = ownersCount + 1;
-			return;
+		}
+		else {
+			_AddToExt( triangleID );
 		}
 		
-		_AddToExt( triangleID );
 		OwnersCount = ownersCount + 1;
 	}
 	
