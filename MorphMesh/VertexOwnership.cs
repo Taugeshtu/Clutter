@@ -117,7 +117,7 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 		}
 	}
 	
-	internal void CopyOwnershipFrom( ref VertexOwnership other ) {
+	internal void MoveOwnershipFrom( ref VertexOwnership other ) {
 		var destIndex = Index;
 		var sourceIndex = other.Index;
 		
