@@ -69,7 +69,7 @@ public class MorphMesh {
 		m_ownersCount.PadUpTo( m_positions.Count );
 		m_ownersFast.PadUpTo( (m_positions.Count + 1) *VertexOwnership.c_ownersFast, -1 );
 		for( var i = 0; i < m_ownersCount.Count; i++ ) {
-			var ownershipData = _MakeOwnershipData( i );
+			var ownershipData = new VertexOwnership( this, i );
 			result.Append( "\n" );
 			result.Append( ownershipData.ToString() );
 		}
@@ -145,6 +145,15 @@ public class MorphMesh {
 	public Vertex GetVertex( int index ) {
 		return new Vertex( this, index );
 	}
+	
+	public void DeleteVertex( int index ) {
+		var vertex = new Vertex( this, index );
+		DeleteVertex( ref vertex );
+	}
+	
+	public void DeleteVertex( ref Vertex vertex ) {
+		
+	}
 #endregion
 	
 	
@@ -217,7 +226,7 @@ public class MorphMesh {
 			isDead = (m_indeces[indexIndex + 2] == c_invalidID) || isDead;
 			
 			if( isDead ) {
-				_DestroyTriangle( index, lastAliveIndex );
+				_MoveTriangleData( index, lastAliveIndex );
 				lastAliveIndex -= 1;
 			}
 			else {
@@ -230,19 +239,19 @@ public class MorphMesh {
 		m_indeces.RemoveRange( firstDeadIndex *3, itemsToRemove *3 );
 	}
 	
-	private void _DestroyTriangle( int deadIndex, int aliveIndex ) {
-		var deadID = m_trianglesMap.GetByValue( deadIndex );
-		var aliveID = m_trianglesMap.GetByValue( aliveIndex );
+	private void _MoveTriangleData( int destIndex, int sourceIndex ) {
+		var destID = m_trianglesMap.GetByValue( destIndex );
+		var sourceID = m_trianglesMap.GetByValue( sourceIndex );
 		
 		for( var i = 0; i < 3; i++ ) {
-			var vertexIndex = m_indeces[deadIndex *3 + i];
-			var ownershipData = _MakeOwnershipData( vertexIndex );
-			ownershipData.RemoveOwner( deadID );
+			var vertexIndex = m_indeces[destIndex *3 + i];
+			var ownershipData = new VertexOwnership( this, vertexIndex );
+			ownershipData.RemoveOwner( destID );
 		}
 		
-		m_indeces.HalfSwap( deadIndex *3, aliveIndex *3, 3 );
-		m_trianglesMap[deadID] = aliveIndex;
-		m_trianglesMap[aliveID] = deadIndex;
+		m_indeces.HalfSwap( destIndex *3, sourceIndex *3, 3 );
+		m_trianglesMap[destID] = sourceIndex;
+		m_trianglesMap[sourceID] = destIndex;
 	}
 	
 	private void _CompactifyVertices() {
@@ -252,7 +261,7 @@ public class MorphMesh {
 		while( index <= lastAliveIndex ) {
 			var isDead = (m_ownersCount[index] == 0);
 			if( isDead ) {
-				_DestroyVertex( index, lastAliveIndex );
+				_MoveVertexData( index, lastAliveIndex );
 				lastAliveIndex -= 1;
 			}
 			else {
@@ -266,27 +275,36 @@ public class MorphMesh {
 		m_ownersFast.RemoveRange( firstDeadIndex *VertexOwnership.c_ownersFast, itemsToRemove *VertexOwnership.c_ownersFast );
 	}
 	
-	private void _DestroyVertex( int deadIndex, int aliveIndex ) {
-		m_positions.HalfSwap( deadIndex, aliveIndex );
+	private void _MoveVertexData( int deastIndex, int sourceIndex ) {
+		m_positions.HalfSwap( deastIndex, sourceIndex );
 		// TODO: also other data, should it arise!
 		
-		var deadOwner = _MakeOwnershipData( deadIndex );
-		var aliveOwner = _MakeOwnershipData( aliveIndex );
-		deadOwner.CopyOwnershipFrom( ref aliveOwner );
+		var destOwner = new VertexOwnership( this, deastIndex );
+		var sourceOwner = new VertexOwnership( this, sourceIndex );
+		destOwner.CopyOwnershipFrom( ref sourceOwner );
 		
-		_MoveVertexInIndeces( aliveIndex, ref deadOwner );
-	}
-	
-	private void _MoveVertexInIndeces( int oldIndex, ref VertexOwnership ownership ) {
-		foreach( var ownerID in ownership ) {
+		foreach( var ownerID in destOwner ) {
 			var triangleIndex = m_trianglesMap[ownerID];
 			for( var i = 0; i < 3; i++ ) {
 				var vertexIndex = m_indeces[triangleIndex *3 + i];
-				if( vertexIndex == oldIndex ) {
-					m_indeces[triangleIndex *3 + i] = ownership.Index;
+				if( vertexIndex == sourceIndex ) {
+					m_indeces[triangleIndex *3 + i] = deastIndex;
 				}
 			}
 		}
+	}
+	
+	private void _DeleteVertex( ref Vertex vertex ) {
+		foreach( var ownerID in vertex.Ownership ) {
+			var tris = GetTriangle( ownerID );
+			_DeleteTriangle( ref tris, false );
+		}
+		
+		var lastAliveIndex = m_positions.Count - 1;
+	}
+	
+	private void _DeleteTriangle( ref Triangle triangle, bool deleteVertices ) {
+		
 	}
 #endregion
 	

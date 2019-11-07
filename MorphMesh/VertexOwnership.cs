@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace Clutter.Mesh {
 // Transient internal structure: get it, mod it & forget it!
 internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
-	public const int c_ownersFast = 5;
+	public const int c_ownersFast = 10;
 	
 	public long Generation;
 	public int Index;
@@ -118,18 +118,18 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 	}
 	
 	internal void CopyOwnershipFrom( ref VertexOwnership other ) {
-		var deadIndex = Index;
-		var aliveIndex = other.Index;
+		var destIndex = Index;
+		var sourceIndex = other.Index;
 		
-		_ownersCount.HalfSwap( deadIndex, aliveIndex );
-		_ownersFast.HalfSwap( deadIndex *c_ownersFast, aliveIndex *c_ownersFast, c_ownersFast );
+		_ownersCount.HalfSwap( destIndex, sourceIndex );
+		_ownersFast.HalfSwap( _fastIndex, other._fastIndex, c_ownersFast );
 		
-		if( _ownersExt.ContainsKey( aliveIndex ) ) {
-			_ownersExt[deadIndex] = _ownersExt[aliveIndex];
-			_ownersExt.Remove( aliveIndex );
+		if( _ownersExt.ContainsKey( sourceIndex ) ) {
+			_ownersExt[destIndex] = _ownersExt[sourceIndex];
+			_ownersExt.Remove( sourceIndex );
 		}
 		else {
-			_ownersExt.Remove( deadIndex );
+			_ownersExt.Remove( destIndex );
 		}
 	}
 #endregion
