@@ -81,6 +81,8 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 	
 #region Public
 	internal void AddOwner( int triangleID ) {
+		if( Index == MorphMesh.c_invalidID ) { return; }
+		
 		var ownersCount = OwnersCount;
 		
 		if( ownersCount < c_ownersFast ) {
@@ -94,6 +96,7 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 	}
 	
 	internal void RemoveOwner( int triangleID ) {
+		if( Index == MorphMesh.c_invalidID ) { return; }
 		if( triangleID == MorphMesh.c_invalidID ) { return; }
 		
 		var ownersCount = OwnersCount;

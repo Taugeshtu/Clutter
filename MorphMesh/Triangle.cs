@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Clutter.Mesh {
 // This gonna be a TEMPORARY struct to get/set triangle data
-public struct Triangle {
+public struct Triangle : IEnumerable<Vertex>, IEnumerable {
 	public long Generation;
 	public int ID;
 	
@@ -52,6 +53,13 @@ public struct Triangle {
 		m_cachedB = new Vertex( mesh, MorphMesh.c_invalidID );
 		m_cachedC = new Vertex( mesh, MorphMesh.c_invalidID );
 	}
+	
+	System.Collections.IEnumerator IEnumerable.GetEnumerator() { return this.GetEnumerator(); }
+	public IEnumerator<Vertex> GetEnumerator() {
+		yield return A;
+		yield return B;
+		yield return C;
+	}
 #endregion
 	
 	
@@ -62,6 +70,10 @@ public struct Triangle {
 		var indexA = _indeces[indexIndex + 0];
 		var indexB = _indeces[indexIndex + 1];
 		var indexC = _indeces[indexIndex + 2];
+		
+		_indeces[indexIndex + 0] = a.Index;
+		_indeces[indexIndex + 1] = b.Index;
+		_indeces[indexIndex + 2] = c.Index;
 		
 		var oldSet = new HashSet<int>() { indexA, indexB, indexC };
 		var newSet = new HashSet<int>() { a.Index, b.Index, c.Index };
@@ -75,6 +87,8 @@ public struct Triangle {
 		foreach( var newVertexIndex in newSet ) {
 			m_mesh.GetVertex( newVertexIndex ).Ownership.AddOwner( ID );
 		}
+		
+		Debug.LogError( "Setting verts. Old: "+oldSet.Dump()+"; New: "+newSet.Dump() );
 		
 		m_cachedA = a;
 		m_cachedB = b;

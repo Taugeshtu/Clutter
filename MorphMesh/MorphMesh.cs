@@ -148,11 +148,13 @@ public class MorphMesh {
 	
 	public void DeleteVertex( int index ) {
 		var vertex = new Vertex( this, index );
-		DeleteVertex( ref vertex );
+		_DeleteVertex( vertex );
 	}
-	
+	public void DeleteVertex( Vertex vertex ) {
+		_DeleteVertex( vertex );
+	}
 	public void DeleteVertex( ref Vertex vertex ) {
-		_DeleteVertex( ref vertex );
+		_DeleteVertex( vertex );
 	}
 #endregion
 	
@@ -174,7 +176,9 @@ public class MorphMesh {
 		m_indeces.Add( vA.Index, vB.Index, vC.Index );
 		
 		var triangle = new Triangle( this, m_topTriangleID );
-		triangle.SetVertices( ref vA, ref vB, ref vC );	// this op registers ownership over vertices
+		vA.Ownership.AddOwner( m_topTriangleID );
+		vB.Ownership.AddOwner( m_topTriangleID );
+		vC.Ownership.AddOwner( m_topTriangleID );
 		return triangle;
 	}
 	
@@ -182,13 +186,12 @@ public class MorphMesh {
 		return new Triangle( this, id );
 	}
 	
-	public void DeleteTriangle( int id ) {
+	public void DeleteTriangle( int id, bool destroyVertices = false ) {
 		var triangle = new Triangle( this, id );
-		DeleteTriangle( ref triangle );
+		_DeleteTriangle( ref triangle, destroyVertices );
 	}
-	
-	public void DeleteTriangle( ref Triangle triangle ) {
-		_DeleteTriangle( ref triangle, true );
+	public void DeleteTriangle( ref Triangle triangle, bool destroyVertices = false ) {
+		_DeleteTriangle( ref triangle, destroyVertices );
 	}
 #endregion
 	
@@ -213,8 +216,6 @@ public class MorphMesh {
 	}
 	
 	private void _Compactify() {
-		// Log();
-		
 		_CompactifyTriangles();
 		_CompactifyVertices();
 		
@@ -248,21 +249,6 @@ public class MorphMesh {
 		m_indeces.RemoveRange( firstDeadIndex *3, itemsToRemove *3 );
 	}
 	
-	private void _MoveTriangleData( int destIndex, int sourceIndex ) {
-		var destID = m_trianglesMap.GetByValue( destIndex );
-		var sourceID = m_trianglesMap.GetByValue( sourceIndex );
-		
-		for( var i = 0; i < 3; i++ ) {
-			var vertexIndex = m_indeces[destIndex *3 + i];
-			var ownershipData = new VertexOwnership( this, vertexIndex );
-			ownershipData.RemoveOwner( destID );
-		}
-		
-		m_indeces.HalfSwap( destIndex *3, sourceIndex *3, 3 );
-		m_trianglesMap[destID] = sourceIndex;
-		m_trianglesMap[sourceID] = destIndex;
-	}
-	
 	private void _CompactifyVertices() {
 		var vertexCount = m_positions.Count;
 		var lastAliveIndex = vertexCount - 1;
@@ -286,11 +272,11 @@ public class MorphMesh {
 		// Note: m_ownersExt is handled in VertexOwnership.MoveOwnershipFrom() method
 	}
 	
-	private void _MoveVertexData( int deastIndex, int sourceIndex ) {
-		m_positions.HalfSwap( deastIndex, sourceIndex );
+	private void _MoveVertexData( int destIndex, int sourceIndex ) {
+		m_positions.HalfSwap( destIndex, sourceIndex );
 		// TODO: also other data, should it arise!
 		
-		var destOwner = new VertexOwnership( this, deastIndex );
+		var destOwner = new VertexOwnership( this, destIndex );
 		var sourceOwner = new VertexOwnership( this, sourceIndex );
 		destOwner.MoveOwnershipFrom( ref sourceOwner );
 		
@@ -299,13 +285,29 @@ public class MorphMesh {
 			for( var i = 0; i < 3; i++ ) {
 				var vertexIndex = m_indeces[triangleIndex *3 + i];
 				if( vertexIndex == sourceIndex ) {
-					m_indeces[triangleIndex *3 + i] = deastIndex;
+					m_indeces[triangleIndex *3 + i] = destIndex;
 				}
 			}
 		}
 	}
 	
-	private void _DeleteVertex( ref Vertex vertex ) {
+	private void _MoveTriangleData( int destIndex, int sourceIndex ) {
+		var destID = m_trianglesMap.GetByValue( destIndex );
+		var sourceID = m_trianglesMap.GetByValue( sourceIndex );
+		
+		for( var i = 0; i < 3; i++ ) {
+			var vertexIndex = m_indeces[destIndex *3 + i];
+			var ownershipData = new VertexOwnership( this, vertexIndex );
+			ownershipData.RemoveOwner( destID );
+		}
+		
+		m_indeces.HalfSwap( destIndex *3, sourceIndex *3, 3 );
+		m_trianglesMap[destID] = sourceIndex;
+		// m_trianglesMap[sourceID] = destIndex;
+		m_trianglesMap.Remove( sourceID );
+	}
+	
+	private void _DeleteVertex( Vertex vertex ) {
 		foreach( var ownerID in vertex.Ownership ) {
 			var tris = GetTriangle( ownerID );
 			_DeleteTriangle( ref tris, false );
@@ -320,6 +322,25 @@ public class MorphMesh {
 	}
 	
 	private void _DeleteTriangle( ref Triangle triangle, bool deleteVertices ) {
+		if( deleteVertices ) {
+			var verts = new List<Vertex>( triangle );
+			verts.Sort(
+				(a, b) => {
+					return 1 - a.Index.CompareTo( b.Index );	// reverse sorting, bigger indexes first not to fuck up 
+				}
+			);
+			foreach( var vertex in verts ) {
+				_DeleteVertex( vertex );
+			}
+			return;
+		}
+		
+		var destIndex = m_trianglesMap[triangle.ID];
+		var lastAliveIndex = (m_indeces.Count /3) - 1;
+		_MoveTriangleData( destIndex, lastAliveIndex );
+		
+		m_indeces.RemoveRange( lastAliveIndex *3, 3 );
+		// Note: m_trianglesMap mangling already happened in _MoveTriangleData()
 		
 	}
 #endregion
