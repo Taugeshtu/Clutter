@@ -6,12 +6,11 @@ namespace Clutter.Mesh {
 // This gonna be a TEMPORARY struct to get/set triangle data
 public struct Triangle : IEnumerable<Vertex>, IEnumerable {
 	public long Generation;
-	public int ID;
+	public int Index;
 	
 	private MorphMesh m_mesh;
 	
-	private int _indexIndex { get { return _trianglesMap[ID] *3; } }
-	private Mapping<int, int> _trianglesMap { get { return m_mesh.m_trianglesMap; } }
+	private int _indexIndex { get { return Index *3; } }
 	private List<int> _indeces { get { return m_mesh.m_indeces; } }
 	
 	public bool IsValid {
@@ -47,7 +46,7 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable {
 	internal Triangle( MorphMesh mesh, int ownID ) {
 		m_mesh = mesh;
 		Generation = mesh.m_generation;
-		ID = ownID;
+		Index = ownID;
 		
 		m_cachedA = new Vertex( mesh, MorphMesh.c_invalidID );
 		m_cachedB = new Vertex( mesh, MorphMesh.c_invalidID );
@@ -80,12 +79,12 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable {
 		
 		oldSet.Remove( MorphMesh.c_invalidID, a.Index, b.Index, c.Index );
 		foreach( var oldVertexIndex in oldSet ) {
-			m_mesh.GetVertex( oldVertexIndex ).Ownership.RemoveOwner( ID );
+			m_mesh.GetVertex( oldVertexIndex ).Ownership.RemoveOwner( Index );
 		}
 		
 		newSet.Remove( indexA, indexB, indexC );
 		foreach( var newVertexIndex in newSet ) {
-			m_mesh.GetVertex( newVertexIndex ).Ownership.AddOwner( ID );
+			m_mesh.GetVertex( newVertexIndex ).Ownership.AddOwner( Index );
 		}
 		
 		Debug.LogError( "Setting verts. Old: "+oldSet.Dump()+"; New: "+newSet.Dump() );

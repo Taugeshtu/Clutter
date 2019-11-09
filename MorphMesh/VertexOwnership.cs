@@ -7,6 +7,8 @@ namespace Clutter.Mesh {
 internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 	public const int c_ownersFast = 10;
 	
+	private static List<int> t_newOwners = new List<int>( c_ownersFast *2 );	// reusable utility container
+	
 	public long Generation;
 	public int Index;
 	
@@ -117,6 +119,23 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 			if( removed ) {
 				OwnersCount = ownersCount - 1;
 			}
+		}
+	}
+	
+	internal void RemapOwners( Dictionary<int, int> ownersMapping ) {
+		t_newOwners.Clear();
+		foreach( var ownerID in this ) {
+			var newID = ownersMapping[ownerID];
+			if( newID != MorphMesh.c_invalidID ) {
+				t_newOwners.Add( newID );
+			}
+		}
+		
+		OwnersCount = 0;
+		_ownersExt.Remove( Index );
+		
+		foreach( var newOwner in t_newOwners ) {
+			AddOwner( newOwner );
 		}
 	}
 	
