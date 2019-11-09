@@ -76,10 +76,6 @@ public class MorphMesh {
 		m_deadTriangles.Clear();
 	}
 	
-	public void CompactifyVertices() {
-		_CompactifyVertices();
-	}
-	
 	public string Dump() {
 		var result = new System.Text.StringBuilder();
 		result.Append( "Mesh data" );
@@ -142,16 +138,19 @@ public class MorphMesh {
 		var filterTarget = _GetFilterTarget( target );
 		if( filterTarget == null ) { return; }
 		
+		// Note: this is necessary because dead triangles shouldn't get into render. Dead verts is ok
 		_CompactifyTriangles();
-		// TODO: linerialize IDs and indeces!
 		
 		var mesh = filterTarget.mesh;
 		mesh.Clear();
 		mesh.SetVertices( m_positions );
 		mesh.SetTriangles( m_indeces, 0 );
-		
-		// Debug.LogError( "Vertices: "+m_positions.Count+", triangles: "+m_triangles.Count+", in map: "+m_trianglesMap.Count );
 		mesh.RecalculateNormals();
+	}
+	
+	// This is potentially heavy, so extracted out
+	public void CompactifyVertices() {
+		_CompactifyVertices();
 	}
 #endregion
 	
@@ -239,6 +238,7 @@ public class MorphMesh {
 	}
 	
 	private void _CompactifyVertices() {
+		if( m_verticesSolid ) { return; }
 		t_vertexMapping.Clear();
 		m_deadVertices.Sort();
 		
@@ -288,10 +288,13 @@ public class MorphMesh {
 		
 		m_deadVertices.Clear();
 		m_topVertexIndex = m_positions.Count - 1;
+		m_verticesSolid = true;
 		m_generation += 1;
 	}
 	
 	private void _CompactifyTriangles() {
+		if( m_trianglesSolid ) { return; }
+		
 		var trianglesCount = m_indeces.Count /3;
 		t_triangleMapping.Clear();
 		m_deadTriangles.Sort();
@@ -339,6 +342,7 @@ public class MorphMesh {
 		
 		m_deadTriangles.Clear();
 		m_topTriangleIndex = (m_indeces.Count /3) + 1;
+		m_trianglesSolid = true;
 		m_generation += 1;
 	}
 	
@@ -356,6 +360,8 @@ public class MorphMesh {
 	}
 	
 	private void _DeleteVertex( Vertex vertex ) {
+		m_verticesSolid = false;
+		
 		foreach( var ownerID in vertex.Ownership ) {
 			var tris = GetTriangle( ownerID );
 			_DeleteTriangle( ref tris, false );
@@ -370,6 +376,8 @@ public class MorphMesh {
 	}
 	
 	private void _DeleteTriangle( ref Triangle triangle, bool deleteVertices ) {
+		m_trianglesSolid = false;
+		
 		if( deleteVertices ) {
 			var verts = new List<Vertex>( triangle );
 			verts.Sort(
