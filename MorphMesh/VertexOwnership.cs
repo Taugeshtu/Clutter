@@ -124,12 +124,19 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 	
 	internal void RemapOwners( Dictionary<int, int> ownersMapping ) {
 		t_newOwners.Clear();
+		var hasChanges = false;
+		
 		foreach( var ownerID in this ) {
 			var newID = ownersMapping[ownerID];
+			if( newID != ownerID ) {
+				hasChanges = true;
+			}
 			if( newID != MorphMesh.c_invalidID ) {
 				t_newOwners.Add( newID );
 			}
 		}
+		
+		if( !hasChanges ) { return; }
 		
 		OwnersCount = 0;
 		_ownersExt.Remove( Index );
