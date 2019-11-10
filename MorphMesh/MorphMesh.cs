@@ -78,18 +78,21 @@ public class MorphMesh {
 	}
 	
 	public string Dump() {
+		var verticesCount = m_positions.Count;
 		var result = new System.Text.StringBuilder();
 		result.Append( "Mesh data" );
 		result.Append( "\n" );
 		result.Append( "Vertices: " );
-		result.Append( m_positions.Count );
+		result.Append( verticesCount );
 		
-		m_ownersCount.PadUpTo( m_positions.Count );
-		m_ownersFast.PadUpTo( (m_positions.Count + 1) *VertexOwnership.c_ownersFast, -1 );
-		for( var i = 0; i < m_ownersCount.Count; i++ ) {
+		m_ownersCount.PadUpTo( verticesCount );
+		m_ownersFast.PadUpTo( (verticesCount + 1) *VertexOwnership.c_ownersFast, -1 );
+		for( var i = 0; i < verticesCount; i++ ) {
 			var ownershipData = new VertexOwnership( this, i );
 			result.Append( "\n" );
 			result.Append( ownershipData.ToString() );
+			result.Append( "; " );
+			result.Append( m_positions[i].LogFormat( "00.00" ) );
 		}
 		
 		result.Append( "\n" );
@@ -146,6 +149,8 @@ public class MorphMesh {
 		mesh.Clear();
 		mesh.SetVertices( m_positions );
 		mesh.SetTriangles( m_indeces, 0 );
+		Debug.LogError( "- - - Wrote into mesh, verts: "+m_positions.Count+", indeces: "+m_indeces.Count
+		+"\nIn mesh now: "+mesh.vertices.Dump()+" ;; tris: "+mesh.triangles.Dump() );
 		mesh.RecalculateNormals();
 	}
 #endregion
@@ -288,7 +293,7 @@ public class MorphMesh {
 			}
 		}
 		
-		Debug.LogError( "Verts mapping: "+t_vertexMapping );
+		Debug.LogError( "Verts mapping: "+t_vertexMapping.Dump() );
 		
 		// Shifting dead vertices to the back of the containers
 		var vertexCount = m_positions.Count;
@@ -345,18 +350,22 @@ public class MorphMesh {
 		// Shifting dead triangles to the back of the containers
 		var lastAliveIndex = trianglesCount - 1;
 		var index = 0;
+		var originalIndex = 0;
 		while( index <= lastAliveIndex ) {
 			var indexIndex = index *3;
-			var isDead = (t_triangleMapping[index] == c_invalidID);
-			isDead = isDead || (m_indeces[indexIndex + 0] == c_invalidID) || (m_indeces[indexIndex + 1] == c_invalidID) || (m_indeces[indexIndex + 2] == c_invalidID);
+			var deadByList = (t_triangleMapping[originalIndex] == c_invalidID);
+			var deadByVerts = (m_indeces[indexIndex + 0] == c_invalidID) || (m_indeces[indexIndex + 1] == c_invalidID) || (m_indeces[indexIndex + 2] == c_invalidID);
 			
-			if( isDead ) {
+			Debug.LogError( "Checking tris in slot #"+index+", original index: "+originalIndex+", dead by list/verts: "+deadByList+" || "+deadByVerts );
+			
+			if( deadByList || deadByVerts ) {
 				_MoveTriangleData( index, lastAliveIndex );
 				lastAliveIndex -= 1;
 			}
 			else {
 				index += 1;
 			}
+			originalIndex += 1;
 		}
 		
 		// Cleaning trinagle containers
