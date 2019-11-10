@@ -34,6 +34,13 @@ public static class Vector {
 			return new Vector3Int( int.MinValue, int.MinValue, int.MinValue );
 		}
 	}
+	
+	// I know it's not ideal, to be in Vector, but alright
+	public static Plane InvalidPlane {
+		get {
+			return new Plane( Invalid3, Invalid3 );
+		}
+	}
 #endregion
 }
 
@@ -41,105 +48,65 @@ public static class VectorExtensions {
 	
 #region Vector2 converters
 	//===========================================================
-	public static Vector3 XY0( this Vector2 value ) { return new Vector3( value.x, value.y, 0 ); }
-	public static Vector3 X0Y( this Vector2 value ) { return new Vector3( value.x, 0, value.y ); }
+	public static Vector3 XY0( this Vector2 v ) { return new Vector3( v.x, v.y, 0 ); }
+	public static Vector3 X0Y( this Vector2 v ) { return new Vector3( v.x, 0, v.y ); }
 #endregion
 	
 	
 #region Vector3 converters
 	//===========================================================
-	public static Vector2 XY( this Vector3 value ) { return new Vector2( value.x, value.y ); }
-	public static Vector2 XZ( this Vector3 value ) { return new Vector2( value.x, value.z ); }
-	public static Vector2 YX( this Vector3 value ) { return new Vector2( value.y, value.x ); }
-	public static Vector2 YZ( this Vector3 value ) { return new Vector2( value.y, value.z ); }
-	public static Vector2 ZX( this Vector3 value ) { return new Vector2( value.z, value.x ); }
-	public static Vector2 ZY( this Vector3 value ) { return new Vector2( value.z, value.y ); }
+	public static Vector2 XY( this Vector3 v ) { return new Vector2( v.x, v.y ); }
+	public static Vector2 XZ( this Vector3 v ) { return new Vector2( v.x, v.z ); }
+	public static Vector2 YX( this Vector3 v ) { return new Vector2( v.y, v.x ); }
+	public static Vector2 YZ( this Vector3 v ) { return new Vector2( v.y, v.z ); }
+	public static Vector2 ZX( this Vector3 v ) { return new Vector2( v.z, v.x ); }
+	public static Vector2 ZY( this Vector3 v ) { return new Vector2( v.z, v.y ); }
 #endregion
 	
 	
 #region Vector4 converters
 	//===========================================================
-	public static Vector3 XYZ( this Vector4 value ) { return new Vector3( value.x, value.y, value.z ); }
-	public static Vector2 XY( this Vector4 value ) { return new Vector2( value.x, value.y ); }
-	public static Vector2 ZW( this Vector4 value ) { return new Vector2( value.z, value.w ); }
+	public static Vector3 XYZ( this Vector4 v ) { return new Vector3( v.x, v.y, v.z ); }
+	public static Vector2 XY( this Vector4 v ) { return new Vector2( v.x, v.y ); }
+	public static Vector2 ZW( this Vector4 v ) { return new Vector2( v.z, v.w ); }
 #endregion
 	
 	
 #region Component access
 	//===========================================================
-	public static float[] Components( this Vector2 a ) {
-		return new float[] {a.x, a.y};
-	}
-	public static float[] Components( this Vector3 a ) {
-		return new float[] {a.x, a.y, a.z};
-	}
-	public static float[] Components( this Vector4 a ) {
-		return new float[] {a.x, a.y, a.z, a.w};
-	}
+	public static float[] Components( this Vector2 v ) { return new float[] {v.x, v.y}; }
+	public static float[] Components( this Vector3 v ) { return new float[] {v.x, v.y, v.z}; }
+	public static float[] Components( this Vector4 v ) { return new float[] {v.x, v.y, v.z, v.w}; }
 	
-	public static int[] Components( this Vector2Int a ) {
-		return new int[] {a.x, a.y};
-	}
-	public static int[] Components( this Vector3Int a ) {
-		return new int[] {a.x, a.y, a.z};
-	}
+	public static int[] Components( this Vector2Int v ) { return new int[] {v.x, v.y}; }
+	public static int[] Components( this Vector3Int v ) { return new int[] {v.x, v.y, v.z}; }
 	
 	//===========================================================
-	public static float MinComponent( this Vector2 a ) {
-		return Mathf.Min( a.x, a.y );
-	}
-	public static float MinComponent( this Vector3 a ) {
-		return Mathf.Min( a.x, a.y, a.z );
-	}
-	public static float MinComponent( this Vector4 a ) {
-		return Mathf.Min( a.x, a.y, a.z, a.w );
-	}
+	public static float MinComponent( this Vector2 v ) { return Mathf.Min( v.x, v.y ); }
+	public static float MinComponent( this Vector3 v ) { return Mathf.Min( v.x, v.y, v.z ); }
+	public static float MinComponent( this Vector4 v ) { return Mathf.Min( v.x, v.y, v.z, v.w ); }
 	
 	//===========================================================
-	public static float MaxComponent( this Vector2 a ) {
-		return Mathf.Max( a.x, a.y );
-	}
-	public static float MaxComponent( this Vector3 a ) {
-		return Mathf.Max( a.x, a.y, a.z );
-	}
-	public static float MaxComponent( this Vector4 a ) {
-		return Mathf.Max( a.x, a.y, a.z, a.w );
-	}
+	public static float MaxComponent( this Vector2 v ) { return Mathf.Max( v.x, v.y ); }
+	public static float MaxComponent( this Vector3 v ) { return Mathf.Max( v.x, v.y, v.z ); }
+	public static float MaxComponent( this Vector4 v ) { return Mathf.Max( v.x, v.y, v.z, v.w ); }
 #endregion
 	
 	
 #region Component modification
 	//===========================================================
-	public static Vector2 WithX( this Vector2 v, float x ) {
-		return new Vector2( x, v.y );
-	}
-	public static Vector3 WithX( this Vector3 v, float x ) {
-		return new Vector3( x, v.y, v.z );
-	}
-	public static Vector4 WithX( this Vector4 v, float x ) {
-		return new Vector4( x, v.y, v.z, v.w );
-	}
+	public static Vector2 WithX( this Vector2 v, float x ) { return new Vector2( x, v.y ); }
+	public static Vector3 WithX( this Vector3 v, float x ) { return new Vector3( x, v.y, v.z ); }
+	public static Vector4 WithX( this Vector4 v, float x ) { return new Vector4( x, v.y, v.z, v.w ); }
 	
-	public static Vector2 WithY( this Vector2 v, float y ) {
-		return new Vector2( v.x, y );
-	}
-	public static Vector3 WithY( this Vector3 v, float y ) {
-		return new Vector3( v.x, y, v.z );
-	}
-	public static Vector4 WithY( this Vector4 v, float y ) {
-		return new Vector4( v.x, y, v.z, v.w );
-	}
+	public static Vector2 WithY( this Vector2 v, float y ) { return new Vector2( v.x, y ); }
+	public static Vector3 WithY( this Vector3 v, float y ) { return new Vector3( v.x, y, v.z ); }
+	public static Vector4 WithY( this Vector4 v, float y ) { return new Vector4( v.x, y, v.z, v.w ); }
 	
-	public static Vector3 WithZ( this Vector3 v, float z ) {
-		return new Vector3( v.x, v.y, z );
-	}
-	public static Vector4 WithZ( this Vector4 v, float z ) {
-		return new Vector4( v.x, v.y, z, v.w );
-	}
+	public static Vector3 WithZ( this Vector3 v, float z ) { return new Vector3( v.x, v.y, z ); }
+	public static Vector4 WithZ( this Vector4 v, float z ) { return new Vector4( v.x, v.y, z, v.w ); }
 	
-	public static Vector4 WithW( this Vector4 v, float w ) {
-		return new Vector4( v.x, v.y, v.z, w );
-	}
+	public static Vector4 WithW( this Vector4 v, float w ) { return new Vector4( v.x, v.y, v.z, w ); }
 #endregion
 	
 	
@@ -305,6 +272,33 @@ public static class VectorExtensions {
 		if( !a.w.EpsilonEquals( b.w ) ) { return false; }
 		return true;
 	}
+#endregion
+	
+	
+#region Validity
+	private static bool _IsAnyNaN( params float[] items ) {
+		foreach( var item in items ) {
+			if( float.IsNaN( item ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+	private static bool _IsAnyMinValue( params int[] items ) {
+		foreach( var item in items ) {
+			if( item == int.MinValue ) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static bool IsValid( this Vector2 v ) { return !_IsAnyNaN( v.x, v.y ); }
+	public static bool IsValid( this Vector3 v ) { return !_IsAnyNaN( v.x, v.y, v.z ); }
+	public static bool IsValid( this Vector4 v ) { return !_IsAnyNaN( v.x, v.y, v.z, v.w ); }
+	
+	public static bool IsValid( this Vector2Int v ) { return !_IsAnyMinValue( v.x, v.y ); }
+	public static bool IsValid( this Vector3Int v ) { return !_IsAnyMinValue( v.x, v.y, v.z ); }
 #endregion
 	
 	
