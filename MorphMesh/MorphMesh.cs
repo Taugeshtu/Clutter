@@ -279,21 +279,7 @@ public class MorphMesh {
 	private void _CompactifyVertices() {
 		t_vertexMapping.Clear();
 		
-		// Cleaning ownership over dead vertices; building index mapping
-		var deadProcessed = 0;
-		for( var i = 0; i < m_positions.Count; i++ ) {
-			if( m_ownersCount[i] == 0 ) {
-				deadProcessed += 1;
-				m_ownersExt.Remove( i );
-				
-				// t_vertexMapping.Add( i, c_invalidID );
-			}
-			else {
-				// t_vertexMapping.Add( i, i - deadProcessed );
-			}
-		}
-		
-		// Shifting dead vertices to the back of the containers
+		// Shifting dead vertices to the back of the containers, filling mapping, clearing ownership
 		var vertexCount = m_positions.Count;
 		var lastAliveIndex = vertexCount - 1;
 		var index = 0;
@@ -305,6 +291,7 @@ public class MorphMesh {
 			if( isDead ) {
 				t_vertexMapping[actualIndex] = c_invalidID;
 				
+				m_ownersExt.Remove( actualIndex );
 				_MoveVertexData( index, lastAliveIndex );
 				lastAliveIndex -= 1;
 				wasMoved = true;
@@ -330,8 +317,6 @@ public class MorphMesh {
 			var vertexIndex = m_indeces[i];
 			m_indeces[i] = t_vertexMapping[vertexIndex];
 		}
-		
-		Debug.LogError( "Verts mapping: "+t_vertexMapping.Dump() );
 		
 		m_topVertexIndex = m_positions.Count - 1;
 		m_generation += 1;
