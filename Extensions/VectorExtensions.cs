@@ -313,6 +313,17 @@ public static class VectorExtensions {
 	public static string LogExact( this Vector4 a ) {
 		return "("+a.x+", "+a.y+", "+a.z+", "+a.w+")";
 	}
+	
+	//===========================================================
+	public static string LogFormat( this Vector2 a, string format ) {
+		return "("+a.x.ToString( format )+", "+a.y.ToString( format )+")";
+	}
+	public static string LogFormat( this Vector3 a, string format ) {
+		return "("+a.x.ToString( format )+", "+a.y.ToString( format )+", "+a.z.ToString( format )+")";
+	}
+	public static string LogFormat( this Vector4 a, string format ) {
+		return "("+a.x.ToString( format )+", "+a.y.ToString( format )+", "+a.z.ToString( format )+", "+a.w.ToString( format )+")";
+	}
 #endregion
 	
 	
