@@ -29,12 +29,10 @@ public class MorphMesh {
 	internal long m_generation = 0;	// should never be reset!
 	private int m_topVertexIndex = c_invalidID;
 	private int m_topTriangleIndex = c_invalidID;
-	private bool m_verticesSolid = true;
 	private bool m_trianglesSolid = true;
 	// - - - - - - - - - - - - - -
 	
 	// - - - - UTILITY  DATA - - -
-	private List<int> m_deadVertices = new List<int>( c_initialVertexCapacity /10 );
 	private List<int> m_deadTriangles = new List<int>( c_initialVertexCapacity /30 );
 	
 	// reusable utility containers
@@ -69,11 +67,14 @@ public class MorphMesh {
 		m_topVertexIndex = c_invalidID;
 		m_topTriangleIndex = c_invalidID;
 		
-		m_verticesSolid = true;
 		m_trianglesSolid = true;
 		
-		m_deadVertices.Clear();
 		m_deadTriangles.Clear();
+	}
+	
+	// This is potentially heavy, so extracted out
+	public void CompactifyVertices() {
+		_CompactifyVertices();
 	}
 	
 	public string Dump() {
@@ -147,11 +148,6 @@ public class MorphMesh {
 		mesh.SetTriangles( m_indeces, 0 );
 		mesh.RecalculateNormals();
 	}
-	
-	// This is potentially heavy, so extracted out
-	public void CompactifyVertices() {
-		_CompactifyVertices();
-	}
 #endregion
 	
 	
@@ -172,17 +168,16 @@ public class MorphMesh {
 		return new Vertex( this, index );
 	}
 	
-	// Immediate delete ops are wrong.
-	// At least until there are IDs for vertices
+	// Delete ops are only for verts that are present!
 	public void DeleteVertex( int index ) {
 		var vertex = new Vertex( this, index );
-		_DeleteVertex( vertex );
+		_DeleteVertex( vertex, c_invalidID );
 	}
 	public void DeleteVertex( Vertex vertex ) {
-		_DeleteVertex( vertex );
+		_DeleteVertex( vertex, c_invalidID );
 	}
 	public void DeleteVertex( ref Vertex vertex ) {
-		_DeleteVertex( vertex );
+		_DeleteVertex( vertex, c_invalidID );
 	}
 #endregion
 	
@@ -213,12 +208,51 @@ public class MorphMesh {
 		return new Triangle( this, id );
 	}
 	
+	// Delete ops are only for tris that are present! Make sure there are no duplicates tho
 	public void DeleteTriangle( int id, bool destroyVertices = false ) {
 		var triangle = new Triangle( this, id );
 		_DeleteTriangle( ref triangle, destroyVertices );
 	}
 	public void DeleteTriangle( ref Triangle triangle, bool destroyVertices = false ) {
 		_DeleteTriangle( ref triangle, destroyVertices );
+	}
+#endregion
+	
+	
+#region Quad + Cube
+	// with identity rotation it'll be quad lying flat in X-Z plane
+	public void EmitQuad() { EmitQuad( Vector3.zero, Quaternion.identity, Vector2.one ); }
+	public void EmitQuad( Vector3 position ) { EmitQuad( position, Quaternion.identity, Vector2.one ); }
+	public void EmitQuad( Vector3 position, Quaternion rotation ) { EmitQuad( position, rotation, Vector2.one ); }
+	public void EmitQuad( Vector3 position, Quaternion rotation, Vector2 scale ) {
+		var right = rotation *(Vector3.right *scale.x);
+		var forward = rotation *(Vector3.forward *scale.y);
+		var corner = position - (right + forward) *0.5f;
+		
+		var a = EmitVertex( corner );
+		var b = EmitVertex( corner + forward );
+		var c = EmitVertex( corner + forward + right );
+		var d = EmitVertex( corner + right );
+		
+		EmitTriangle( ref a, ref b, ref c );
+		EmitTriangle( ref a, ref c, ref d );
+	}
+	
+	public void EmitCube() { EmitCube( Vector3.zero, Quaternion.identity, Vector3.one ); }
+	public void EmitCube( Vector3 position ) { EmitCube( position, Quaternion.identity, Vector3.one ); }
+	public void EmitCube( Vector3 position, Quaternion rotation ) { EmitCube( position, rotation, Vector3.one ); }
+	public void EmitCube( Vector3 position, Quaternion rotation, Vector3 scale ) {
+		var right = rotation *(Vector3.right *scale.x) *0.5f;
+		var up = rotation *(Vector3.up *scale.y) *0.5f;
+		var forward = rotation *(Vector3.forward *scale.z) *0.5f;
+		
+		// separate quads with unique vertices because we ought to keep them flat
+		EmitQuad( position + up,			rotation,										scale.XZ()	);	// Y+
+		EmitQuad( position - up,			rotation *Quaternion.Euler( 180f, 0f,   0f ),	scale.XZ()	);	// Y-
+		EmitQuad( position + forward,	rotation *Quaternion.Euler(  90f, 0f,   0f ),	scale.XY()	);	// Z+
+		EmitQuad( position - forward,	rotation *Quaternion.Euler( -90f, 0f,   0f ),	scale.XY()	);	// Z-
+		EmitQuad( position + right,		rotation *Quaternion.Euler(   0f, 0f, -90f ),	scale.YZ()	);	// X+
+		EmitQuad( position - right,		rotation *Quaternion.Euler(   0f, 0f,  90f ),	scale.YZ()	);	// X-
 	}
 #endregion
 	
@@ -238,25 +272,23 @@ public class MorphMesh {
 	}
 	
 	private void _CompactifyVertices() {
-		if( m_verticesSolid ) { return; }
 		t_vertexMapping.Clear();
-		m_deadVertices.Sort();
 		
 		// Cleaning ownership over dead vertices; building index mapping
-		var deadIndex = 0;
+		var deadProcessed = 0;
 		for( var i = 0; i < m_positions.Count; i++ ) {
-			var deadVertexIndex = m_deadVertices[deadIndex];
-			if( deadVertexIndex == i ) {
-				deadIndex += 1;
-				t_vertexMapping.Add( i, c_invalidID );
+			if( m_ownersCount[i] == 0 ) {
+				deadProcessed += 1;
+				m_ownersExt.Remove( i );
 				
-				m_ownersCount[i] = 0;
-				m_ownersExt.Remove( deadVertexIndex );
+				t_vertexMapping.Add( i, c_invalidID );
 			}
 			else {
-				t_vertexMapping.Add( i, i - deadIndex );
+				t_vertexMapping.Add( i, i - deadProcessed );
 			}
 		}
+		
+		Debug.LogError( "Verts mapping: "+t_vertexMapping );
 		
 		// Shifting dead vertices to the back of the containers
 		var vertexCount = m_positions.Count;
@@ -286,9 +318,7 @@ public class MorphMesh {
 			m_indeces[i] = t_vertexMapping[vertexIndex];
 		}
 		
-		m_deadVertices.Clear();
 		m_topVertexIndex = m_positions.Count - 1;
-		m_verticesSolid = true;
 		m_generation += 1;
 	}
 	
@@ -302,7 +332,7 @@ public class MorphMesh {
 		// Building triangle index mapping
 		var deadIndex = 0;
 		for( var i = 0; i < trianglesCount; i++ ) {
-			var deadTriangleIndex = m_deadTriangles[deadIndex];
+			var deadTriangleIndex = (deadIndex < m_deadTriangles.Count) ? m_deadTriangles[deadIndex] : c_invalidID;
 			if( deadTriangleIndex == i ) {
 				deadIndex += 1;
 				t_triangleMapping.Add( i, c_invalidID );
@@ -359,45 +389,26 @@ public class MorphMesh {
 		m_indeces.HalfSwap( destIndex *3, sourceIndex *3, 3 );
 	}
 	
-	private void _DeleteVertex( Vertex vertex ) {
-		m_verticesSolid = false;
+	private void _DeleteVertex( Vertex vertex, int triangleToIgnore ) {
+		m_ownersCount[vertex.Index] = 0;
 		
 		foreach( var ownerID in vertex.Ownership ) {
+			if( ownerID == triangleToIgnore ) { continue; }
 			var tris = GetTriangle( ownerID );
 			_DeleteTriangle( ref tris, false );
 		}
-		
-		var lastAliveIndex = m_positions.Count - 1;
-		_MoveVertexData( vertex.Index, lastAliveIndex );
-		
-		m_positions.RemoveAt( lastAliveIndex );
-		m_ownersCount.RemoveAt( lastAliveIndex );
-		m_ownersFast.RemoveRange( lastAliveIndex, VertexOwnership.c_ownersFast );
 	}
 	
 	private void _DeleteTriangle( ref Triangle triangle, bool deleteVertices ) {
 		m_trianglesSolid = false;
 		
 		if( deleteVertices ) {
-			var verts = new List<Vertex>( triangle );
-			verts.Sort(
-				(a, b) => {
-					return 1 - a.Index.CompareTo( b.Index );	// reverse sorting, bigger indexes first not to fuck up 
-				}
-			);
-			foreach( var vertex in verts ) {
-				_DeleteVertex( vertex );
+			foreach( var vertex in triangle ) {
+				_DeleteVertex( vertex, triangle.Index );
 			}
-			return;
 		}
 		
-		var destIndex = m_trianglesMap[triangle.Index];
-		var lastAliveIndex = (m_indeces.Count /3) - 1;
-		_MoveTriangleData( destIndex, lastAliveIndex );
-		
-		m_indeces.RemoveRange( lastAliveIndex *3, 3 );
-		// Note: m_trianglesMap mangling already happened in _MoveTriangleData()
-		
+		m_deadTriangles.Add( triangle.Index );
 	}
 #endregion
 	
