@@ -286,27 +286,35 @@ public class MorphMesh {
 				deadProcessed += 1;
 				m_ownersExt.Remove( i );
 				
-				t_vertexMapping.Add( i, c_invalidID );
+				// t_vertexMapping.Add( i, c_invalidID );
 			}
 			else {
-				t_vertexMapping.Add( i, i - deadProcessed );
+				// t_vertexMapping.Add( i, i - deadProcessed );
 			}
 		}
-		
-		Debug.LogError( "Verts mapping: "+t_vertexMapping.Dump() );
 		
 		// Shifting dead vertices to the back of the containers
 		var vertexCount = m_positions.Count;
 		var lastAliveIndex = vertexCount - 1;
 		var index = 0;
+		var wasMoved = false;
+		var verticesSaved = 0;
 		while( index <= lastAliveIndex ) {
+			var actualIndex = wasMoved ? (lastAliveIndex + 1) : index;
 			var isDead = (m_ownersCount[index] == 0);
 			if( isDead ) {
+				t_vertexMapping[actualIndex] = c_invalidID;
+				
 				_MoveVertexData( index, lastAliveIndex );
 				lastAliveIndex -= 1;
+				wasMoved = true;
 			}
 			else {
+				t_vertexMapping.Add( actualIndex, verticesSaved );
+				verticesSaved += 1;
+				
 				index += 1;
+				wasMoved = false;
 			}
 		}
 		
@@ -322,6 +330,8 @@ public class MorphMesh {
 			var vertexIndex = m_indeces[i];
 			m_indeces[i] = t_vertexMapping[vertexIndex];
 		}
+		
+		Debug.LogError( "Verts mapping: "+t_vertexMapping.Dump() );
 		
 		m_topVertexIndex = m_positions.Count - 1;
 		m_generation += 1;
