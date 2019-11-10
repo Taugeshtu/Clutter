@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Clutter.Mesh {
 // A transient struct to get/set vertex data
-public struct Vertex {
+public struct Vertex : IEnumerable<Triangle>, IEnumerable {
 	public long Generation;
 	public int Index;
 	internal VertexOwnership Ownership;
@@ -29,6 +30,13 @@ public struct Vertex {
 		Generation = mesh.m_generation;
 		Index = index;
 		Ownership = new VertexOwnership( mesh, index );
+	}
+	
+	System.Collections.IEnumerator IEnumerable.GetEnumerator() { return this.GetEnumerator(); }
+	public IEnumerator<Triangle> GetEnumerator() {
+		foreach( var ownerID in Ownership ) {
+			yield return m_mesh.GetTriangle( ownerID );
+		}
 	}
 #endregion
 	

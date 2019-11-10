@@ -33,7 +33,7 @@ public class MorphMesh {
 	// - - - - - - - - - - - - - -
 	
 	// - - - - UTILITY  DATA - - -
-	private List<int> m_deadTriangles = new List<int>( c_initialVertexCapacity /30 );
+	private HashSet<int> m_deadTriangles = new HashSet<int>();
 	
 	// reusable utility containers
 	private static Dictionary<int, int> t_vertexMapping = new Dictionary<int, int>( c_initialVertexCapacity );
@@ -101,6 +101,10 @@ public class MorphMesh {
 		result.Append( m_indeces.Dump() );
 		
 		result.Append( "\n" );
+		result.Append( "Dead triangles: " );
+		result.Append( m_deadTriangles.Dump() );
+		
+		result.Append( "\n" );
 		result.Append( "Latest Verts remap: " );
 		result.Append( t_vertexMapping.Dump() );
 		
@@ -149,8 +153,6 @@ public class MorphMesh {
 		mesh.Clear();
 		mesh.SetVertices( m_positions );
 		mesh.SetTriangles( m_indeces, 0 );
-		Debug.LogError( "- - - Wrote into mesh, verts: "+m_positions.Count+", indeces: "+m_indeces.Count
-		+"\nIn mesh now: "+mesh.vertices.Dump()+" ;; tris: "+mesh.triangles.Dump() );
 		mesh.RecalculateNormals();
 	}
 #endregion
@@ -229,6 +231,7 @@ public class MorphMesh {
 	public void EmitQuad() { EmitQuad( Vector3.zero, Quaternion.identity, Vector2.one ); }
 	public void EmitQuad( Vector3 position ) { EmitQuad( position, Quaternion.identity, Vector2.one ); }
 	public void EmitQuad( Vector3 position, Quaternion rotation ) { EmitQuad( position, rotation, Vector2.one ); }
+	public void EmitQuad( Vector3 position, Vector2 scale ) { EmitQuad( position, Quaternion.identity, scale ); }
 	public void EmitQuad( Vector3 position, Quaternion rotation, Vector2 scale ) {
 		var right = rotation *(Vector3.right *scale.x);
 		var forward = rotation *(Vector3.forward *scale.y);
@@ -246,6 +249,7 @@ public class MorphMesh {
 	public void EmitCube() { EmitCube( Vector3.zero, Quaternion.identity, Vector3.one ); }
 	public void EmitCube( Vector3 position ) { EmitCube( position, Quaternion.identity, Vector3.one ); }
 	public void EmitCube( Vector3 position, Quaternion rotation ) { EmitCube( position, rotation, Vector3.one ); }
+	public void EmitCube( Vector3 position, Vector3 scale ) { EmitCube( position, Quaternion.identity, scale ); }
 	public void EmitCube( Vector3 position, Quaternion rotation, Vector3 scale ) {
 		var right = rotation *(Vector3.right *scale.x) *0.5f;
 		var up = rotation *(Vector3.up *scale.y) *0.5f;
@@ -327,18 +331,14 @@ public class MorphMesh {
 		
 		var trianglesCount = m_indeces.Count /3;
 		t_triangleMapping.Clear();
-		m_deadTriangles.Sort();
 		
 		// Building triangle index mapping
-		var deadIndex = 0;
 		for( var i = 0; i < trianglesCount; i++ ) {
-			var deadTriangleIndex = (deadIndex < m_deadTriangles.Count) ? m_deadTriangles[deadIndex] : c_invalidID;
-			if( deadTriangleIndex == i ) {
-				deadIndex += 1;
+			if( m_deadTriangles.Contains( i ) ) {
 				t_triangleMapping.Add( i, c_invalidID );
 			}
 			else {
-				t_triangleMapping.Add( i, i - deadIndex );
+				t_triangleMapping.Add( i, i );
 			}
 		}
 		
@@ -375,7 +375,7 @@ public class MorphMesh {
 		}
 		
 		m_deadTriangles.Clear();
-		m_topTriangleIndex = (m_indeces.Count /3) + 1;
+		m_topTriangleIndex = (m_indeces.Count /3) - 1;
 		m_trianglesSolid = true;
 		m_generation += 1;
 	}
@@ -394,17 +394,22 @@ public class MorphMesh {
 	}
 	
 	private void _DeleteVertex( Vertex vertex, int triangleToIgnore ) {
-		m_ownersCount[vertex.Index] = 0;
+		Debug.Log( "- - - call to delet VERT #"+vertex.Index );
 		
 		foreach( var ownerID in vertex.Ownership ) {
 			if( ownerID == triangleToIgnore ) { continue; }
 			var tris = GetTriangle( ownerID );
 			_DeleteTriangle( ref tris, false );
 		}
+		
+		m_ownersCount[vertex.Index] = 0;
+		m_ownersExt.Remove( vertex.Index );
 	}
 	
 	private void _DeleteTriangle( ref Triangle triangle, bool deleteVertices ) {
 		m_trianglesSolid = false;
+		
+		Debug.Log( "- - - call to delet tris #"+triangle.Index );
 		
 		if( deleteVertices ) {
 			foreach( var vertex in triangle ) {
