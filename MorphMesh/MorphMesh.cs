@@ -345,22 +345,23 @@ public class MorphMesh {
 		// Shifting dead triangles to the back of the containers
 		var lastAliveIndex = trianglesCount - 1;
 		var index = 0;
-		var originalIndex = 0;
+		var wasMoved = false;
 		while( index <= lastAliveIndex ) {
+			var actualIndex = wasMoved ? (lastAliveIndex + 1) : index;
 			var indexIndex = index *3;
-			var deadByList = (t_triangleMapping[originalIndex] == c_invalidID);
+			var deadByList = (t_triangleMapping[actualIndex] == c_invalidID);
 			var deadByVerts = (m_indeces[indexIndex + 0] == c_invalidID) || (m_indeces[indexIndex + 1] == c_invalidID) || (m_indeces[indexIndex + 2] == c_invalidID);
+			var isDead = deadByList || deadByVerts;
 			
-			Debug.LogError( "Checking tris in slot #"+index+", original index: "+originalIndex+", dead by list/verts: "+deadByList+" || "+deadByVerts );
-			
-			if( deadByList || deadByVerts ) {
+			if( isDead ) {
 				_MoveTriangleData( index, lastAliveIndex );
 				lastAliveIndex -= 1;
+				wasMoved = true;
 			}
 			else {
 				index += 1;
+				wasMoved = false;
 			}
-			originalIndex += 1;
 		}
 		
 		// Cleaning trinagle containers
@@ -394,8 +395,6 @@ public class MorphMesh {
 	}
 	
 	private void _DeleteVertex( Vertex vertex, int triangleToIgnore ) {
-		Debug.Log( "- - - call to delet VERT #"+vertex.Index );
-		
 		foreach( var ownerID in vertex.Ownership ) {
 			if( ownerID == triangleToIgnore ) { continue; }
 			var tris = GetTriangle( ownerID );
@@ -408,8 +407,6 @@ public class MorphMesh {
 	
 	private void _DeleteTriangle( ref Triangle triangle, bool deleteVertices ) {
 		m_trianglesSolid = false;
-		
-		Debug.Log( "- - - call to delet tris #"+triangle.Index );
 		
 		if( deleteVertices ) {
 			foreach( var vertex in triangle ) {
