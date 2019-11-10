@@ -42,6 +42,14 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable {
 		}
 	}
 	
+	public IEnumerable<Vertex[]> Edges {
+		get {
+			yield return new Vertex[] { A, B };
+			yield return new Vertex[] { B, C };
+			yield return new Vertex[] { C, A };
+		}
+	}
+	
 #region Implementation
 	internal Triangle( MorphMesh mesh, int ownID ) {
 		m_mesh = mesh;
