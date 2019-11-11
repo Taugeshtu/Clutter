@@ -5,13 +5,13 @@ using System.Collections.Generic;
 namespace Clutter.Mesh {
 // A transient struct to get/set vertex data
 public struct Vertex : IEnumerable<Triangle>, IEnumerable {
-	public long Generation;
-	public int Index;
-	internal VertexOwnership Ownership;
-	
 	private MorphMesh m_mesh;
+	internal VertexOwnership m_ownership;
 	private List<Vector3> _positions { get { return m_mesh.m_positions; } }
 	// TODO: UVs, colors, etc
+	
+	public long Generation;
+	public int Index;
 	
 	public bool IsValid {
 		get {
@@ -29,12 +29,12 @@ public struct Vertex : IEnumerable<Triangle>, IEnumerable {
 		m_mesh = mesh;
 		Generation = mesh.m_generation;
 		Index = index;
-		Ownership = new VertexOwnership( mesh, index );
+		m_ownership = new VertexOwnership( mesh, index );
 	}
 	
 	System.Collections.IEnumerator IEnumerable.GetEnumerator() { return this.GetEnumerator(); }
 	public IEnumerator<Triangle> GetEnumerator() {
-		foreach( var ownerID in Ownership ) {
+		foreach( var ownerID in m_ownership ) {
 			yield return m_mesh.GetTriangle( ownerID );
 		}
 	}

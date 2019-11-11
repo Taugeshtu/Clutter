@@ -5,9 +5,6 @@ using System.Collections.Generic;
 namespace Clutter.Mesh {
 // This gonna be a TEMPORARY struct to get/set triangle data
 public struct Triangle : IEnumerable<Vertex>, IEnumerable {
-	public long Generation;
-	public int Index;
-	
 	private MorphMesh m_mesh;
 	
 	private int _indexIndex { get { return Index *3; } }
@@ -22,6 +19,9 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable {
 	private Vertex m_cachedA;
 	private Vertex m_cachedB;
 	private Vertex m_cachedC;
+	
+	public long Generation;
+	public int Index;
 	
 	public Vertex A {
 		get {
@@ -87,12 +87,12 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable {
 		
 		oldSet.Remove( MorphMesh.c_invalidID, a.Index, b.Index, c.Index );
 		foreach( var oldVertexIndex in oldSet ) {
-			m_mesh.GetVertex( oldVertexIndex ).Ownership.RemoveOwner( Index );
+			m_mesh.GetVertex( oldVertexIndex ).m_ownership.RemoveOwner( Index );
 		}
 		
 		newSet.Remove( indexA, indexB, indexC );
 		foreach( var newVertexIndex in newSet ) {
-			m_mesh.GetVertex( newVertexIndex ).Ownership.AddOwner( Index );
+			m_mesh.GetVertex( newVertexIndex ).m_ownership.AddOwner( Index );
 		}
 		
 		Debug.LogError( "Setting verts. Old: "+oldSet.Dump()+"; New: "+newSet.Dump() );

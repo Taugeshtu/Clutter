@@ -9,15 +9,15 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 	
 	private static List<int> t_newOwners = new List<int>( c_ownersFast *2 );	// reusable utility container
 	
-	public long Generation;
-	public int Index;
-	
 	private MorphMesh m_mesh;
 	
 	private int _fastIndex { get { return Index *c_ownersFast; } }
 	private List<int> _ownersCount { get { return m_mesh.m_ownersCount; } }
 	private List<int> _ownersFast { get { return m_mesh.m_ownersFast; } }
 	private Dictionary<int, HashSet<int>> _ownersExt { get { return m_mesh.m_ownersExt; } }
+	
+	public long Generation;
+	public int Index;
 	
 	public int OwnersCount {
 		get { return _ownersCount[Index]; }

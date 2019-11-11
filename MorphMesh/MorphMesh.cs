@@ -205,9 +205,9 @@ public class MorphMesh {
 		m_indeces.Add( vA.Index, vB.Index, vC.Index );
 		
 		var triangle = new Triangle( this, m_topTriangleIndex );
-		vA.Ownership.AddOwner( m_topTriangleIndex );
-		vB.Ownership.AddOwner( m_topTriangleIndex );
-		vC.Ownership.AddOwner( m_topTriangleIndex );
+		vA.m_ownership.AddOwner( m_topTriangleIndex );
+		vB.m_ownership.AddOwner( m_topTriangleIndex );
+		vC.m_ownership.AddOwner( m_topTriangleIndex );
 		return triangle;
 	}
 	
@@ -395,7 +395,7 @@ public class MorphMesh {
 	}
 	
 	private void _DeleteVertex( Vertex vertex, int triangleToIgnore ) {
-		foreach( var ownerID in vertex.Ownership ) {
+		foreach( var ownerID in vertex.m_ownership ) {
 			if( ownerID == triangleToIgnore ) { continue; }
 			var tris = GetTriangle( ownerID );
 			_DeleteTriangle( ref tris, false );
