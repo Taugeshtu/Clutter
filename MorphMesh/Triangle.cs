@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 
+using DRAW = Draw;	// solving name collisions
+
 namespace Clutter.Mesh {
 // This gonna be a TEMPORARY struct to get/set triangle data
 public struct Triangle : IEnumerable<Vertex>, IEnumerable {
@@ -47,6 +49,22 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable {
 			yield return new Vertex[] { A, B };
 			yield return new Vertex[] { B, C };
 			yield return new Vertex[] { C, A };
+		}
+	}
+	
+	public Plane Plane {
+		get { return new Plane( A.Position, B.Position, C.Position ); }
+	}
+	public Vector3 Normal {
+		get {
+			var ab = (B.Position - A.Position);
+			var ac = (C.Position - A.Position);
+			return ac.Cross( ab );
+		}
+	}
+	public Vector3 Center {
+		get {
+			return (A.Position + B.Position + C.Position) /3f;
 		}
 	}
 	
@@ -114,6 +132,12 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable {
 		var c = m_cachedC;
 		m_cachedC = m_cachedB;
 		m_cachedB = c;
+	}
+	
+	public void Draw( Color? color = null, float size = 1, float duration = 2 ) {
+		DRAW.RayFromTo( A.Position, B.Position, color, 1, 2 );
+		DRAW.RayFromTo( B.Position, C.Position, color, 1, 2 );
+		DRAW.RayFromTo( C.Position, A.Position, color, 1, 2 );
 	}
 #endregion
 	

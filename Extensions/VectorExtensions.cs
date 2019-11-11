@@ -249,6 +249,15 @@ public static class VectorExtensions {
 		diff = rotation *diff;
 		return axis.origin + diff;
 	}
+	
+	//===========================================================
+	public static float Dot( this Vector3 a, Vector3 b ) {
+		return Vector3.Dot( a, b );
+	}
+	
+	public static Vector3 Cross( this Vector3 a, Vector3 b ) {
+		return Vector3.Cross( a, b );
+	}
 #endregion
 	
 	
