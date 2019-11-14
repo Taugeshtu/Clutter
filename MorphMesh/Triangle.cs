@@ -44,6 +44,15 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable {
 		}
 	}
 	
+	// I know these are a bit confusing. Basically, "vector from A to B"
+	public Vector3 AB { get { return B.Position - A.Position; } }
+	public Vector3 BC { get { return C.Position - B.Position; } }
+	public Vector3 CA { get { return A.Position - C.Position; } }
+	
+	public Vector3 AC { get { return C.Position - A.Position; } }
+	public Vector3 CB { get { return B.Position - C.Position; } }
+	public Vector3 BA { get { return A.Position - B.Position; } }
+	
 	public IEnumerable<Vertex[]> Edges {
 		get {
 			yield return new Vertex[] { A, B };
@@ -67,6 +76,9 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable {
 			return (A.Position + B.Position + C.Position) /3f;
 		}
 	}
+	
+	// TODO: average vertex color, setting - all to the same color
+	// public Color Color { get; set; }
 	
 #region Implementation
 	internal Triangle( MorphMesh mesh, int ownID ) {
@@ -132,6 +144,50 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable {
 		var c = m_cachedC;
 		m_cachedC = m_cachedB;
 		m_cachedB = c;
+	}
+	
+	public List<Triangle> GetVertexNeighbours() {
+		var result = new List<Triangle>();
+		
+		foreach( var vertex in this ) {
+			foreach( var tris in vertex ) {
+				if( tris.Index == Index ) { continue; }
+				
+				result.Add( tris );
+			}
+		}
+		
+		return result;
+	}
+	
+	public List<Triangle> GetEdgeNeighbours() {
+		var result = new List<Triangle>();
+		
+		var setA = new HashSet<int>();
+		var setB = new HashSet<int>();
+		
+		foreach( var edge in Edges ) {
+			setA.Clear();
+			foreach( var ownerID in edge[0].m_ownership ) {
+				if( ownerID != Index ) {
+					setA.Add( ownerID );
+				}
+			}
+			
+			setB.Clear();
+			foreach( var ownerID in edge[1].m_ownership ) {
+				if( ownerID != Index ) {
+					setB.Add( ownerID );
+				}
+			}
+			
+			setA.IntersectWith( setB );
+			foreach( var trisID in setA ) {
+				result.Add( m_mesh.GetTriangle( trisID ) );
+			}
+		}
+		
+		return result;
 	}
 	
 	public void Draw( Color? color = null, float size = 1, float duration = 2 ) {
