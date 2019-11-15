@@ -67,22 +67,23 @@ public abstract class Selection : IEnumerable<Triangle>, IEnumerable, ICollectio
 	
 	
 #region Public
-	public void Expand() {
+	public void Expand( bool byVertices = false ) {
 		_UpdateOutline();
 		
 		var addedTriangles = new HashSet<Triangle>();
 		
 		m_outlineDirty = true;
 		foreach( var trisA in m_outline ) {
-			foreach( var vertex in trisA ) {
-				foreach( var trisB in vertex ) {
-					if( trisB.Index == trisA.Index ) { continue; }	// fast escape
-					if( m_selection.Contains( trisB ) ) { continue; }
-					
-					addedTriangles.Add( trisB );
-				}
+			var neighbours = byVertices ? trisA.GetVertexNeighbours() : trisA.GetEdgeNeighbours();
+			foreach( var trisB in neighbours ) {
+				if( trisB.Index == trisA.Index ) { continue; }	// fast escape
+				if( m_selection.Contains( trisB ) ) { continue; }
+				
+				addedTriangles.Add( trisB );
 			}
 		}
+		
+		// TODO: update the outline
 	}
 #endregion
 	

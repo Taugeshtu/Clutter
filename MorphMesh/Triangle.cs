@@ -66,9 +66,7 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable {
 	}
 	public Vector3 Normal {
 		get {
-			var ab = (B.Position - A.Position);
-			var ac = (C.Position - A.Position);
-			return ac.Cross( ab );
+			return AC.Cross( AB );
 		}
 	}
 	public Vector3 Center {
