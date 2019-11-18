@@ -83,7 +83,8 @@ public abstract class Selection : IEnumerable<Triangle>, IEnumerable, ICollectio
 			}
 		}
 		
-		// TODO: update the outline
+		// TODO: smarter way to update an outline
+		_UpdateOutline();
 	}
 #endregion
 	
@@ -92,8 +93,20 @@ public abstract class Selection : IEnumerable<Triangle>, IEnumerable, ICollectio
 	private void _UpdateOutline() {
 		if( m_outlineDirty == false ) { return; }
 		m_outlineDirty = false;
+		m_outline.Clear();
 		
-		// TODO: seeking the outline!
+		var neighbours = new List<Triangle>();
+		foreach( var triangle in m_selection ) {
+			foreach( var edge in triangle.Edges ) {
+				neighbours.Clear();
+				triangle.FillEdgeNeighbours( neighbours, edge );
+				
+				if( neighbours.Count == 0 ) {
+					m_outline.Add( triangle );
+					break;
+				}
+			}
+		}
 	}
 #endregion
 	

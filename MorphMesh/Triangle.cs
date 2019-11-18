@@ -158,34 +158,36 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable {
 		return result;
 	}
 	
+	private static HashSet<int> t_worksetA = new HashSet<int>();
+	private static HashSet<int> t_worksetB = new HashSet<int>();
+	
 	public List<Triangle> GetEdgeNeighbours() {
 		var result = new List<Triangle>();
-		
-		var setA = new HashSet<int>();
-		var setB = new HashSet<int>();
-		
 		foreach( var edge in Edges ) {
-			setA.Clear();
-			foreach( var ownerID in edge[0].m_ownership ) {
-				if( ownerID != Index ) {
-					setA.Add( ownerID );
-				}
-			}
-			
-			setB.Clear();
-			foreach( var ownerID in edge[1].m_ownership ) {
-				if( ownerID != Index ) {
-					setB.Add( ownerID );
-				}
-			}
-			
-			setA.IntersectWith( setB );
-			foreach( var trisID in setA ) {
-				result.Add( m_mesh.GetTriangle( trisID ) );
+			FillEdgeNeighbours( result, edge );
+		}
+		return result;
+	}
+	
+	public void FillEdgeNeighbours( List<Triangle> result, params Vertex[] edge ) {
+		t_worksetA.Clear();
+		foreach( var ownerID in edge[0].m_ownership ) {
+			if( ownerID != Index ) {
+				t_worksetA.Add( ownerID );
 			}
 		}
 		
-		return result;
+		t_worksetB.Clear();
+		foreach( var ownerID in edge[1].m_ownership ) {
+			if( ownerID != Index ) {
+				t_worksetB.Add( ownerID );
+			}
+		}
+		
+		t_worksetA.IntersectWith( t_worksetB );
+		foreach( var trisID in t_worksetA ) {
+			result.Add( m_mesh.GetTriangle( trisID ) );
+		}
 	}
 	
 	public void Draw( Color? color = null, float size = 1, float duration = 2 ) {
