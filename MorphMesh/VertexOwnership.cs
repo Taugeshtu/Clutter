@@ -1,10 +1,11 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace Clutter.Mesh {
 // Transient internal structure: get it, mod it & forget it!
-internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
+internal struct VertexOwnership : IEnumerable<int>, IEnumerable, IEquatable<VertexOwnership> {
 	public const int c_ownersFast = 10;
 	
 	private static List<int> t_newOwners = new List<int>( c_ownersFast *2 );	// reusable utility container
@@ -58,6 +59,26 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable {
 				yield return extOwner;
 			}
 		}
+	}
+	
+	public override bool Equals( object other ) {
+		if( other is VertexOwnership ) {
+			return Equals( (VertexOwnership) other );
+		}
+		return false;
+	}
+	public bool Equals( VertexOwnership other ) {
+		return (Generation == other.Generation) && (Index == other.Index) && (m_mesh == other.m_mesh);
+	}
+	public override int GetHashCode() {
+		return (int) Generation + 23 *Index;
+	}
+	
+	public static bool operator ==( VertexOwnership a, VertexOwnership b ) {
+		return a.Equals( b );
+	}
+	public static bool operator !=( VertexOwnership a, VertexOwnership b ) {
+		return !a.Equals( b );
 	}
 	
 	public override string ToString() {

@@ -266,6 +266,30 @@ public class MorphMesh {
 #endregion
 	
 	
+#region Geometry ops
+	public MorphMesh Slice( Vector3 point, Vector3 normal, bool directOnly = true ) {
+		var plane = new Plane( normal, point );
+		
+		var frontTriangles = new List<Triangle>( m_topTriangleIndex + 1 );
+		var backTriangles = new List<Triangle>( m_topTriangleIndex + 1 );
+		var intersectTriangles = new List<Triangle>( m_topTriangleIndex + 1 );
+		for( var i = 0; i <= m_topTriangleIndex; i++ ) {
+			var tris = GetTriangle( i );
+			var side = tris.GetPlaneSide( plane );
+			if( side == PlaneSide.Front ) { frontTriangles.Add( tris ); }
+			if( side == PlaneSide.Back ) { backTriangles.Add( tris ); }
+			if( side == PlaneSide.Intersecting ) { intersectTriangles.Add( tris ); }
+		}
+		
+		if( intersectTriangles.Count == 0 ) {
+			return null;
+		}
+		
+		
+	}
+#endregion
+	
+	
 #region Private
 	private void _RebuildOwnershipData() {
 		m_ownersCount.PadUpTo( m_positions.Count );

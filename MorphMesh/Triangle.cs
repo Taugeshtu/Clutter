@@ -1,12 +1,23 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
 using DRAW = Draw;	// solving name collisions
 
 namespace Clutter.Mesh {
+
+public enum PlaneSide {
+	Front,
+	Back,
+	Intersecting
+}
+
 // This gonna be a TEMPORARY struct to get/set triangle data
-public struct Triangle : IEnumerable<Vertex>, IEnumerable {
+public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> {
+	private static HashSet<int> t_worksetA = new HashSet<int>();
+	private static HashSet<int> t_worksetB = new HashSet<int>();
+	
 	private MorphMesh m_mesh;
 	
 	private int _indexIndex { get { return Index *3; } }
@@ -95,6 +106,26 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable {
 		yield return B;
 		yield return C;
 	}
+	
+	public override bool Equals( object other ) {
+		if( other is Triangle ) {
+			return Equals( (Triangle) other );
+		}
+		return false;
+	}
+	public bool Equals( Triangle other ) {
+		return (Generation == other.Generation) && (Index == other.Index) && (m_mesh == other.m_mesh);
+	}
+	public override int GetHashCode() {
+		return (int) Generation + 23 *Index;
+	}
+	
+	public static bool operator ==( Triangle a, Triangle b ) {
+		return a.Equals( b );
+	}
+	public static bool operator !=( Triangle a, Triangle b ) {
+		return !a.Equals( b );
+	}
 #endregion
 	
 	
@@ -123,8 +154,6 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable {
 			m_mesh.GetVertex( newVertexIndex ).m_ownership.AddOwner( Index );
 		}
 		
-		Debug.LogError( "Setting verts. Old: "+oldSet.Dump()+"; New: "+newSet.Dump() );
-		
 		m_cachedA = a;
 		m_cachedB = b;
 		m_cachedC = c;
@@ -144,6 +173,31 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable {
 		m_cachedB = c;
 	}
 	
+	public PlaneSide GetPlaneSide( Plane plane ) {
+		var hasFront = false;
+		var hasBack = false;
+		
+		foreach( var vertex in this ) {
+			var isFront = plane.GetSide( vertex.Position );
+			hasFront = hasFront || isFront;
+			hasBack = hasBack || (!isFront);
+		}
+		
+		if( hasFront ) {
+			if( hasBack ) {
+				return PlaneSide.Intersecting;
+			}
+			else {
+				return PlaneSide.Front;
+			}
+		}
+		if( hasBack ) {
+			return PlaneSide.Back;
+		}
+		Debug.LogError( "This triangle is neither in front nor back, nor intersecting! WHAT THE HELL?!" );
+		return PlaneSide.Back;
+	}
+	
 	public List<Triangle> GetVertexNeighbours() {
 		var result = new List<Triangle>();
 		
@@ -157,9 +211,6 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable {
 		
 		return result;
 	}
-	
-	private static HashSet<int> t_worksetA = new HashSet<int>();
-	private static HashSet<int> t_worksetB = new HashSet<int>();
 	
 	public List<Triangle> GetEdgeNeighbours() {
 		var result = new List<Triangle>();
