@@ -23,6 +23,7 @@ public class MorphMesh {
 	
 	// - - - - TRIANGLE DATA - - -
 	internal List<int> m_indeces = new List<int>( c_initialVertexCapacity );	// index buffer, basically
+	private HashSet<int> m_deadTriangles = new HashSet<int>();
 	// - - - - - - - - - - - - - -
 	
 	// - - - - UTILITY  DATA - - -
@@ -31,9 +32,6 @@ public class MorphMesh {
 	private int m_topTriangleIndex = c_invalidID;
 	private bool m_trianglesSolid = true;
 	// - - - - - - - - - - - - - -
-	
-	// - - - - UTILITY  DATA - - -
-	private HashSet<int> m_deadTriangles = new HashSet<int>();
 	
 	// reusable utility containers
 	private static Dictionary<int, int> t_vertexMapping = new Dictionary<int, int>( c_initialVertexCapacity );
@@ -158,6 +156,61 @@ public class MorphMesh {
 #endregion
 	
 	
+#region Access ops
+	public Vertex GetVertex( int index ) {
+		return new Vertex( this, index );
+	}
+	
+	public Triangle GetTriangle( int id ) {
+		return new Triangle( this, id );
+	}
+	
+	public List<Vertex> GetAllVertices( bool includeDead = true ) {
+		var result = new List<Vertex>();
+		
+		// Feeling pretty clever right about now
+		System.Action<int> filler = (vertexIndex) => {
+			result.Add( GetVertex( vertexIndex ) );
+		};
+		if( !includeDead ) {
+			filler = (vertexIndex) => {
+				if( m_ownersCount[vertexIndex] > 0 ) {
+					result.Add( GetVertex( vertexIndex ) );
+				}
+			};
+		}
+		
+		for( var i = 0; i <= m_topVertexIndex; i++ ) {
+			filler( i );
+		}
+		
+		return result;
+	}
+	
+	public List<Triangle> GetAllTriangles( bool includeDead = true ) {
+		var result = new List<Triangle>();
+		
+		// Feeling pretty clever right about now
+		System.Action<int> filler = (trisIndex) => {
+			result.Add( GetTriangle( trisIndex ) );
+		};
+		if( !includeDead ) {
+			filler = (trisIndex) => {
+				if( m_deadTriangles.Contains( trisIndex ) == false ) {
+					result.Add( GetTriangle( trisIndex ) );
+				}
+			};
+		}
+		
+		for( var i = 0; i <= m_topTriangleIndex; i++ ) {
+			filler( i );
+		}
+		
+		return result;
+	}
+#endregion
+	
+	
 #region Vertex ops
 	public Vertex EmitVertex( Vector3 position ) {
 		m_topVertexIndex += 1;
@@ -169,10 +222,6 @@ public class MorphMesh {
 		
 		var vertex = new Vertex( this, m_topVertexIndex );
 		return vertex;
-	}
-	
-	public Vertex GetVertex( int index ) {
-		return new Vertex( this, index );
 	}
 	
 	// Delete ops are only for verts that are present!
@@ -201,7 +250,6 @@ public class MorphMesh {
 	public Triangle EmitTriangle( ref Vertex vA, ref Vertex vB, ref Vertex vC ) {
 		m_topTriangleIndex += 1;
 		
-		var triangleIndex = m_indeces.Count /3;
 		m_indeces.Add( vA.Index, vB.Index, vC.Index );
 		
 		var triangle = new Triangle( this, m_topTriangleIndex );
@@ -209,10 +257,6 @@ public class MorphMesh {
 		vB.m_ownership.AddOwner( m_topTriangleIndex );
 		vC.m_ownership.AddOwner( m_topTriangleIndex );
 		return triangle;
-	}
-	
-	public Triangle GetTriangle( int id ) {
-		return new Triangle( this, id );
 	}
 	
 	// Delete ops are only for tris that are present! Make sure there are no duplicates tho
