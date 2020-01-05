@@ -22,7 +22,7 @@ public static class MathExtensions {
 	
 	
 #region Regular math
-	public static float Wrap( float a, float min, float max ) {
+	public static float Wrap( this float a, float min, float max ) {
 		var range = max - min;
 		var diff = a - min;
 		a = a - (float) Mathf.Round( diff /range ) *range;
@@ -30,6 +30,10 @@ public static class MathExtensions {
 			a = a + max - min;
 		}
 		return a;
+	}
+	
+	public static int Wrap( this int x, int wrapSize ) {
+		return (x %wrapSize + wrapSize) %wrapSize;
 	}
 	
 	public static bool EpsilonEquals( this float a, int b ) {
