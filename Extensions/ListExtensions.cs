@@ -5,20 +5,14 @@ using System.Text;
 public static class ListExtensions {
 	
 #region List padding
-	public static void PadUpTo<T>( this IList<T> list, int totalCount ) {
-		list.PadUpTo( totalCount, default( T ) );
-	}
-	public static void PadUpTo<T>( this IList<T> list, int totalCount, T template ) {
+	public static void PadUpTo<T>( this IList<T> list, int totalCount, T template = default( T ) ) {
 		var padAmount = totalCount - list.Count;
 		if( padAmount > 0 ) {
 			list.Pad( padAmount, template );
 		}
 	}
 	
-	public static void Pad<T>( this IList<T> list, int count ) {
-		list.Pad( count, default( T ) );
-	}
-	public static void Pad<T>( this IList<T> list, int count, T template ) {
+	public static void Pad<T>( this IList<T> list, int count, T template = default( T ) ) {
 		for( var i = 0; i < count; i++ ) {
 			list.Add( template );
 		}
@@ -27,19 +21,13 @@ public static class ListExtensions {
 	
 	
 #region At-s
-	public static T GetAt<T>( this IList<T> list, int index ) {
-		return list.GetAt( index, default( T ) );
-	}
-	public static T GetAt<T>( this IList<T> list, int index, T template ) {
+	public static T GetAt<T>( this IList<T> list, int index, T template = default( T ) ) {
 		if( index < 0 ) { return template; }
 		if( index >= list.Count ) { return template; }
 		return list[index];
 	}
 	
-	public static void AddAt<T>( this IList<T> list, T item, int index ) {
-		list.AddAt( item, index, default( T ) );
-	}
-	public static void AddAt<T>( this IList<T> list, T item, int index, T paddingTemplate ) {
+	public static void SetAt<T>( this IList<T> list, int index, T item, T paddingTemplate = default( T ) ) {
 		if( index == list.Count ) {
 			list.Add( item );
 			return;
