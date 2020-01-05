@@ -271,8 +271,8 @@ public class MorphMesh {
 	}
 	
 	// Delete ops are only for tris that are present! Make sure there are no duplicates tho
-	public void DeleteTriangle( int id, bool destroyVertices = false ) {
-		var triangle = new Triangle( this, id );
+	public void DeleteTriangle( int index, bool destroyVertices = false ) {
+		var triangle = new Triangle( this, index );
 		_DeleteTriangle( ref triangle, destroyVertices );
 	}
 	public void DeleteTriangle( ref Triangle triangle, bool destroyVertices = false ) {
@@ -355,12 +355,52 @@ public class MorphMesh {
 			return null;
 		}
 		
-		foreach( var tris in intersectTriangles ) {
-			foreach( var vert in tris ) {
-				var vc = vert;
-				vc.Color = Color.red;
-				Draw.Cross( vc.Position, Palette.violet, 0.02f, 10f );
+		var trisToSlice = new Selection( this, intersectTriangles );
+		if( directOnly ) {
+			var broken = trisToSlice.BreakApart( false );
+			// TODO: determine which one of those has a triangle that's closest to slice point
+		}
+		
+		foreach( var tris in trisToSlice ) {
+			for( var i = 0; i < 3; i++ ) {
+				var vA = tris[i];
+				var vB = tris[i + 1];
+				var vC = tris[i + 2];
+				
+				var a = vA.Position;
+				var b = vB.Position;
+				var c = vC.Position;
+				
+				var aSide = plane.GetSide( a );
+				var bSide = plane.GetSide( b );
+				var cSide = plane.GetSide( c );
+				
+				if( (aSide == bSide) || (aSide == cSide) ) { continue; }	// we are not a "lone" vertex
+				
+				var bMid = plane.Cast( new Ray( a, b - a ) );
+				var cMid = plane.Cast( new Ray( a, c - a ) );
+				Draw.Cross( bMid, Palette.yellow, 0.01f, 10f );
+				Draw.Cross( cMid, Palette.green, 0.01f, 10f );
+				Draw.Cross( (bMid + cMid) /2, Palette.violet, 0.01f, 10f );
+				
+				var vAB = EmitVertex( bMid );
+				var vAC = EmitVertex( cMid );
+				if( aSide == false ) {
+					// this is staying part
+					EmitTriangle( ref vA, ref vAB, ref vAC );
+				}
+				else {
+					// this is staying part
+					EmitTriangle( ref vAB, ref vB, ref vAC );
+					EmitTriangle( ref vAC, ref vB, ref vC );
+				}
+				
+				break;
 			}
+			
+			
+			
+			DeleteTriangle( tris.Index );
 		}
 		
 		return null;
