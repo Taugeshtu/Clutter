@@ -21,6 +21,7 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 	private MorphMesh m_mesh;
 	
 	private int _indexIndex { get { return Index *3; } }
+	private List<int> _indeces { get { return m_mesh.m_indeces; } }
 	
 	public bool IsValid {
 		get {
@@ -37,20 +38,29 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 	
 	public Vertex A {
 		get {
-			if( !m_cachedA.IsValid ) { m_cachedA = m_mesh.GetVertex( m_mesh.m_indeces[_indexIndex + 0] ); }
+			if( !m_cachedA.IsValid ) { m_cachedA = m_mesh.GetVertex( _indeces[_indexIndex + 0] ); }
 			return m_cachedA;
 		}
 	}
 	public Vertex B {
 		get {
-			if( !m_cachedB.IsValid ) { m_cachedB = m_mesh.GetVertex( m_mesh.m_indeces[_indexIndex + 1] ); }
+			if( !m_cachedB.IsValid ) { m_cachedB = m_mesh.GetVertex( _indeces[_indexIndex + 1] ); }
 			return m_cachedB;
 		}
 	}
 	public Vertex C {
 		get {
-			if( !m_cachedC.IsValid ) { m_cachedC = m_mesh.GetVertex( m_mesh.m_indeces[_indexIndex + 2] ); }
+			if( !m_cachedC.IsValid ) { m_cachedC = m_mesh.GetVertex( _indeces[_indexIndex + 2] ); }
 			return m_cachedC;
+		}
+	}
+	
+	public Vertex this[int localVertexIndex] {
+		get {
+			localVertexIndex = localVertexIndex.Wrap( 3 );
+			if( localVertexIndex == 0 ) { return A; }
+			if( localVertexIndex == 1 ) { return B; }
+			else { return C; }
 		}
 	}
 	
@@ -63,7 +73,7 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 	public Vector3 CB { get { return B.Position - C.Position; } }
 	public Vector3 BA { get { return A.Position - B.Position; } }
 	
-	public IEnumerable<Vertex[]> Edges {
+	public IEnumerable<Vertex[]> Edges {	// TODO: make an Edge struct, ffs!
 		get {
 			yield return new Vertex[] { A, B };
 			yield return new Vertex[] { B, C };
@@ -132,13 +142,13 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 	public void SetVertices( ref Vertex a, ref Vertex b, ref Vertex c ) {
 		var indexIndex = _indexIndex;
 		
-		var indexA = m_mesh.m_indeces[indexIndex + 0];
-		var indexB = m_mesh.m_indeces[indexIndex + 1];
-		var indexC = m_mesh.m_indeces[indexIndex + 2];
+		var indexA = _indeces[indexIndex + 0];
+		var indexB = _indeces[indexIndex + 1];
+		var indexC = _indeces[indexIndex + 2];
 		
-		m_mesh.m_indeces[indexIndex + 0] = a.Index;
-		m_mesh.m_indeces[indexIndex + 1] = b.Index;
-		m_mesh.m_indeces[indexIndex + 2] = c.Index;
+		_indeces[indexIndex + 0] = a.Index;
+		_indeces[indexIndex + 1] = b.Index;
+		_indeces[indexIndex + 2] = c.Index;
 		
 		var oldSet = new HashSet<int>() { indexA, indexB, indexC };
 		var newSet = new HashSet<int>() { a.Index, b.Index, c.Index };
@@ -161,11 +171,11 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 	public void Flip() {
 		var indexIndex = _indexIndex;
 		
-		var indexB = m_mesh.m_indeces[indexIndex + 1];
-		var indexC = m_mesh.m_indeces[indexIndex + 2];
+		var indexB = _indeces[indexIndex + 1];
+		var indexC = _indeces[indexIndex + 2];
 		
-		m_mesh.m_indeces[indexIndex + 1] = indexC;
-		m_mesh.m_indeces[indexIndex + 2] = indexB;
+		_indeces[indexIndex + 1] = indexC;
+		_indeces[indexIndex + 2] = indexB;
 		
 		var c = m_cachedC;
 		m_cachedC = m_cachedB;
@@ -241,9 +251,9 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 	}
 	
 	public void Draw( Color? color = null, float size = 1, float duration = 2 ) {
-		DRAW.RayFromTo( A.Position, B.Position, color, 1, 2 );
-		DRAW.RayFromTo( B.Position, C.Position, color, 1, 2 );
-		DRAW.RayFromTo( C.Position, A.Position, color, 1, 2 );
+		DRAW.RayFromTo( A.Position, B.Position, color, size, duration );
+		DRAW.RayFromTo( B.Position, C.Position, color, size, duration );
+		DRAW.RayFromTo( C.Position, A.Position, color, size, duration );
 	}
 #endregion
 	

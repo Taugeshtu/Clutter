@@ -8,6 +8,9 @@ namespace Clutter.Mesh {
 public struct Vertex : IEnumerable<Triangle>, IEnumerable, IEquatable<Vertex> {
 	private MorphMesh m_mesh;
 	internal VertexOwnership m_ownership;
+	private List<Vector3> _positions { get { return m_mesh.m_positions; } }
+	private List<Color> _colors { get { return m_mesh.m_colors; } }
+	// TODO: UVs, colors, etc
 	
 	public long Generation;
 	public int Index;
@@ -19,13 +22,13 @@ public struct Vertex : IEnumerable<Triangle>, IEnumerable, IEquatable<Vertex> {
 	}
 	
 	public Vector3 Position {
-		get { return m_mesh.m_positions[Index]; }
-		set { m_mesh.m_positions[Index] = value; }
+		get { return _positions[Index]; }
+		set { _positions[Index] = value; }
 	}
 	
 	public Color Color {
-		get { return m_mesh.m_colors.GetAt( Index, Color.white ); }
-		set { m_mesh.m_colors.SetAt( Index, value, Color.white ); }
+		get { return _colors.GetAt( Index, Color.white ); }
+		set { _colors.SetAt( Index, value, Color.white ); }
 	}
 	
 #region Implementation
