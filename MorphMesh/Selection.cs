@@ -3,11 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 
 namespace Clutter.Mesh {
-public abstract class Selection : IEnumerable<Triangle>, IEnumerable, ICollection<Triangle> {
+public class Selection : IEnumerable<Triangle>, IEnumerable, ICollection<Triangle> {
 	private MorphMesh m_mesh;
 	private bool m_outlineDirty = false;
 	private HashSet<Triangle> m_selection;
 	private HashSet<Triangle> m_outline = new HashSet<Triangle>();
+	
+	private HashSet<Triangle> t_triangles = new HashSet<Triangle>();
 	
 	public long Generation;
 	
@@ -84,6 +86,20 @@ public abstract class Selection : IEnumerable<Triangle>, IEnumerable, ICollectio
 		
 		// TODO: smarter way to update an outline
 		_UpdateOutline();
+	}
+	
+	private Stack<Triangle> t_workStack = new Stack<Triangle>();
+	
+	public List<Selection> BreakApart( bool allowTouchingVertices ) {
+		t_triangles.Clear();
+		
+		// TODO: make it a method that walks all the triangles and breaks the selection apart
+		t_workStack.Clear();
+		var result = new List<Selection>();
+		
+		
+		
+		return result;
 	}
 #endregion
 	
