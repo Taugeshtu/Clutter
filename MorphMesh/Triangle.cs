@@ -21,7 +21,6 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 	private MorphMesh m_mesh;
 	
 	private int _indexIndex { get { return Index *3; } }
-	private List<int> _indeces { get { return m_mesh.m_indeces; } }
 	
 	public bool IsValid {
 		get {
@@ -38,19 +37,19 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 	
 	public Vertex A {
 		get {
-			if( !m_cachedA.IsValid ) { m_cachedA = m_mesh.GetVertex( _indeces[_indexIndex + 0] ); }
+			if( !m_cachedA.IsValid ) { m_cachedA = m_mesh.GetVertex( m_mesh.m_indeces[_indexIndex + 0] ); }
 			return m_cachedA;
 		}
 	}
 	public Vertex B {
 		get {
-			if( !m_cachedB.IsValid ) { m_cachedB = m_mesh.GetVertex( _indeces[_indexIndex + 1] ); }
+			if( !m_cachedB.IsValid ) { m_cachedB = m_mesh.GetVertex( m_mesh.m_indeces[_indexIndex + 1] ); }
 			return m_cachedB;
 		}
 	}
 	public Vertex C {
 		get {
-			if( !m_cachedC.IsValid ) { m_cachedC = m_mesh.GetVertex( _indeces[_indexIndex + 2] ); }
+			if( !m_cachedC.IsValid ) { m_cachedC = m_mesh.GetVertex( m_mesh.m_indeces[_indexIndex + 2] ); }
 			return m_cachedC;
 		}
 	}
@@ -133,13 +132,13 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 	public void SetVertices( ref Vertex a, ref Vertex b, ref Vertex c ) {
 		var indexIndex = _indexIndex;
 		
-		var indexA = _indeces[indexIndex + 0];
-		var indexB = _indeces[indexIndex + 1];
-		var indexC = _indeces[indexIndex + 2];
+		var indexA = m_mesh.m_indeces[indexIndex + 0];
+		var indexB = m_mesh.m_indeces[indexIndex + 1];
+		var indexC = m_mesh.m_indeces[indexIndex + 2];
 		
-		_indeces[indexIndex + 0] = a.Index;
-		_indeces[indexIndex + 1] = b.Index;
-		_indeces[indexIndex + 2] = c.Index;
+		m_mesh.m_indeces[indexIndex + 0] = a.Index;
+		m_mesh.m_indeces[indexIndex + 1] = b.Index;
+		m_mesh.m_indeces[indexIndex + 2] = c.Index;
 		
 		var oldSet = new HashSet<int>() { indexA, indexB, indexC };
 		var newSet = new HashSet<int>() { a.Index, b.Index, c.Index };
@@ -162,11 +161,11 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 	public void Flip() {
 		var indexIndex = _indexIndex;
 		
-		var indexB = _indeces[indexIndex + 1];
-		var indexC = _indeces[indexIndex + 2];
+		var indexB = m_mesh.m_indeces[indexIndex + 1];
+		var indexC = m_mesh.m_indeces[indexIndex + 2];
 		
-		_indeces[indexIndex + 1] = indexC;
-		_indeces[indexIndex + 2] = indexB;
+		m_mesh.m_indeces[indexIndex + 1] = indexC;
+		m_mesh.m_indeces[indexIndex + 2] = indexB;
 		
 		var c = m_cachedC;
 		m_cachedC = m_cachedB;

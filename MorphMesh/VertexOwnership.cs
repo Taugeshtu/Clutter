@@ -13,16 +13,13 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable, IEquatable<Vert
 	private MorphMesh m_mesh;
 	
 	private int _fastIndex { get { return Index *c_ownersFast; } }
-	private List<int> _ownersCount { get { return m_mesh.m_ownersCount; } }
-	private List<int> _ownersFast { get { return m_mesh.m_ownersFast; } }
-	private Dictionary<int, HashSet<int>> _ownersExt { get { return m_mesh.m_ownersExt; } }
 	
 	public long Generation;
 	public int Index;
 	
 	public int OwnersCount {
-		get { return _ownersCount[Index]; }
-		private set { _ownersCount[Index] = value; }
+		get { return m_mesh.m_ownersCount[Index]; }
+		private set { m_mesh.m_ownersCount[Index] = value; }
 	}
 	
 	public bool IsValid {
@@ -46,15 +43,15 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable, IEquatable<Vert
 		var fastIndex = _fastIndex;
 		for( var ownerIndex = 0; ownerIndex < ownersCount; ownerIndex++ ) {
 			if( ownerIndex < c_ownersFast ) {
-				yield return _ownersFast[fastIndex + ownerIndex];
+				yield return m_mesh.m_ownersFast[fastIndex + ownerIndex];
 			}
 			else {
 				break;
 			}
 		}
 		
-		if( _ownersExt.ContainsKey( Index ) ) {
-			var extOwners = _ownersExt[Index];
+		if( m_mesh.m_ownersExt.ContainsKey( Index ) ) {
+			var extOwners = m_mesh.m_ownersExt[Index];
 			foreach( var extOwner in extOwners ) {
 				yield return extOwner;
 			}
@@ -109,7 +106,7 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable, IEquatable<Vert
 		var ownersCount = m_mesh.m_ownersCount[Index];
 		
 		if( ownersCount < c_ownersFast ) {
-			_ownersFast[_fastIndex + ownersCount] = triangleID;
+			m_mesh.m_ownersFast[_fastIndex + ownersCount] = triangleID;
 		}
 		else {
 			_AddToExt( triangleID );
@@ -127,9 +124,9 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable, IEquatable<Vert
 		var fastIndex = _fastIndex;
 		
 		for( var ownerIndex = 0; ownerIndex < fastLimit; ownerIndex++ ) {
-			var candidateID = _ownersFast[fastIndex + ownerIndex];
+			var candidateID = m_mesh.m_ownersFast[fastIndex + ownerIndex];
 			if( candidateID == triangleID ) {
-				_ownersFast.HalfSwap( fastIndex + ownerIndex, fastIndex + c_ownersFast - 1 );
+				m_mesh.m_ownersFast.HalfSwap( fastIndex + ownerIndex, fastIndex + c_ownersFast - 1 );
 				OwnersCount = ownersCount - 1;
 				return;
 			}
@@ -160,7 +157,7 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable, IEquatable<Vert
 		if( !hasChanges ) { return; }
 		
 		OwnersCount = 0;
-		_ownersExt.Remove( Index );
+		m_mesh.m_ownersExt.Remove( Index );
 		
 		foreach( var newOwner in t_newOwners ) {
 			AddOwner( newOwner );
@@ -171,15 +168,15 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable, IEquatable<Vert
 		var destIndex = Index;
 		var sourceIndex = other.Index;
 		
-		_ownersCount.HalfSwap( destIndex, sourceIndex );
-		_ownersFast.HalfSwap( _fastIndex, other._fastIndex, c_ownersFast );
+		m_mesh.m_ownersCount.HalfSwap( destIndex, sourceIndex );
+		m_mesh.m_ownersFast.HalfSwap( _fastIndex, other._fastIndex, c_ownersFast );
 		
-		if( _ownersExt.ContainsKey( sourceIndex ) ) {
-			_ownersExt[destIndex] = _ownersExt[sourceIndex];
-			_ownersExt.Remove( sourceIndex );
+		if( m_mesh.m_ownersExt.ContainsKey( sourceIndex ) ) {
+			m_mesh.m_ownersExt[destIndex] = m_mesh.m_ownersExt[sourceIndex];
+			m_mesh.m_ownersExt.Remove( sourceIndex );
 		}
 		else {
-			_ownersExt.Remove( destIndex );
+			m_mesh.m_ownersExt.Remove( destIndex );
 		}
 	}
 #endregion
@@ -188,12 +185,12 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable, IEquatable<Vert
 #region Private
 	private void _AddToExt( int triangleID ) {
 		HashSet<int> extOwners;
-		if( !_ownersExt.ContainsKey( Index ) ) {
+		if( !m_mesh.m_ownersExt.ContainsKey( Index ) ) {
 			extOwners = new HashSet<int>();
-			_ownersExt[Index] = extOwners;
+			m_mesh.m_ownersExt[Index] = extOwners;
 		}
 		else {
-			extOwners = _ownersExt[Index];
+			extOwners = m_mesh.m_ownersExt[Index];
 		}
 		
 		extOwners.Add( triangleID );
@@ -201,12 +198,12 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable, IEquatable<Vert
 	
 	private bool _RemoveFromExt( int triangleID ) {
 		var removed = false;
-		if( _ownersExt.ContainsKey( Index ) ) {
-			var extOwners = _ownersExt[Index];
+		if( m_mesh.m_ownersExt.ContainsKey( Index ) ) {
+			var extOwners = m_mesh.m_ownersExt[Index];
 			removed = extOwners.Remove( triangleID );
 			if( removed ) {
 				if( extOwners.Count == 0 ) {
-					_ownersExt.Remove( Index );
+					m_mesh.m_ownersExt.Remove( Index );
 				}
 			}
 		}

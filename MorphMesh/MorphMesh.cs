@@ -15,6 +15,7 @@ public class MorphMesh {
 	
 	// - - - - VERTEX DATA - - - -
 	internal List<Vector3> m_positions = new List<Vector3>( c_initialVertexCapacity );
+	internal List<Color> m_colors = new List<Color>( c_initialVertexCapacity );
 	
 	internal List<int> m_ownersCount = new List<int>( c_initialVertexCapacity );
 	internal List<int> m_ownersFast = new List<int>( c_initialVertexCapacity *VertexOwnership.c_ownersFast );	// Note: not sure how worth it this optimization is
@@ -54,6 +55,7 @@ public class MorphMesh {
 #region General
 	public void Clear() {
 		m_positions.Clear();
+		m_colors.Clear();
 		
 		m_ownersCount.Clear();
 		m_ownersFast.Clear();
@@ -132,6 +134,10 @@ public class MorphMesh {
 		var mesh = filterTarget.mesh;
 		mesh.GetTriangles( m_indeces, 0 );
 		mesh.GetVertices( m_positions );
+		mesh.GetColors( m_colors );
+		
+		m_topVertexIndex = m_positions.Count - 1;
+		m_topTriangleIndex = (m_indeces.Count /3) - 1;
 		
 		_RebuildOwnershipData();
 	}
@@ -150,6 +156,7 @@ public class MorphMesh {
 		var mesh = filterTarget.mesh;
 		mesh.Clear();
 		mesh.SetVertices( m_positions );
+		mesh.SetColors( m_colors );
 		mesh.SetTriangles( m_indeces, 0 );
 		mesh.RecalculateNormals();
 	}
@@ -213,9 +220,13 @@ public class MorphMesh {
 	
 #region Vertex ops
 	public Vertex EmitVertex( Vector3 position ) {
+		return EmitVertex( position, Color.white );
+	}
+	public Vertex EmitVertex( Vector3 position, Color color ) {
 		m_topVertexIndex += 1;
 		
 		m_positions.Add( position );
+		m_colors.Add( color );
 		// TODO: other porperties
 		m_ownersCount.Add( 0 );
 		m_ownersFast.PadUpTo( (m_topVertexIndex + 1) *VertexOwnership.c_ownersFast, c_invalidID );
@@ -311,6 +322,21 @@ public class MorphMesh {
 	
 	
 #region Geometry ops
+	public void WeldVertices( float treshold = 0.001f ) {
+		
+	}
+	
+	public void MakeVerticesUnique() {
+		var allVerts = GetAllVertices();
+		foreach( var vertex in allVerts ) {
+			if( vertex.m_ownership.OwnersCount <= 1 ) {
+				continue;
+			}
+			
+			
+		}
+	}
+	
 	public MorphMesh Slice( Vector3 point, Vector3 normal, bool directOnly = true ) {
 		var plane = new Plane( normal, point );
 		
@@ -329,7 +355,15 @@ public class MorphMesh {
 			return null;
 		}
 		
+		foreach( var tris in intersectTriangles ) {
+			foreach( var vert in tris ) {
+				var vc = vert;
+				vc.Color = Color.red;
+				Draw.Cross( vc.Position, Palette.violet, 0.02f, 10f );
+			}
+		}
 		
+		return null;
 	}
 #endregion
 	
@@ -381,6 +415,7 @@ public class MorphMesh {
 		var firstDeadIndex = lastAliveIndex + 1;
 		var itemsToRemove = vertexCount - firstDeadIndex;
 		m_positions.RemoveRange( firstDeadIndex, itemsToRemove );
+		m_colors.RemoveRange( firstDeadIndex, itemsToRemove );
 		m_ownersCount.RemoveRange( firstDeadIndex, itemsToRemove );
 		m_ownersFast.RemoveRange( firstDeadIndex *VertexOwnership.c_ownersFast, itemsToRemove *VertexOwnership.c_ownersFast );
 		
@@ -451,6 +486,7 @@ public class MorphMesh {
 	
 	private void _MoveVertexData( int destIndex, int sourceIndex ) {
 		m_positions.HalfSwap( destIndex, sourceIndex );
+		m_colors.HalfSwap( destIndex, sourceIndex, 1, true );
 		// TODO: also other data, should it arise!
 		
 		var destOwner = new VertexOwnership( this, destIndex );

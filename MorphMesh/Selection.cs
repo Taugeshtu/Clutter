@@ -19,8 +19,7 @@ public abstract class Selection : IEnumerable<Triangle>, IEnumerable, ICollectio
 	}
 	
 #region Implementation
-	public Selection( MorphMesh mesh, IEnumerable<Vertex> vertices ) : this( mesh, null, vertices ) {}
-	public Selection( MorphMesh mesh, IEnumerable<Triangle> triangles = null, IEnumerable<Vertex> vertices = null ) {
+	public Selection( MorphMesh mesh, IEnumerable<Triangle> triangles = null ) {
 		m_mesh = mesh;
 		Generation = mesh.m_generation;
 		
