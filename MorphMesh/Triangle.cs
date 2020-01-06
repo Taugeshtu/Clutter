@@ -20,21 +20,21 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 	
 	private MorphMesh m_mesh;
 	
+	private Vertex m_cachedA;
+	private Vertex m_cachedB;
+	private Vertex m_cachedC;
+	
 	private int _indexIndex { get { return Index *3; } }
 	private List<int> _indeces { get { return m_mesh.m_indeces; } }
+	
+	public long Generation;
+	public int Index;
 	
 	public bool IsValid {
 		get {
 			return (Generation == m_mesh.m_generation);
 		}
 	}
-	
-	private Vertex m_cachedA;
-	private Vertex m_cachedB;
-	private Vertex m_cachedC;
-	
-	public long Generation;
-	public int Index;
 	
 	public Vertex A {
 		get {
@@ -73,11 +73,11 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 	public Vector3 CB { get { return B.Position - C.Position; } }
 	public Vector3 BA { get { return A.Position - B.Position; } }
 	
-	public IEnumerable<Vertex[]> Edges {	// TODO: make an Edge struct, ffs!
+	public IEnumerable<Edge> Edges {	// TODO: make an Edge struct, ffs!
 		get {
-			yield return new Vertex[] { A, B };
-			yield return new Vertex[] { B, C };
-			yield return new Vertex[] { C, A };
+			yield return new Edge( m_mesh, A, B );
+			yield return new Edge( m_mesh, B, C );
+			yield return new Edge( m_mesh, C, A );
 		}
 	}
 	
@@ -97,6 +97,28 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 	
 	// TODO: average vertex color, setting - all to the same color
 	// public Color Color { get; set; }
+	
+	public IEnumerable<Triangle> VertexNeighbours {
+		get {
+			foreach( var vertex in this ) {
+				foreach( var tris in vertex ) {
+					if( tris.Index == Index ) { continue; }
+					yield return tris;
+				}
+			}
+		}
+	}
+	
+	public IEnumerable<Triangle> EdgeNeighbours {
+		get {
+			foreach( var edge in Edges ) {
+				foreach( var tris in edge.Triangles ) {
+					if( tris.Index == Index ) { continue; }
+					yield return tris;
+				}
+			}
+		}
+	}
 	
 #region Implementation
 	internal Triangle( MorphMesh mesh, int ownID ) {
@@ -205,49 +227,6 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 		}
 		Debug.LogError( "This triangle is neither in front nor back, nor intersecting! WHAT THE HELL?!" );
 		return PlaneSide.Back;
-	}
-	
-	public List<Triangle> GetVertexNeighbours() {
-		var result = new List<Triangle>();
-		
-		foreach( var vertex in this ) {
-			foreach( var tris in vertex ) {
-				if( tris.Index == Index ) { continue; }
-				
-				result.Add( tris );
-			}
-		}
-		
-		return result;
-	}
-	
-	public List<Triangle> GetEdgeNeighbours() {
-		var result = new List<Triangle>();
-		foreach( var edge in Edges ) {
-			FillEdgeNeighbours( result, edge );
-		}
-		return result;
-	}
-	
-	public void FillEdgeNeighbours( List<Triangle> result, params Vertex[] edge ) {
-		t_worksetA.Clear();
-		foreach( var ownerID in edge[0].m_ownership ) {
-			if( ownerID != Index ) {
-				t_worksetA.Add( ownerID );
-			}
-		}
-		
-		t_worksetB.Clear();
-		foreach( var ownerID in edge[1].m_ownership ) {
-			if( ownerID != Index ) {
-				t_worksetB.Add( ownerID );
-			}
-		}
-		
-		t_worksetA.IntersectWith( t_worksetB );
-		foreach( var trisID in t_worksetA ) {
-			result.Add( m_mesh.GetTriangle( trisID ) );
-		}
 	}
 	
 	public void Draw( Color? color = null, float size = 1, float duration = 2 ) {

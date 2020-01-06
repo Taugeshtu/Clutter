@@ -337,7 +337,7 @@ public class MorphMesh {
 		}
 	}
 	
-	public MorphMesh Slice( Vector3 point, Vector3 normal, bool directOnly = true ) {
+	public Selection Slice( Vector3 point, Vector3 normal, bool directOnly = true ) {
 		var plane = new Plane( normal, point );
 		
 		var frontTriangles = new List<Triangle>( m_topTriangleIndex + 1 );
@@ -356,8 +356,10 @@ public class MorphMesh {
 		}
 		
 		var trisToSlice = new Selection( this, intersectTriangles );
+		var trisToDrift = new Selection( this, frontTriangles );
 		if( directOnly ) {
-			var broken = trisToSlice.BreakApart( false );
+			var brokenSlice = trisToSlice.BreakApart( false );
+			var brokenFront = trisToDrift.BreakApart( false );
 			// TODO: determine which one of those has a triangle that's closest to slice point
 		}
 		
@@ -399,8 +401,6 @@ public class MorphMesh {
 			}
 			
 			
-			
-			DeleteTriangle( tris.Index );
 		}
 		
 		return null;

@@ -56,12 +56,14 @@ public class Selection : IEnumerable<Triangle>, IEnumerable, ICollection<Triangl
 	public bool Contains( Triangle item ) { return m_selection.Contains( item ); }
 	public void CopyTo( Triangle[] target, int startIndex ) { m_selection.CopyTo( target, startIndex ); }
 	
+	public void UnionWith( IEnumerable<Triangle> items ) { m_selection.UnionWith( items ); }
+	
 	// Note: will re-consider these ops later, when selection is working
 	/*
 	public void ExceptWith( IEnumerable<Triangle> items ) { m_selection.ExceptWith( items ); }
 	public void IntersectWith( IEnumerable<Triangle> items ) { m_selection.IntersectWith( items ); }
 	public void SymmetricExceptWith( IEnumerable<Triangle> items ) { m_selection.SymmetricExceptWith( items ); }
-	public void UnionWith( IEnumerable<Triangle> items ) { m_selection.UnionWith( items ); }
+	
 	public bool Overlaps( IEnumerable<Triangle> items ) { return m_selection.Overlaps( items ); }
 	*/
 #endregion
@@ -75,7 +77,7 @@ public class Selection : IEnumerable<Triangle>, IEnumerable, ICollection<Triangl
 		
 		m_outlineDirty = true;
 		foreach( var trisA in m_outline ) {
-			var neighbours = byVertices ? trisA.GetVertexNeighbours() : trisA.GetEdgeNeighbours();
+			var neighbours = byVertices ? trisA.VertexNeighbours : trisA.EdgeNeighbours;
 			foreach( var trisB in neighbours ) {
 				if( trisB.Index == trisA.Index ) { continue; }	// fast escape
 				if( m_selection.Contains( trisB ) ) { continue; }
@@ -110,14 +112,18 @@ public class Selection : IEnumerable<Triangle>, IEnumerable, ICollection<Triangl
 		m_outlineDirty = false;
 		m_outline.Clear();
 		
-		var neighbours = new List<Triangle>();
-		foreach( var triangle in m_selection ) {
-			foreach( var edge in triangle.Edges ) {
-				neighbours.Clear();
-				triangle.FillEdgeNeighbours( neighbours, edge );
+		foreach( var trisA in m_selection ) {
+			foreach( var edge in trisA.Edges ) {
+				var hasNeighbours = false;
 				
-				if( neighbours.Count == 0 ) {
-					m_outline.Add( triangle );
+				foreach( var trisB in edge.Triangles ) {
+					if( trisB.Index == trisA.Index ) { continue; }
+					hasNeighbours = true;
+					break;
+				}
+				
+				if( hasNeighbours == false ) {
+					m_outline.Add( trisA );
 					break;
 				}
 			}
