@@ -15,9 +15,6 @@ public enum PlaneSide {
 
 // This gonna be a TEMPORARY struct to get/set triangle data
 public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> {
-	private static HashSet<int> t_worksetA = new HashSet<int>();
-	private static HashSet<int> t_worksetB = new HashSet<int>();
-	
 	private MorphMesh m_mesh;
 	
 	private Vertex m_cachedA;

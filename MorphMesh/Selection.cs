@@ -4,12 +4,12 @@ using System.Collections.Generic;
 
 namespace Clutter.Mesh {
 public class Selection : IEnumerable<Triangle>, IEnumerable, ICollection<Triangle> {
+	private static HashSet<Triangle> t_triangles = new HashSet<Triangle>();
+	
 	private MorphMesh m_mesh;
 	private bool m_outlineDirty = false;
 	private HashSet<Triangle> m_selection;
 	private HashSet<Triangle> m_outline = new HashSet<Triangle>();
-	
-	private HashSet<Triangle> t_triangles = new HashSet<Triangle>();
 	
 	public long Generation;
 	
@@ -20,12 +20,22 @@ public class Selection : IEnumerable<Triangle>, IEnumerable, ICollection<Triangl
 		}
 	}
 	
+	public IEnumerable<Vertex> Vertices {
+		get {
+			foreach( var tris in this ) {
+				foreach( var vertex in tris ) {
+					yield return vertex;
+				}
+			}
+		}
+	}
+	
 #region Implementation
 	public Selection( MorphMesh mesh, IEnumerable<Triangle> triangles = null ) {
 		m_mesh = mesh;
 		Generation = mesh.m_generation;
 		
-		m_selection = new HashSet<Triangle>( triangles );
+		m_selection = (triangles == null) ? new HashSet<Triangle>() : new HashSet<Triangle>( triangles );
 	}
 	
 	// IEnumerable
@@ -98,8 +108,19 @@ public class Selection : IEnumerable<Triangle>, IEnumerable, ICollection<Triangl
 		// TODO: make it a method that walks all the triangles and breaks the selection apart
 		t_workStack.Clear();
 		var result = new List<Selection>();
+		result.Add( new Selection( m_mesh ) );
+		result.Add( new Selection( m_mesh ) );
 		
-		
+		var flip = false;
+		foreach( var tris in this ) {
+			if( flip ) {
+				result[0].Add( tris );
+			}
+			else {
+				result[1].Add( tris );
+			}
+			flip = !flip;
+		}
 		
 		return result;
 	}

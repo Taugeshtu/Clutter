@@ -85,8 +85,8 @@ public class MorphMesh {
 		result.Append( "Vertices: " );
 		result.Append( verticesCount );
 		
-		m_ownersCount.PadUpTo( verticesCount );
-		m_ownersFast.PadUpTo( (verticesCount + 1) *VertexOwnership.c_ownersFast, -1 );
+		m_ownersCount.Resize( verticesCount );
+		m_ownersFast.Resize( verticesCount *VertexOwnership.c_ownersFast, c_invalidID );
 		for( var i = 0; i < verticesCount; i++ ) {
 			var ownershipData = new VertexOwnership( this, i );
 			result.Append( "\n" );
@@ -229,7 +229,7 @@ public class MorphMesh {
 		m_colors.Add( color );
 		// TODO: other porperties
 		m_ownersCount.Add( 0 );
-		m_ownersFast.PadUpTo( (m_topVertexIndex + 1) *VertexOwnership.c_ownersFast, c_invalidID );
+		m_ownersFast.Resize( (m_topVertexIndex + 1) *VertexOwnership.c_ownersFast, c_invalidID );
 		
 		var vertex = new Vertex( this, m_topVertexIndex );
 		return vertex;
@@ -241,9 +241,6 @@ public class MorphMesh {
 		_DeleteVertex( vertex, c_invalidID );
 	}
 	public void DeleteVertex( Vertex vertex ) {
-		_DeleteVertex( vertex, c_invalidID );
-	}
-	public void DeleteVertex( ref Vertex vertex ) {
 		_DeleteVertex( vertex, c_invalidID );
 	}
 #endregion
@@ -273,10 +270,10 @@ public class MorphMesh {
 	// Delete ops are only for tris that are present! Make sure there are no duplicates tho
 	public void DeleteTriangle( int index, bool destroyVertices = false ) {
 		var triangle = new Triangle( this, index );
-		_DeleteTriangle( ref triangle, destroyVertices );
+		_DeleteTriangle( triangle, destroyVertices );
 	}
-	public void DeleteTriangle( ref Triangle triangle, bool destroyVertices = false ) {
-		_DeleteTriangle( ref triangle, destroyVertices );
+	public void DeleteTriangle( Triangle triangle, bool destroyVertices = false ) {
+		_DeleteTriangle( triangle, destroyVertices );
 	}
 #endregion
 	
@@ -358,9 +355,35 @@ public class MorphMesh {
 		var trisToSlice = new Selection( this, intersectTriangles );
 		var trisToDrift = new Selection( this, frontTriangles );
 		if( directOnly ) {
-			var brokenSlice = trisToSlice.BreakApart( false );
-			var brokenFront = trisToDrift.BreakApart( false );
+			var slicedParts = trisToSlice.BreakApart( false );
+			var frontParts = trisToDrift.BreakApart( false );
+			
 			// TODO: determine which one of those has a triangle that's closest to slice point
+			if( slicedParts.Count > 1 ) {
+				var minDistance = float.MaxValue;
+				foreach( var group in slicedParts ) {
+					foreach( var vertex in group.Vertices ) {
+						var distance = Vector3.SqrMagnitude( vertex.Position - point );
+						if( distance < minDistance ) {
+							minDistance = distance;
+							trisToSlice = group;
+						}
+					}
+				}
+			}
+			
+			if( frontParts.Count > 1 ) {
+				var minDistance = float.MaxValue;
+				foreach( var group in frontParts ) {
+					foreach( var vertex in group.Vertices ) {
+						var distance = Vector3.SqrMagnitude( vertex.Position - point );
+						if( distance < minDistance ) {
+							minDistance = distance;
+							trisToDrift = group;
+						}
+					}
+				}
+			}
 		}
 		
 		foreach( var tris in trisToSlice ) {
@@ -381,37 +404,41 @@ public class MorphMesh {
 				
 				var bMid = plane.Cast( new Ray( a, b - a ) );
 				var cMid = plane.Cast( new Ray( a, c - a ) );
-				Draw.Cross( bMid, Palette.yellow, 0.01f, 10f );
-				Draw.Cross( cMid, Palette.green, 0.01f, 10f );
-				Draw.Cross( (bMid + cMid) /2, Palette.violet, 0.01f, 10f );
-				
 				var vAB = EmitVertex( bMid );
 				var vAC = EmitVertex( cMid );
-				if( aSide == false ) {
+				
+				if( aSide == false ) {	// lone corner is on the back
 					// this is staying part
 					EmitTriangle( ref vA, ref vAB, ref vAC );
+					
+					// this is drifting:
+					trisToDrift.Add( EmitTriangle( ref vAB, ref vB, ref vAC ) );
+					trisToDrift.Add( EmitTriangle( ref vAC, ref vB, ref vC ) );
 				}
 				else {
 					// this is staying part
 					EmitTriangle( ref vAB, ref vB, ref vAC );
 					EmitTriangle( ref vAC, ref vB, ref vC );
+					
+					// this is drifting:
+					trisToDrift.Add( EmitTriangle( ref vA, ref vAB, ref vAC ) );
 				}
 				
 				break;
 			}
 			
-			
+			DeleteTriangle( tris );
 		}
 		
-		return null;
+		return trisToDrift;
 	}
 #endregion
 	
 	
 #region Private
 	private void _RebuildOwnershipData() {
-		m_ownersCount.PadUpTo( m_positions.Count );
-		m_ownersFast.PadUpTo( m_positions.Count *VertexOwnership.c_ownersFast );
+		m_ownersCount.Resize( m_positions.Count );
+		m_ownersFast.Resize( m_positions.Count *VertexOwnership.c_ownersFast, c_invalidID );
 		
 		var trianglesCount = m_indeces.Count /3;
 		for( var triangleIndex = 0; triangleIndex < trianglesCount; triangleIndex++ ) {
@@ -542,14 +569,14 @@ public class MorphMesh {
 		foreach( var ownerID in vertex.m_ownership ) {
 			if( ownerID == triangleToIgnore ) { continue; }
 			var tris = GetTriangle( ownerID );
-			_DeleteTriangle( ref tris, false );
+			_DeleteTriangle( tris, false );
 		}
 		
 		m_ownersCount[vertex.Index] = 0;
 		m_ownersExt.Remove( vertex.Index );
 	}
 	
-	private void _DeleteTriangle( ref Triangle triangle, bool deleteVertices ) {
+	private void _DeleteTriangle( Triangle triangle, bool deleteVertices ) {
 		m_trianglesSolid = false;
 		
 		if( deleteVertices ) {

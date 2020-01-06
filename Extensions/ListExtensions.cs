@@ -5,15 +5,21 @@ using System.Text;
 public static class ListExtensions {
 	
 #region List padding
-	public static void PadUpTo<T>( this IList<T> list, int totalCount, T template = default( T ) ) {
-		var padAmount = totalCount - list.Count;
-		if( padAmount > 0 ) {
-			list.Pad( padAmount, template );
+	public static void Resize<T>( this List<T> list, int newSize, T template = default( T ) ) {
+		var currentSize = list.Count;
+		
+		if( newSize < currentSize ) {
+			var diff = currentSize - newSize;
+			list.RemoveRange( newSize, diff );
+		}
+		else {
+			list.GrowBy( newSize - currentSize, template );
 		}
 	}
 	
-	public static void Pad<T>( this IList<T> list, int count, T template = default( T ) ) {
-		for( var i = 0; i < count; i++ ) {
+	public static void GrowBy<T>( this IList<T> list, int itemsToAdd, T template = default( T ) ) {
+		// this will skip if growth is <= 0
+		for( var i = 0; i < itemsToAdd; i++ ) {
 			list.Add( template );
 		}
 	}
@@ -27,14 +33,30 @@ public static class ListExtensions {
 		return list[index];
 	}
 	
-	public static void SetAt<T>( this IList<T> list, int index, T item, T paddingTemplate = default( T ) ) {
-		if( index == list.Count ) {
+	// returns true if list was grown
+	public static bool SetAt<T>( this IList<T> list, int index, T item, T template = default( T ) ) {
+		var count = list.Count;
+		if( index == count ) {
 			list.Add( item );
-			return;
+			return true;
 		}
 		
-		list.PadUpTo( index + 1, paddingTemplate );
-		list[index] = item;
+		// despite being logically superior to "index == count" condition, in practice this will happen approximately never
+		if( index < 0 ) {
+			return false;
+		}
+		
+		if( index < count ) {
+			list[index] = item;
+			return false;
+		}
+		
+		for( var i = count; i < index; i++ ) {
+			list.Add( template );
+		}
+		list.Add( item );
+		
+		return true;
 	}
 #endregion
 	
