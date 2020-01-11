@@ -37,9 +37,22 @@ public class MorphMesh {
 	// reusable utility containers
 	private static Dictionary<int, int> t_vertexMapping = new Dictionary<int, int>( c_initialVertexCapacity );
 	private static Dictionary<int, int> t_triangleMapping = new Dictionary<int, int>( c_initialVertexCapacity /3 );
+	private static List<int> t_weldBundle = new List<int>( 10 );
 	// - - - - - - - - - - - - - -
 	
 	public MeshFilter Target { get; private set; }
+	
+	public bool HasColors {
+		get {
+			return (m_positions.Count > 0) && (m_colors.Count > 0);
+		}
+	}
+	
+	public int VertexCount {
+		get {
+			return m_topVertexIndex + 1;
+		}
+	}
 	
 #region Implementation
 	public MorphMesh() {}
@@ -153,10 +166,12 @@ public class MorphMesh {
 		// Note: this is necessary because dead triangles shouldn't get into render. Dead verts is ok
 		_CompactifyTriangles();
 		
+		_SyncPropertiesSizes();
+		
 		var mesh = filterTarget.mesh;
 		mesh.Clear();
 		mesh.SetVertices( m_positions );
-		mesh.SetColors( m_colors );
+		mesh.SetColors( HasColors ? m_colors : null );
 		mesh.SetTriangles( m_indeces, 0 );
 		mesh.RecalculateNormals();
 	}
@@ -308,8 +323,8 @@ public class MorphMesh {
 		var forward = rotation *(Vector3.forward *scale.z) *0.5f;
 		
 		// separate quads with unique vertices because we ought to keep them flat
-		EmitQuad( position + up,			rotation,										scale.XZ()	);	// Y+
-		EmitQuad( position - up,			rotation *Quaternion.Euler( 180f, 0f,   0f ),	scale.XZ()	);	// Y-
+		EmitQuad( position + up,		rotation,										scale.XZ()	);	// Y+
+		EmitQuad( position - up,		rotation *Quaternion.Euler( 180f, 0f,   0f ),	scale.XZ()	);	// Y-
 		EmitQuad( position + forward,	rotation *Quaternion.Euler(  90f, 0f,   0f ),	scale.XY()	);	// Z+
 		EmitQuad( position - forward,	rotation *Quaternion.Euler( -90f, 0f,   0f ),	scale.XY()	);	// Z-
 		EmitQuad( position + right,		rotation *Quaternion.Euler(   0f, 0f, -90f ),	scale.YZ()	);	// X+
@@ -319,12 +334,67 @@ public class MorphMesh {
 	
 	
 #region Geometry ops
-	public void WeldVertices( float treshold = 0.001f ) {
+	public void WeldVertices( float treshold = 0.001f, bool mergeVertices = false ) {
+		// Maybe the way to do it is to first scan through pairs and build up "groups"
+		// while you scan, you can run into a situation with contending groups
+		// in which case the larger group wins
 		
+		for( var indexA = 0; indexA < m_topVertexIndex; indexA++ ) {
+			if( m_ownersCount[indexA] == 0 ) { continue; }	// vertex dead
+			
+			var positionsWelded = 0;
+			var colorsWelded = 0;
+			var oldPosition = m_positions[indexA];
+			var newPosition = oldPosition;
+			
+			t_weldBundle.Clear();
+			
+			for( var indexB = indexA + 1; indexB <= m_topVertexIndex; indexB++ ) {
+				if( m_ownersCount[indexB] == 0 ) { continue; }	// vertex dead
+				
+				var positionB = m_positions[indexB];
+				var distance = Vector3.Distance( oldPosition, positionB );
+				if( distance < treshold ) {
+					var shouldMovePosition = (distance > Mathf.Epsilon);
+					if( shouldMovePosition ) {
+						positionsWelded += 1;
+						var positionFactor = 1f /(positionsWelded + 1f);
+						newPosition = Vector3.LerpUnclamped( newPosition, positionB, positionFactor );
+						m_positions[indexB] = newPosition;
+					}
+					else {
+						t_weldBundle.Add( indexB );
+					}
+					
+					if( mergeVertices ) {
+						if( HasColors ) {
+							colorsWelded += 1;
+							var colorFactor = 1f /(colorsWelded + 1f);
+							
+							var colorA = m_colors.GetAt( indexA, Color.white );
+							var colorB = m_colors.GetAt( indexB, Color.white );
+							var newColor = Color.LerpUnclamped( colorA, colorB, colorFactor );
+							m_colors.SetAt( indexA, newColor );
+						}
+						
+						// TODO: other shit
+					}
+				}
+			}
+			
+			// Now problem is that we're still going to iterate over those we've already processed...
+			if( positionsWelded > 0 ) {
+				m_positions[indexA] = newPosition;
+				
+				for( var i = 0; i < t_weldBundle.Count; i++ ) {
+					m_positions[t_weldBundle[i]] = newPosition;
+				}
+			}
+		}
 	}
 	
 	public void MakeVerticesUnique() {
-		var allVerts = GetAllVertices();
+		var allVerts = GetAllVertices();	// what the hell was I smoking then?..
 		foreach( var vertex in allVerts ) {
 			if( vertex.m_ownership.OwnersCount <= 1 ) {
 				continue;
@@ -608,6 +678,12 @@ public class MorphMesh {
 			Debug.LogWarning( "Tried to find filter target on '"+target.gameObject.name+"', but no MeshFilter was found there!" );
 		}
 		return filterTarget;
+	}
+	
+	private void _SyncPropertiesSizes() {
+		if( HasColors ) {
+			m_colors.Resize( m_positions.Count, Color.white );
+		}
 	}
 	
 	private VertexOwnership _MakeOwnershipData( int vertexIndex ) {

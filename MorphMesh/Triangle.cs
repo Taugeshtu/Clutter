@@ -23,6 +23,9 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 	
 	private int _indexIndex { get { return Index *3; } }
 	private List<int> _indeces { get { return m_mesh.m_indeces; } }
+	private int _indexA { get { return _indeces[_indexIndex + 0]; } }
+	private int _indexB { get { return _indeces[_indexIndex + 1]; } }
+	private int _indexC { get { return _indeces[_indexIndex + 2]; } }
 	
 	public long Generation;
 	public int Index;
@@ -33,21 +36,33 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 		}
 	}
 	
+	public bool IsDegenerate {
+		get {
+			var indexA = _indexA;
+			var indexB = _indexB;
+			var indexC = _indexC;
+			if( (indexA != indexB) && (indexA != indexC) && (indexB != indexC) ) {
+				return false;
+			}
+			return true;
+		}
+	}
+	
 	public Vertex A {
 		get {
-			if( !m_cachedA.IsValid ) { m_cachedA = m_mesh.GetVertex( _indeces[_indexIndex + 0] ); }
+			if( !m_cachedA.IsValid ) { m_cachedA = m_mesh.GetVertex( _indexA ); }
 			return m_cachedA;
 		}
 	}
 	public Vertex B {
 		get {
-			if( !m_cachedB.IsValid ) { m_cachedB = m_mesh.GetVertex( _indeces[_indexIndex + 1] ); }
+			if( !m_cachedB.IsValid ) { m_cachedB = m_mesh.GetVertex( _indexB ); }
 			return m_cachedB;
 		}
 	}
 	public Vertex C {
 		get {
-			if( !m_cachedC.IsValid ) { m_cachedC = m_mesh.GetVertex( _indeces[_indexIndex + 2] ); }
+			if( !m_cachedC.IsValid ) { m_cachedC = m_mesh.GetVertex( _indexC ); }
 			return m_cachedC;
 		}
 	}
@@ -161,9 +176,9 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 	public void SetVertices( ref Vertex a, ref Vertex b, ref Vertex c ) {
 		var indexIndex = _indexIndex;
 		
-		var indexA = _indeces[indexIndex + 0];
-		var indexB = _indeces[indexIndex + 1];
-		var indexC = _indeces[indexIndex + 2];
+		var indexA = _indexA;
+		var indexB = _indexB;
+		var indexC = _indexC;
 		
 		_indeces[indexIndex + 0] = a.Index;
 		_indeces[indexIndex + 1] = b.Index;

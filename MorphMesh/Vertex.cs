@@ -10,7 +10,7 @@ public struct Vertex : IEnumerable<Triangle>, IEnumerable, IEquatable<Vertex> {
 	internal VertexOwnership m_ownership;
 	private List<Vector3> _positions { get { return m_mesh.m_positions; } }
 	private List<Color> _colors { get { return m_mesh.m_colors; } }
-	// TODO: UVs, colors, etc
+	// TODO: UVs, etc
 	
 	public long Generation;
 	public int Index;
