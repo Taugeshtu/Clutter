@@ -37,7 +37,9 @@ public class MorphMesh {
 	// reusable utility containers
 	private static Dictionary<int, int> t_vertexMapping = new Dictionary<int, int>( c_initialVertexCapacity );
 	private static Dictionary<int, int> t_triangleMapping = new Dictionary<int, int>( c_initialVertexCapacity /3 );
-	private static List<int> t_weldBundle = new List<int>( 10 );
+	private static Dictionary<int, HashSet<int>> t_weldMap = new Dictionary<int, HashSet<int>>( 10 );	// vertex -> weldGroup
+	private static HashSet<HashSet<int>> t_weldGroups = new HashSet<HashSet<int>>();
+	private static List<Vector3> t_weldPoints = new List<Vector3>( 10 );
 	// - - - - - - - - - - - - - -
 	
 	public MeshFilter Target { get; private set; }
@@ -334,62 +336,93 @@ public class MorphMesh {
 	
 	
 #region Geometry ops
-	public void WeldVertices( float treshold = 0.001f, bool mergeVertices = false ) {
-		// Maybe the way to do it is to first scan through pairs and build up "groups"
-		// while you scan, you can run into a situation with contending groups
-		// in which case the larger group wins
+	public void MergeVertices( float treshold = 0.001f ) {
+		t_weldMap.Clear();
+		t_weldGroups.Clear();
+		var sqTreshold = treshold *treshold;
 		
 		for( var indexA = 0; indexA < m_topVertexIndex; indexA++ ) {
 			if( m_ownersCount[indexA] == 0 ) { continue; }	// vertex dead
+			if( t_weldMap.ContainsKey( indexA ) ) { continue; }	// already processed
 			
-			var positionsWelded = 0;
-			var colorsWelded = 0;
-			var oldPosition = m_positions[indexA];
-			var newPosition = oldPosition;
-			
-			t_weldBundle.Clear();
+			HashSet<int> newBundle = null;
 			
 			for( var indexB = indexA + 1; indexB <= m_topVertexIndex; indexB++ ) {
 				if( m_ownersCount[indexB] == 0 ) { continue; }	// vertex dead
+				if( t_weldMap.ContainsKey( indexB ) ) { continue; }	// already processed
 				
+				var positionA = m_positions[indexA];
 				var positionB = m_positions[indexB];
-				var distance = Vector3.Distance( oldPosition, positionB );
-				if( distance < treshold ) {
-					var shouldMovePosition = (distance > Mathf.Epsilon);
-					if( shouldMovePosition ) {
-						positionsWelded += 1;
-						var positionFactor = 1f /(positionsWelded + 1f);
-						newPosition = Vector3.LerpUnclamped( newPosition, positionB, positionFactor );
-						m_positions[indexB] = newPosition;
-					}
-					else {
-						t_weldBundle.Add( indexB );
-					}
-					
-					if( mergeVertices ) {
-						if( HasColors ) {
-							colorsWelded += 1;
-							var colorFactor = 1f /(colorsWelded + 1f);
-							
-							var colorA = m_colors.GetAt( indexA, Color.white );
-							var colorB = m_colors.GetAt( indexB, Color.white );
-							var newColor = Color.LerpUnclamped( colorA, colorB, colorFactor );
-							m_colors.SetAt( indexA, newColor );
-						}
-						
-						// TODO: other shit
-					}
+				var diff = positionB - positionA;
+				if( diff.sqrMagnitude < sqTreshold ) {
+					if( newBundle == null ) { newBundle = new HashSet<int>(); }
+					newBundle.Add( indexB );
 				}
 			}
 			
-			// Now problem is that we're still going to iterate over those we've already processed...
-			if( positionsWelded > 0 ) {
-				m_positions[indexA] = newPosition;
+			if( newBundle != null ) {
+				newBundle.Add( indexA );
+				foreach( var index in newBundle ) {
+					t_weldMap[index] = newBundle;
+				}
+				t_weldGroups.Add( newBundle );
+			}
+		}
+		
+		foreach( var group in t_weldGroups ) {
+			_MergeVertices( group );
+		}
+	}
+	
+	public void WeldVertices( float treshold = 0.001f, bool mergeVertices = false ) {
+		t_weldMap.Clear();
+		var sqTreshold = treshold *treshold;
+		
+		for( var indexA = 0; indexA <= m_topVertexIndex; indexA++ ) {
+			if( m_ownersCount[indexA] == 0 ) { continue; }	// vertex dead
+			
+			HashSet<int> newBundle = null;
+			
+			for( var indexB = 0; indexB <= m_topVertexIndex; indexB++ ) {
+				if( indexB == indexA ) { continue; }
+				if( m_ownersCount[indexB] == 0 ) { continue; }	// vertex dead
 				
-				for( var i = 0; i < t_weldBundle.Count; i++ ) {
-					m_positions[t_weldBundle[i]] = newPosition;
+				var positionA = m_positions[indexA];
+				var positionB = m_positions[indexB];
+				var diff = positionB - positionA;
+				if( diff.sqrMagnitude < sqTreshold ) {
+					if( newBundle == null ) { newBundle = new HashSet<int>(); }
+					newBundle.Add( indexB );
 				}
 			}
+			
+			if( newBundle != null ) {
+				newBundle.Add( indexA );
+				
+				var oldBundle = t_weldMap.ContainsKey( indexA ) ? t_weldMap[indexA] : null;
+				if( oldBundle != null ) {
+					if( newBundle.Count > oldBundle.Count ) {
+						oldBundle.ExceptWith( newBundle );
+					}
+					else {
+						newBundle.ExceptWith( oldBundle );
+					}
+				}
+				
+				foreach( var index in newBundle ) {
+					t_weldMap[index] = newBundle;
+				}
+			}
+		}
+		
+		t_weldGroups.Clear();
+		foreach( var group in t_weldMap.Values ) {
+			if( group.Count < 2 ) { continue; }
+			t_weldGroups.Add( group );
+		}
+		
+		foreach( var group in t_weldGroups ) {
+			_WeldVertices( group, mergeVertices );
 		}
 	}
 	
@@ -656,6 +689,46 @@ public class MorphMesh {
 		}
 		
 		m_deadTriangles.Add( triangle.Index );
+	}
+	
+	private void _MergeVertices( IEnumerable<int> vertices ) {
+		
+	}
+	
+	private void _WeldVertices( IEnumerable<int> vertices, bool mergeVertices ) {
+		// TODO: add logic that will make it so same-position verts don't overpull
+		t_weldPoints.Clear();
+		
+		foreach( var index in vertices ) {
+			var position = m_positions[index];
+			
+			var isUnique = true;
+			foreach( var weldPoint in t_weldPoints ) {
+				var diff = weldPoint - position;
+				if( diff.sqrMagnitude < Mathf.Epsilon ) {
+					isUnique = false;
+					break;
+				}
+			}
+			
+			if( isUnique ) {
+				t_weldPoints.Add( position );
+			}
+		}
+		
+		var newPosition = Vector3.zero;
+		foreach( var weldPoint in t_weldPoints ) {
+			newPosition += weldPoint;
+		}
+		newPosition /= t_weldPoints.Count;
+		
+		foreach( var index in vertices ) {
+			m_positions[index] = newPosition;
+		}
+		
+		if( mergeVertices ) {
+			_MergeVertices( vertices );
+		}
 	}
 #endregion
 	

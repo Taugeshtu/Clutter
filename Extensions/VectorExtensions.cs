@@ -72,6 +72,13 @@ public static class VectorExtensions {
 #endregion
 	
 	
+#region Color converters
+	//===========================================================
+	public static Color ToColor( this Vector4 v ) { return new Color( v.x, v.y, v.z, v.w ); }
+	public static Vector4 ToVector4( this Color c ) { return new Vector4( c.r, c.g, c.b, c.a ); }
+#endregion
+	
+	
 #region Component access
 	//===========================================================
 	public static float[] Components( this Vector2 v ) { return new float[] {v.x, v.y}; }
