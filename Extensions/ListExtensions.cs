@@ -58,6 +58,13 @@ public static class ListExtensions {
 		
 		return true;
 	}
+	
+	public static T RoundRobin<T>( this IList<T> list, int index ) {
+		if( list.Count == 0 ) { throw new System.Exception( "can't RoundRobin an empty list" ); }
+		
+		var actualIndex = index.Wrap( list.Count );
+		return list[actualIndex];
+	}
 #endregion
 	
 	
@@ -98,8 +105,30 @@ public static class ListExtensions {
 	
 	
 #region Adds
-	// Oh I'm a clever boi...
-	public static void Add<T>( this ICollection<T> collection, params T[] items ) {
+	// Might look stupid, but it ain't. Tis how .NET libs themselves do it - no alloc, fast, cheap
+	public static void Add<T>( this ICollection<T> collection, T item1, T item2 ) {
+		collection.Add( item1 );
+		collection.Add( item2 );
+	}
+	public static void Add<T>( this ICollection<T> collection, T item1, T item2, T item3 ) {
+		collection.Add( item1 );
+		collection.Add( item2 );
+		collection.Add( item3 );
+	}
+	public static void Add<T>( this ICollection<T> collection, T item1, T item2, T item3, T item4 ) {
+		collection.Add( item1 );
+		collection.Add( item2 );
+		collection.Add( item3 );
+		collection.Add( item4 );
+	}
+	public static void Add<T>( this ICollection<T> collection, T item1, T item2, T item3, T item4, T item5 ) {
+		collection.Add( item1 );
+		collection.Add( item2 );
+		collection.Add( item3 );
+		collection.Add( item4 );
+		collection.Add( item5 );
+	}
+	public static void Add<T>( this ICollection<T> collection, IEnumerable<T> items ) {
 		foreach( var item in items ) {
 			collection.Add( item );
 		}
@@ -108,7 +137,29 @@ public static class ListExtensions {
 	
 	
 #region Removes
-	public static void Remove<T>( this ICollection<T> collection, params T[] items ) {
+	public static void Remove<T>( this ICollection<T> collection, T item1, T item2 ) {
+		collection.Remove( item1 );
+		collection.Remove( item2 );
+	}
+	public static void Remove<T>( this ICollection<T> collection, T item1, T item2, T item3 ) {
+		collection.Remove( item1 );
+		collection.Remove( item2 );
+		collection.Remove( item3 );
+	}
+	public static void Remove<T>( this ICollection<T> collection, T item1, T item2, T item3, T item4 ) {
+		collection.Remove( item1 );
+		collection.Remove( item2 );
+		collection.Remove( item3 );
+		collection.Remove( item4 );
+	}
+	public static void Remove<T>( this ICollection<T> collection, T item1, T item2, T item3, T item4, T item5 ) {
+		collection.Remove( item1 );
+		collection.Remove( item2 );
+		collection.Remove( item3 );
+		collection.Remove( item4 );
+		collection.Remove( item5 );
+	}
+	public static void Remove<T>( this ICollection<T> collection, IEnumerable<T> items ) {
 		foreach( var item in items ) {
 			collection.Remove( item );
 		}
