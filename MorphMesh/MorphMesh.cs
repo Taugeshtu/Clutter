@@ -28,10 +28,10 @@ public class MorphMesh {
 	// - - - - - - - - - - - - - -
 	
 	// - - - - UTILITY  DATA - - -
-	internal long m_generation = 0;	// should never be reset!
-	private int m_topVertexIndex = c_invalidID;
-	private int m_topTriangleIndex = c_invalidID;
-	private bool m_trianglesSolid = true;
+	internal long m_generation = 1;	// should never be reset! Starting from "1" makes default( Vertex ) invalid
+	protected int m_topVertexIndex = c_invalidID;
+	protected int m_topTriangleIndex = c_invalidID;
+	protected bool m_trianglesSolid = true;
 	// - - - - - - - - - - - - - -
 	
 	// reusable utility containers
@@ -269,6 +269,10 @@ public class MorphMesh {
 		var vB = EmitVertex( b );
 		var vC = EmitVertex( c );
 		
+		return EmitTriangle( ref vA, ref vB, ref vC );
+	}
+	
+	public Triangle EmitTriangle( Vertex vA, Vertex vB, Vertex vC ) {
 		return EmitTriangle( ref vA, ref vB, ref vC );
 	}
 	

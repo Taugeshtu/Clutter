@@ -44,6 +44,7 @@ public struct Edge : IEnumerable<Vertex>, IEnumerable, IEquatable<Edge> {
 	}
 	
 	public Vector3 AB { get { return B.Position - A.Position; } }
+	public Vector3 BA { get { return A.Position - B.Position; } }
 	public Vector3 Mid {
 		get {
 			return (A.Position + B.Position) /2f;
@@ -52,16 +53,41 @@ public struct Edge : IEnumerable<Vertex>, IEnumerable, IEquatable<Edge> {
 	
 	public IEnumerable<Triangle> Triangles {
 		get {
-			t_worksetA.Clear();
-			foreach( var ownerID in A.m_ownership ) {
-				t_worksetA.Add( ownerID );
-			}
+			// Keeping old style in tact in case later I find it's faster.
+			// Too tired to make a test right now.. Forgive me, future Tau
 			
-			foreach( var ownerID in B.m_ownership ) {
-				if( t_worksetA.Contains( ownerID ) ) {
-					yield return m_mesh.GetTriangle( ownerID );
+			// t_worksetA.Clear();
+			// foreach( var ownerID in A.m_ownership ) {
+			// 	t_worksetA.Add( ownerID );
+			// }
+			
+			// foreach( var ownerID in B.m_ownership ) {
+			// 	if( t_worksetA.Contains( ownerID ) ) {
+			// 		yield return m_mesh.GetTriangle( ownerID );
+			// 	}
+			// }
+			
+			foreach( var ownerA in A.m_ownership ) {
+			foreach( var ownerB in B.m_ownership ) {
+				if( ownerA == ownerB ) {
+					yield return m_mesh.GetTriangle( ownerA );
 				}
 			}
+			}
+		}
+	}
+	
+	public int OwnersCount {
+		get {
+			var result = 0;
+			foreach( var ownerA in A.m_ownership ) {
+			foreach( var ownerB in B.m_ownership ) {
+				if( ownerA == ownerB ) {
+					result += 1;
+				}
+			}
+			}
+			return result;
 		}
 	}
 	
@@ -101,6 +127,10 @@ public struct Edge : IEnumerable<Vertex>, IEnumerable, IEquatable<Edge> {
 	}
 	public static bool operator !=( Edge a, Edge b ) {
 		return !a.Equals( b );
+	}
+	
+	public override string ToString() {
+		return "E: ("+A.Index+","+B.Index+") @"+Generation;
 	}
 #endregion
 	

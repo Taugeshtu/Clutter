@@ -85,7 +85,7 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 	public Vector3 CB { get { return B.Position - C.Position; } }
 	public Vector3 BA { get { return A.Position - B.Position; } }
 	
-	public IEnumerable<Edge> Edges {	// TODO: make an Edge struct, ffs!
+	public IEnumerable<Edge> Edges {
 		get {
 			yield return new Edge( m_mesh, A, B );
 			yield return new Edge( m_mesh, B, C );
@@ -168,6 +168,10 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 	}
 	public static bool operator !=( Triangle a, Triangle b ) {
 		return !a.Equals( b );
+	}
+	
+	public override string ToString() {
+		return "T_"+Index+": ("+A.Index+","+B.Index+","+C.Index+") @"+Generation;
 	}
 #endregion
 	

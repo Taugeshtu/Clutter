@@ -65,6 +65,10 @@ public struct Vertex : IEnumerable<Triangle>, IEnumerable, IEquatable<Vertex> {
 	public static bool operator !=( Vertex a, Vertex b ) {
 		return !a.Equals( b );
 	}
+	
+	public override string ToString() {
+		return "V_"+Index+" @"+Generation;
+	}
 #endregion
 	
 	

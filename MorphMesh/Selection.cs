@@ -7,7 +7,7 @@ public class Selection : IEnumerable<Triangle>, IEnumerable, ICollection<Triangl
 	private static HashSet<Triangle> t_triangles = new HashSet<Triangle>();
 	
 	private MorphMesh m_mesh;
-	private bool m_outlineDirty = false;
+	private bool m_outlineDirty = true;
 	private HashSet<Triangle> m_selection;
 	private HashSet<Triangle> m_outline = new HashSet<Triangle>();
 	
@@ -30,7 +30,20 @@ public class Selection : IEnumerable<Triangle>, IEnumerable, ICollection<Triangl
 		}
 	}
 	
+	public IEnumerable<Edge> OutlineEdges {
+		get {
+			foreach( var tris in Outline ) {
+				foreach( var edge in tris.Edges ) {
+					if( edge.OwnersCount == 1 ) {
+						yield return edge;
+					}
+				}
+			}
+		}
+	}
+	
 #region Implementation
+	public Selection( MorphMesh mesh, params Triangle[] triangles ) : this( mesh, (IEnumerable<Triangle>) triangles ) {}
 	public Selection( MorphMesh mesh, IEnumerable<Triangle> triangles = null ) {
 		m_mesh = mesh;
 		Generation = mesh.m_generation;
@@ -48,7 +61,7 @@ public class Selection : IEnumerable<Triangle>, IEnumerable, ICollection<Triangl
 	public int Count { get { return m_selection.Count; } }
 	public bool IsReadOnly { get { return false; } }
 	
-	void ICollection<Triangle>.Add( Triangle item ) {
+	public void Add( Triangle item ) {
 		m_outlineDirty = true;
 		m_selection.Add( item );
 	}
