@@ -15,7 +15,7 @@ public class MorphMesh {
 	
 	// - - - - VERTEX DATA - - - -
 	internal List<Vector3> m_positions = new List<Vector3>( c_initialVertexCapacity );
-	internal List<Color> m_colors = new List<Color>( c_initialVertexCapacity );
+	internal List<Color> m_colors = new List<Color>( c_initialVertexCapacity );	// todo: don't allocate if you don't need
 	
 	internal List<int> m_ownersCount = new List<int>( c_initialVertexCapacity );
 	internal List<int> m_ownersFast = new List<int>( c_initialVertexCapacity *VertexOwnership.c_ownersFast );	// Note: not sure how worth it this optimization is
@@ -176,6 +176,11 @@ public class MorphMesh {
 		mesh.SetColors( HasColors ? m_colors : null );
 		mesh.SetTriangles( m_indeces, 0 );
 		mesh.RecalculateNormals();
+		
+		var colliderTarget = filterTarget.GetComponent<MeshCollider>();
+		if( colliderTarget != null ) {
+			colliderTarget.sharedMesh = mesh;
+		}
 	}
 #endregion
 	
