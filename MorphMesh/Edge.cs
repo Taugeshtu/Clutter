@@ -3,6 +3,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+using DRAW = Draw;	// solving name collisions
+
 namespace Clutter.Mesh {
 public struct Edge : IEnumerable<Vertex>, IEnumerable, IEquatable<Edge> {
 	private static HashSet<int> t_worksetA = new HashSet<int>();
@@ -136,6 +138,9 @@ public struct Edge : IEnumerable<Vertex>, IEnumerable, IEquatable<Edge> {
 	
 	
 #region Public
+	public void Draw( Color? color = null, float size = 1, float duration = 2 ) {
+		DRAW.RayFromTo( A.Position, B.Position, color, size, duration );
+	}
 #endregion
 	
 	

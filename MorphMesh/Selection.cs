@@ -146,18 +146,10 @@ public class Selection : IEnumerable<Triangle>, IEnumerable, ICollection<Triangl
 		m_outlineDirty = false;
 		m_outline.Clear();
 		
-		foreach( var trisA in m_selection ) {
-			foreach( var edge in trisA.Edges ) {
-				var hasNeighbours = false;
-				
-				foreach( var trisB in edge.Triangles ) {
-					if( trisB.Index == trisA.Index ) { continue; }
-					hasNeighbours = true;
-					break;
-				}
-				
-				if( hasNeighbours == false ) {
-					m_outline.Add( trisA );
+		foreach( var tris in m_selection ) {
+			foreach( var edge in tris.Edges ) {
+				if( edge.OwnersCount == 1 ) {
+					m_outline.Add( tris );
 					break;
 				}
 			}

@@ -107,7 +107,7 @@ public class MorphMesh {
 			result.Append( "\n" );
 			result.Append( ownershipData.ToString() );
 			result.Append( "; " );
-			result.Append( m_positions[i].LogFormat( "00.00" ) );
+			result.Append( m_positions[i].LogFormat( "f2" ) );
 		}
 		
 		result.Append( "\n" );
@@ -436,7 +436,7 @@ public class MorphMesh {
 	}
 	
 	public void MakeVerticesUnique() {
-		var allVerts = GetAllVertices();	// what the hell was I smoking then?..
+		var allVerts = GetAllVertices();	// what the hell was I smoking then?.. THESE WILL STILL HAVE TRANSIENT STRUCTS
 		foreach( var vertex in allVerts ) {
 			if( vertex.m_ownership.OwnersCount <= 1 ) {
 				continue;
@@ -463,6 +463,12 @@ public class MorphMesh {
 		if( intersectTriangles.Count == 0 ) {
 			return null;
 		}
+		
+		/*
+		foreach( var tris in frontTriangles ) { tris.Draw( Color.blue, 0.5f, 5 ); }
+		foreach( var tris in backTriangles ) { tris.Draw( Color.yellow, 0.5f, 5 ); }
+		foreach( var tris in intersectTriangles ) { tris.Draw( Color.red, 0.5f, 5 ); }
+		*/
 		
 		var trisToSlice = new Selection( this, intersectTriangles );
 		var trisToDrift = new Selection( this, frontTriangles );

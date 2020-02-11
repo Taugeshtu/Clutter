@@ -246,9 +246,9 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 	}
 	
 	public void Draw( Color? color = null, float size = 1, float duration = 2 ) {
-		DRAW.RayFromTo( A.Position, B.Position, color, size, duration );
-		DRAW.RayFromTo( B.Position, C.Position, color, size, duration );
-		DRAW.RayFromTo( C.Position, A.Position, color, size, duration );
+		foreach( var edge in Edges ) {
+			edge.Draw( color, size, duration );
+		}
 	}
 #endregion
 	
