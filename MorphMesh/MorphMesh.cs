@@ -621,12 +621,14 @@ public class MorphMesh {
 		t_triangleMapping.Clear();
 		
 		// Building triangle index mapping
+		var validIndex = 0;
 		for( var i = 0; i < trianglesCount; i++ ) {
 			if( m_deadTriangles.Contains( i ) ) {
 				t_triangleMapping.Add( i, c_invalidID );
 			}
 			else {
-				t_triangleMapping.Add( i, i );
+				t_triangleMapping.Add( i, validIndex );
+				validIndex += 1;
 			}
 		}
 		
