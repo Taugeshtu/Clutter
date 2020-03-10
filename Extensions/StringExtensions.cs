@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 public static class StringExtensions {
 	
@@ -8,7 +7,6 @@ public static class StringExtensions {
 		var removeStart = builder.Length - count;
 		builder.Remove( removeStart, count );
 	}
-	
 #endregion
 	
 	
