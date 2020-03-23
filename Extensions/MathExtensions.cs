@@ -1,10 +1,10 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System;
 
 //===========================================================//===========================================================
 public static class MathExtensions {
+	private const float c_epsilon = 0.000001f;
 	
 #region Angles
 	public static float ToAngle( this float angle ) {
@@ -25,7 +25,7 @@ public static class MathExtensions {
 	public static float Wrap( this float a, float min, float max ) {
 		var range = max - min;
 		var diff = a - min;
-		a = a - (float) Mathf.Round( diff /range ) *range;
+		a = a - (float) System.Math.Round( diff /range ) *range;
 		if (a < 0) {
 			a = a + max - min;
 		}
@@ -40,13 +40,13 @@ public static class MathExtensions {
 		return b.EpsilonEquals( a );
 	}
 	public static bool EpsilonEquals( this int a, float b ) {
-		return Mathf.Abs( a - b ) < Mathf.Epsilon*2f;
+		return System.Math.Abs( a - b ) < c_epsilon*2f;
 	}
 	public static bool EpsilonEquals( this float a, float b ) {
-		return Mathf.Abs( a - b ) < Mathf.Epsilon*2f;
+		return System.Math.Abs( a - b ) < c_epsilon*2f;
 	}
 	public static bool EpsilonEquals( this double a, double b ) {
-		return Mathf.Abs( (float) (a - b) ) < Mathf.Epsilon*2f;
+		return System.Math.Abs( (float) (a - b) ) < c_epsilon*2f;
 	}
 #endregion
 	
