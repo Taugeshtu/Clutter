@@ -177,35 +177,6 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 	
 	
 #region Public
-	public void SetVertices( ref Vertex a, ref Vertex b, ref Vertex c ) {
-		var indexIndex = _indexIndex;
-		
-		var indexA = _indexA;
-		var indexB = _indexB;
-		var indexC = _indexC;
-		
-		_indeces[indexIndex + 0] = a.Index;
-		_indeces[indexIndex + 1] = b.Index;
-		_indeces[indexIndex + 2] = c.Index;
-		
-		var oldSet = new HashSet<int>() { indexA, indexB, indexC };
-		var newSet = new HashSet<int>() { a.Index, b.Index, c.Index };
-		
-		oldSet.Remove( MorphMesh.c_invalidID, a.Index, b.Index, c.Index );
-		foreach( var oldVertexIndex in oldSet ) {
-			m_mesh.GetVertex( oldVertexIndex ).m_ownership.RemoveOwner( Index );
-		}
-		
-		newSet.Remove( indexA, indexB, indexC );
-		foreach( var newVertexIndex in newSet ) {
-			m_mesh.GetVertex( newVertexIndex ).m_ownership.AddOwner( Index );
-		}
-		
-		m_cachedA = a;
-		m_cachedB = b;
-		m_cachedC = c;
-	}
-	
 	public void Flip() {
 		var indexIndex = _indexIndex;
 		

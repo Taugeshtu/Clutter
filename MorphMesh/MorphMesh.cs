@@ -3,12 +3,6 @@ using System.Collections.Generic;
 
 namespace Clutter.Mesh {
 
-/* Notes:
- - Vertices are addressed via Index
- - Triangles - via ID; internally treated via indexes
-
-*/
-
 public class MorphMesh {
 	public const int c_invalidID = -1;
 	private const int c_initialVertexCapacity = 300;
@@ -36,7 +30,6 @@ public class MorphMesh {
 	
 	// reusable utility containers
 	private static Dictionary<int, int> t_vertexMapping = new Dictionary<int, int>( c_initialVertexCapacity );
-	private static Dictionary<int, int> t_triangleMapping = new Dictionary<int, int>( c_initialVertexCapacity /3 );
 	private static Dictionary<int, HashSet<int>> t_weldMap = new Dictionary<int, HashSet<int>>( 10 );	// vertex -> weldGroup
 	private static HashSet<HashSet<int>> t_weldGroups = new HashSet<HashSet<int>>();
 	private static List<Vector3> t_weldPoints = new List<Vector3>( 10 );
@@ -113,7 +106,24 @@ public class MorphMesh {
 		result.Append( "\n" );
 		result.Append( "Indeces: " );
 		result.Append( "\n" );
-		result.Append( m_indeces.Dump() );
+		var indexIndex = -1;
+		result.Append(
+			m_indeces.Dump(
+				(index) => {
+					indexIndex += 1;
+					if( indexIndex %3 == 0 ) {
+						return "("+index;
+					}
+					else if( indexIndex %3 == 2 ) {
+						return index+")";
+					}
+					else {
+						return index.ToString();
+					}
+				},
+				" "
+			)
+		);
 		
 		result.Append( "\n" );
 		result.Append( "Dead triangles: " );
@@ -122,10 +132,6 @@ public class MorphMesh {
 		result.Append( "\n" );
 		result.Append( "Latest Verts remap: " );
 		result.Append( t_vertexMapping.Dump() );
-		
-		result.Append( "\n" );
-		result.Append( "Latest Tris remap: " );
-		result.Append( t_triangleMapping.Dump() );
 		
 		return result.ToString();
 	}
@@ -198,6 +204,7 @@ public class MorphMesh {
 		var result = new List<Vertex>();
 		
 		// Feeling pretty clever right about now
+		// TODO: profile the shit outta that bitch. Maybe I'm not optimizing at all
 		System.Action<int> filler = (vertexIndex) => {
 			result.Add( GetVertex( vertexIndex ) );
 		};
@@ -583,7 +590,7 @@ public class MorphMesh {
 				t_vertexMapping[actualIndex] = c_invalidID;
 				
 				m_ownersExt.Remove( actualIndex );
-				_MoveVertexData( index, lastAliveIndex );
+				_MoveVertexData( lastAliveIndex, index );
 				lastAliveIndex -= 1;
 				wasMoved = true;
 			}
@@ -618,39 +625,26 @@ public class MorphMesh {
 		if( m_trianglesSolid ) { return; }
 		
 		var trianglesCount = m_indeces.Count /3;
-		t_triangleMapping.Clear();
 		
-		// Building triangle index mapping
-		var validIndex = 0;
-		for( var i = 0; i < trianglesCount; i++ ) {
-			if( m_deadTriangles.Contains( i ) ) {
-				t_triangleMapping.Add( i, c_invalidID );
-			}
-			else {
-				t_triangleMapping.Add( i, validIndex );
-				validIndex += 1;
-			}
-		}
+		Debug.Log( "Pre-compact: "+Dump() );
 		
 		// Shifting dead triangles to the back of the containers
 		var lastAliveIndex = trianglesCount - 1;
 		var index = 0;
-		var wasMoved = false;
 		while( index <= lastAliveIndex ) {
-			var actualIndex = wasMoved ? (lastAliveIndex + 1) : index;
 			var indexIndex = index *3;
-			var deadByList = (t_triangleMapping[actualIndex] == c_invalidID);
+			var deadByList = m_deadTriangles.Contains( index );
 			var deadByVerts = (m_indeces[indexIndex + 0] == c_invalidID) || (m_indeces[indexIndex + 1] == c_invalidID) || (m_indeces[indexIndex + 2] == c_invalidID);
 			var isDead = deadByList || deadByVerts;
 			
 			if( isDead ) {
-				_MoveTriangleData( index, lastAliveIndex );
+				Debug.LogError( "Tris #"+index+" considered DEAD" );
+				_MoveTriangleData( lastAliveIndex, index );			// <- < <= < <- CONTEXT
 				lastAliveIndex -= 1;
-				wasMoved = true;
 			}
 			else {
+				Debug.Log( "Tris #"+index+" passes, all good" );
 				index += 1;
-				wasMoved = false;
 			}
 		}
 		
@@ -659,19 +653,13 @@ public class MorphMesh {
 		var itemsToRemove = trianglesCount - firstDeadIndex;
 		m_indeces.RemoveRange( firstDeadIndex *3, itemsToRemove *3 );
 		
-		// Updating ownership
-		for( var vertexIndex = 0; vertexIndex < m_positions.Count; vertexIndex++ ) {
-			var ownership = new VertexOwnership( this, vertexIndex );
-			ownership.RemapOwners( t_triangleMapping );
-		}
-		
 		m_deadTriangles.Clear();
 		m_topTriangleIndex = (m_indeces.Count /3) - 1;
 		m_trianglesSolid = true;
 		m_generation += 1;
 	}
 	
-	private void _MoveVertexData( int destIndex, int sourceIndex ) {
+	private void _MoveVertexData( int sourceIndex, int destIndex ) {
 		m_positions.HalfSwap( destIndex, sourceIndex );
 		m_colors.HalfSwap( destIndex, sourceIndex, 1, true );
 		// TODO: also other data, should it arise!
@@ -681,8 +669,35 @@ public class MorphMesh {
 		destOwner.MoveOwnershipFrom( ref sourceOwner );
 	}
 	
-	private void _MoveTriangleData( int destIndex, int sourceIndex ) {
+	private void _MoveTriangleData( int sourceIndex, int destIndex ) {
+		// ownership:
+		var debs = "Moving tris, "+sourceIndex+" -> "+destIndex;
+		debs += "\nOwners cleanup for t"+destIndex;
+		foreach( var vert in GetTriangle( destIndex ) ) {
+			debs += "\n\tBefore: "+vert.m_ownership;
+			vert.m_ownership.RemapOwner( destIndex, c_invalidID );
+			debs += "\n\tAfter: "+vert.m_ownership;
+		}
+		debs += "\n\nOwners REMAP for t"+sourceIndex+" -> t"+destIndex;
+		foreach( var vert in GetTriangle( sourceIndex ) ) {
+			debs += "\n\tBefore: "+vert.m_ownership;
+			vert.m_ownership.RemapOwner( sourceIndex, destIndex );
+			debs += "\n\tAfter: "+vert.m_ownership;
+		}
+		
 		m_indeces.HalfSwap( destIndex *3, sourceIndex *3, 3 );
+		
+		// handling death info (so consequtive tris handling will work):
+		var sourceDead = m_deadTriangles.Remove( sourceIndex );
+		if( sourceDead ) {
+			m_deadTriangles.Add( destIndex );
+			debs += "\n\nSource was DEAD";
+		}
+		else {
+			m_deadTriangles.Remove( destIndex );
+			debs += "\n\nSource was ALIVE";
+		}
+		Debug.LogError( debs );
 	}
 	
 	private void _DeleteVertex( Vertex vertex, int triangleToIgnore ) {

@@ -32,7 +32,7 @@ public class Selection : IEnumerable<Triangle>, IEnumerable, ICollection<Triangl
 	
 	public IEnumerable<Edge> OutlineEdges {
 		get {
-			foreach( var tris in Outline ) {
+			foreach( var tris in m_selection ) {
 				foreach( var edge in tris.Edges ) {
 					if( edge.OwnersCount == 1 ) {
 						yield return edge;

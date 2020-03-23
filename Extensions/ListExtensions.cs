@@ -33,6 +33,11 @@ public static class ListExtensions {
 		return list[index];
 	}
 	
+	public static TV GetAt<TK, TV>( this IDictionary<TK, TV> map, TK key, TV template = default( TV ) ) {
+		if( map.ContainsKey( key ) ) { return map[key]; }
+		return template;
+	}
+	
 	// returns true if list was grown
 	public static bool SetAt<T>( this IList<T> list, int index, T item, T template = default( T ) ) {
 		var count = list.Count;
