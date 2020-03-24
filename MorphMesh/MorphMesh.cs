@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
+using DRAW = Draw;
+
 namespace Clutter.Mesh {
 
 public class MorphMesh {
@@ -626,8 +628,6 @@ public class MorphMesh {
 		
 		var trianglesCount = m_indeces.Count /3;
 		
-		Debug.Log( "Pre-compact: "+Dump() );
-		
 		// Shifting dead triangles to the back of the containers
 		var lastAliveIndex = trianglesCount - 1;
 		var index = 0;
@@ -638,12 +638,10 @@ public class MorphMesh {
 			var isDead = deadByList || deadByVerts;
 			
 			if( isDead ) {
-				Debug.LogError( "Tris #"+index+" considered DEAD" );
-				_MoveTriangleData( lastAliveIndex, index );			// <- < <= < <- CONTEXT
+				_MoveTriangleData( lastAliveIndex, index );
 				lastAliveIndex -= 1;
 			}
 			else {
-				Debug.Log( "Tris #"+index+" passes, all good" );
 				index += 1;
 			}
 		}
@@ -671,18 +669,11 @@ public class MorphMesh {
 	
 	private void _MoveTriangleData( int sourceIndex, int destIndex ) {
 		// ownership:
-		var debs = "Moving tris, "+sourceIndex+" -> "+destIndex;
-		debs += "\nOwners cleanup for t"+destIndex;
 		foreach( var vert in GetTriangle( destIndex ) ) {
-			debs += "\n\tBefore: "+vert.m_ownership;
 			vert.m_ownership.RemapOwner( destIndex, c_invalidID );
-			debs += "\n\tAfter: "+vert.m_ownership;
 		}
-		debs += "\n\nOwners REMAP for t"+sourceIndex+" -> t"+destIndex;
 		foreach( var vert in GetTriangle( sourceIndex ) ) {
-			debs += "\n\tBefore: "+vert.m_ownership;
 			vert.m_ownership.RemapOwner( sourceIndex, destIndex );
-			debs += "\n\tAfter: "+vert.m_ownership;
 		}
 		
 		m_indeces.HalfSwap( destIndex *3, sourceIndex *3, 3 );
@@ -691,13 +682,10 @@ public class MorphMesh {
 		var sourceDead = m_deadTriangles.Remove( sourceIndex );
 		if( sourceDead ) {
 			m_deadTriangles.Add( destIndex );
-			debs += "\n\nSource was DEAD";
 		}
 		else {
 			m_deadTriangles.Remove( destIndex );
-			debs += "\n\nSource was ALIVE";
 		}
-		Debug.LogError( debs );
 	}
 	
 	private void _DeleteVertex( Vertex vertex, int triangleToIgnore ) {
@@ -724,7 +712,38 @@ public class MorphMesh {
 	}
 	
 	private void _MergeVertices( IEnumerable<int> vertices ) {
-		
+		var firstIndex = c_invalidID;
+		foreach( var vertexIndex in vertices ) {
+			if( firstIndex == c_invalidID ) {
+				firstIndex = vertexIndex;
+			}
+			else {
+				var ownership = new VertexOwnership( this, vertexIndex );
+				var firstOwnership = new VertexOwnership( this, firstIndex );
+				foreach( var ownerID in ownership ) {
+					var indexIndex = ownerID *3;
+					for( var i = 0; i < 3; i++ ) {
+						if( m_indeces[indexIndex + i] == vertexIndex ) {
+							m_indeces[indexIndex + i] = firstIndex;
+						}
+					}
+					
+					var alreadyRegistered = false;
+					foreach( var firstOwner in firstOwnership ) {
+						if( firstOwner == ownerID ) {
+							alreadyRegistered = true;
+						}
+					}
+					
+					if( !alreadyRegistered ) {
+						firstOwnership.AddOwner( ownerID );
+					}
+				}
+				
+				m_ownersCount[vertexIndex] = 0;
+				m_ownersExt.Remove( vertexIndex );
+			}
+		}
 	}
 	
 	private void _WeldVertices( IEnumerable<int> vertices, bool mergeVertices ) {
@@ -793,6 +812,19 @@ public class MorphMesh {
 	
 	private VertexOwnership _MakeOwnershipData( int vertexIndex ) {
 		return new VertexOwnership( this, vertexIndex );
+	}
+	
+	public void Draw() {
+		for( var i = 0; i <= m_topVertexIndex; i++ ) {
+			var position = m_positions[i];
+			
+			var ownership = new VertexOwnership( this, i );
+			DRAW.Text( position, ownership.ToString() );
+		}
+		
+		foreach( var tris in GetAllTriangles( true ) ) {
+			DRAW.Text( tris.Center, tris.ToString() );
+		}
 	}
 #endregion
 }

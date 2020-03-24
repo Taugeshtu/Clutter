@@ -117,7 +117,7 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable, IEquatable<Vert
 	internal void AddOwner( int triangleID ) {
 		if( Index == MorphMesh.c_invalidID ) { return; }
 		
-		var ownersCount = m_mesh.m_ownersCount[Index];
+		var ownersCount = OwnersCount;
 		
 		if( ownersCount < c_ownersFast ) {
 			_ownersFast[_fastIndex + ownersCount] = triangleID;
@@ -126,7 +126,7 @@ internal struct VertexOwnership : IEnumerable<int>, IEnumerable, IEquatable<Vert
 			_myOwnersExtSpawned.Add( triangleID );
 		}
 		
-		m_mesh.m_ownersCount[Index] = ownersCount + 1;
+		OwnersCount = ownersCount + 1;
 	}
 	
 	internal void RemapOwner( int oldIndex, int newIndex ) {
