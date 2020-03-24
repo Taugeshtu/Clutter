@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 public static class Draw {
 	private const float c_crossSize = 0.5f;
 	private const float c_arrowSize = 0.1f;
@@ -101,6 +105,13 @@ public static class Draw {
 		RayFromTo( pose.position, pose.position + right, Palette.red, arrowSize, duration );
 		RayFromTo( pose.position, pose.position + up, Palette.green, arrowSize, duration );
 		RayFromTo( pose.position, pose.position + forward, Palette.blue, arrowSize, duration );
+	}
+	
+	public static void Text( Vector3 position, string text ) {
+		// Wrapping so it's usable from the outside
+		#if UNITY_EDITOR
+			Handles.Label( position, text );
+		#endif
 	}
 #endregion
 	
