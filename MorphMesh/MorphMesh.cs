@@ -444,14 +444,14 @@ public class MorphMesh {
 		}
 	}
 	
-	public void MakeVerticesUnique() {
-		var allVerts = GetAllVertices();	// what the hell was I smoking then?.. THESE WILL STILL HAVE TRANSIENT STRUCTS
-		foreach( var vertex in allVerts ) {
-			if( vertex.m_ownership.OwnersCount <= 1 ) {
-				continue;
-			}
-			
-			
+	public void UnweldVertices() {
+		var allTris = GetAllTriangles( false );
+		foreach( var tris in allTris ) {
+			EmitTriangle( tris.A.Position, tris.B.Position, tris.C.Position );
+		}
+		
+		foreach( var tris in allTris ) {
+			DeleteTriangle( tris.Index );
 		}
 	}
 	
