@@ -574,7 +574,7 @@ public class MorphMesh {
 				var edgeA = pair.Item1;
 				var edgeB = pair.Item2;
 				if( edgeA.B == edgeB.A ) {
-					if( Vector3.Dot( edgeA.AB, edgeB.AB ).EpsilonEquals( 0f ) ) {
+					if( Vector3.Angle( edgeA.AB, edgeB.AB ).EpsilonEquals( 0f ) ) {
 						var weldGroup = new HashSet<int>();
 						weldGroup.Add( edgeA.A.Index, edgeA.B.Index );
 						t_weldMap[vA.Index] = weldGroup;
