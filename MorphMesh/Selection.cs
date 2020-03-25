@@ -116,23 +116,54 @@ public class Selection : IEnumerable<Triangle>, IEnumerable, ICollection<Triangl
 	private Stack<Triangle> t_workStack = new Stack<Triangle>();
 	
 	public List<Selection> BreakApart( bool allowTouchingVertices ) {
-		t_triangles.Clear();
+		t_triangles.Clear();	// triangles to be processed
+		t_workStack.Clear();	// triangles in current processing
 		
-		// TODO: make it a method that walks all the triangles and breaks the selection apart
-		t_workStack.Clear();
 		var result = new List<Selection>();
-		result.Add( new Selection( m_mesh ) );
-		result.Add( new Selection( m_mesh ) );
+		System.Func<Selection> makeBucket = () => {
+			var resultBucket = new Selection( m_mesh );
+			result.Add( resultBucket );
+			return resultBucket;
+		};
 		
-		var flip = false;
-		foreach( var tris in this ) {
-			if( flip ) {
-				result[0].Add( tris );
+		System.Func<Triangle> getTris = () => {
+			var resultTris = default( Triangle );
+			foreach( var tris in t_triangles ) {
+				resultTris = tris;
+				break;
+			}
+			t_triangles.Remove( resultTris );
+			return resultTris;
+		};
+		
+		var shouldMakeNewBucket = true;
+		var bucket = default( Selection );
+		t_triangles.Add( m_selection );
+		
+		while( t_triangles.Count > 0 ) {
+			if( shouldMakeNewBucket ) {
+				var seed = getTris();
+				t_workStack.Push( seed );
+				bucket = makeBucket();
+				bucket.Add( seed );
+				
+				shouldMakeNewBucket = false;
 			}
 			else {
-				result[1].Add( tris );
+				while( t_workStack.Count > 0 ) {
+					var seed = t_workStack.Pop();
+					
+					foreach( var n in (allowTouchingVertices ? seed.VertexNeighbours : seed.EdgeNeighbours) ) {
+						var wasInSelection = t_triangles.Remove( n );
+						if( wasInSelection ) {
+							t_workStack.Push( n );
+							bucket.Add( n );
+						}
+					}
+				}
+				
+				shouldMakeNewBucket = true;
 			}
-			flip = !flip;
 		}
 		
 		return result;
