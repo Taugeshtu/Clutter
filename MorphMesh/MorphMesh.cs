@@ -83,11 +83,11 @@ public class MorphMesh {
 	}
 	
 	// This is potentially heavy, so extracted out
-	public void CompactifyVertices() {
+	public void ClearDeadVertices() {
 		_CompactifyVertices();
 	}
 	
-	public void CompactifyTriangles() {
+	public void ClearDeadTriangles() {
 		_CompactifyTriangles();
 	}
 	
