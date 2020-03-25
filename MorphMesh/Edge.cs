@@ -118,7 +118,7 @@ public struct Edge : IEnumerable<Vertex>, IEnumerable, IEquatable<Edge> {
 		return false;
 	}
 	public bool Equals( Edge other ) {
-		return (Generation == other.Generation) && (m_mesh == other.m_mesh) && (IndexA == other.IndexA) && (IndexB == other.IndexB);
+		return (IndexA == other.IndexA) && (IndexB == other.IndexB) && (Generation == other.Generation) && (m_mesh == other.m_mesh);
 	}
 	public override int GetHashCode() {
 		return (int) Generation + 23 *IndexA + 48 *IndexB;

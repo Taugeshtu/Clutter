@@ -477,12 +477,6 @@ public class MorphMesh {
 			return null;
 		}
 		
-		/*
-		foreach( var tris in frontTriangles ) { tris.Draw( Color.blue, 0.5f, 5 ); }
-		foreach( var tris in backTriangles ) { tris.Draw( Color.yellow, 0.5f, 5 ); }
-		foreach( var tris in intersectTriangles ) { tris.Draw( Color.red, 0.5f, 5 ); }
-		*/
-		
 		var trisToSlice = new Selection( this, intersectTriangles );
 		var trisToDrift = new Selection( this, frontTriangles );
 		if( directOnly ) {
@@ -562,6 +556,37 @@ public class MorphMesh {
 		}
 		
 		return trisToDrift;
+	}
+	
+	public void OptimizeEdgeVertices() {
+		t_weldMap.Clear();
+		
+		var allVerts = new HashSet<Vertex>( GetAllVertices( false ) );
+		foreach( var vA in allVerts ) {
+			if( t_weldMap.ContainsKey( vA.Index ) ) { continue; }	// already processed
+			
+			var vertexEdges = new List<Edge>();
+			foreach( var tris in vA ) {
+				vertexEdges.AddRange( tris.Edges );
+			}
+			
+			foreach( var pair in vertexEdges.HalfN2() ) {
+				var edgeA = pair.Item1;
+				var edgeB = pair.Item2;
+				if( edgeA.B == edgeB.A ) {
+					if( Vector3.Dot( edgeA.AB, edgeB.AB ).EpsilonEquals( 0f ) ) {
+						var weldGroup = new HashSet<int>();
+						weldGroup.Add( edgeA.A.Index, edgeA.B.Index );
+						t_weldMap[vA.Index] = weldGroup;
+						break;
+					}
+				}
+			}
+		}
+		
+		foreach( var weldGroup in t_weldMap.Values ) {
+			_MergeVertices( weldGroup );
+		}
 	}
 #endregion
 	

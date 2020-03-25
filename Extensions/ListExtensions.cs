@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Text;
+using System;
 
 public static class ListExtensions {
 	
@@ -68,6 +69,15 @@ public static class ListExtensions {
 		
 		var actualIndex = index.Wrap( list.Count );
 		return list[actualIndex];
+	}
+	
+	public static IEnumerable<ValueTuple<T, T>> HalfN2<T>( this IList<T> list ) {
+		var count = list.Count;
+		for( var iA = 0; iA < count - 1; iA++ ) {
+		for( var iB = iA + 1; iB < count; iB++ ) {
+			yield return new ValueTuple<T, T>( list[iA], list[iB] );
+		}
+		}
 	}
 #endregion
 	
