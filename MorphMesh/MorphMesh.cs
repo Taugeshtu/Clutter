@@ -87,6 +87,10 @@ public class MorphMesh {
 		_CompactifyVertices();
 	}
 	
+	public void CompactifyTriangles() {
+		_CompactifyTriangles();
+	}
+	
 	public string Dump() {
 		var verticesCount = m_positions.Count;
 		var result = new System.Text.StringBuilder();
