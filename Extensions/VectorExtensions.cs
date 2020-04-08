@@ -222,6 +222,19 @@ public static class VectorExtensions {
 	}
 	
 	//===========================================================
+	public static Vector2 ProjectedOn( this Vector2 original, Vector2 normal ) {
+		return Vector3.Project( original, normal ).XY();
+	}
+	
+	public static Vector3 ProjectedOn( this Vector3 original, Vector3 normal ) {
+		return Vector3.Project( original, normal );
+	}
+	
+	public static Vector4 ProjectedOn( this Vector4 original, Vector4 normal ) {
+		return Vector4.Project( original, normal );
+	}
+	
+	//===========================================================
 	public static float CoAligness( this Vector3 a, Vector3 b ) {
 		var projection = Vector3.Project( a, b );
 		var result = projection.magnitude /b.magnitude;
