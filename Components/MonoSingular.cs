@@ -21,7 +21,7 @@ public abstract class MonoSingular<T> : MonoBehaviour where T: MonoSingular<T>, 
 			
 			if( s_actualInstance != null ) { return s_actualInstance; }
 			
-			var foundInstances = _FindInstances( s_behaviour.SearchInactive );
+			var foundInstances = Extensions.FindInstances<T>( s_behaviour.SearchInactive );
 			if( foundInstances.Count == 0 ) {
 				if( s_behaviour.SpawnIfMissing ) {
 					s_actualInstance = _SpawnInstance();
@@ -38,7 +38,7 @@ public abstract class MonoSingular<T> : MonoBehaviour where T: MonoSingular<T>, 
 				s_actualInstance = foundInstances[0];
 			}
 			
-			if( s_behaviour.DontDestroy ) {
+			if( s_behaviour.DontDestroy && (s_actualInstance != null) ) {
 				DontDestroyOnLoad( s_actualInstance.gameObject );
 			}
 			
@@ -86,17 +86,6 @@ public abstract class MonoSingular<T> : MonoBehaviour where T: MonoSingular<T>, 
 	
 	
 #region Private
-	private static List<T> _FindInstances( bool searchInactive ) {
-		var result = new List<T>();
-		
-		var scene = SceneManager.GetActiveScene();
-		foreach( var root in scene.GetRootGameObjects() ) {
-			result.AddRange( root.GetComponentsInChildren<T>( searchInactive ) );
-		}
-		
-		return result;
-	}
-	
 	private static T _SpawnInstance() {
 		var holder = new GameObject( s_typeString );
 		return holder.AddComponent<T>();

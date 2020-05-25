@@ -127,6 +127,13 @@ public static class Draw {
 #endregion
 	
 	
+#region Bounds
+	public static void Bounds( Bounds bounds, Color? color = null, float duration = 0f ) {
+		Cube( bounds.min, Quaternion.identity, bounds.size, color, duration );
+	}
+#endregion
+	
+	
 #region Cube
 	public static void CubeAA( Vector3 center, Color? color = null, float size = c_crossSize, float duration = 0f ) {
 		var corner = center - (Vector3.up + Vector3.forward + Vector3.right) *0.5f *size;
