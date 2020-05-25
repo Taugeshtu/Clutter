@@ -55,4 +55,54 @@ public static class GeometricExtensions {
 		}
 	}
 #endregion
+	
+	
+#region Bounds
+	public static Bounds Sanitized( this Bounds a ) {
+		var min = Vector.Min( a.min, a.max );
+		var max = Vector.Max( a.min, a.max );
+		
+		var center = (min + max) /2;
+		var size = max - min;
+		return new Bounds( center, size );
+	}
+	
+	public static Vector3 ClosestPoint( this Bounds a, Bounds b ) {	// returns a point within bounds "a" that's closest to bounds "b"
+		var closestX = 0f;
+		if( a.max.x < b.min.x ) {
+			closestX = a.max.x;
+		}
+		else {
+			closestX = Mathf.Max( a.min.x, b.min.x );
+		}
+		
+		var closestY = 0f;
+		if( a.max.y < b.min.y ) {
+			closestY = a.max.y;
+		}
+		else {
+			closestY = Mathf.Max( a.min.y, b.min.y );
+		}
+		
+		var closestZ = 0f;
+		if( a.max.z < b.min.z ) {
+			closestZ = a.max.z;
+		}
+		else {
+			closestZ = Mathf.Max( a.min.z, b.min.z );
+		}
+		
+		return new Vector3( closestX, closestY, closestZ );
+	}
+	
+	public static float Distance( this Bounds a, Vector3 point ) {
+		var squaredDistance = a.SqrDistance( point );
+		return Mathf.Sqrt( squaredDistance );
+	}
+	
+	public static float Distance( this Bounds a, Bounds b ) {
+		var closestPointInB = b.ClosestPoint( a );
+		return a.Distance( closestPointInB );
+	}
+#endregion
 }

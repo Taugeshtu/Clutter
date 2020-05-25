@@ -42,6 +42,48 @@ public static class Vector {
 		}
 	}
 #endregion
+	
+	
+#region Whatever
+	//===========================================================
+	public static Vector2 Min( Vector2 a, Vector2 b ) {
+		var x = Mathf.Min( a.x, b.x );
+		var y = Mathf.Min( a.y, b.y );
+		return new Vector2( x, y );
+	}
+	public static Vector3 Min( Vector3 a, Vector3 b ) {
+		var x = Mathf.Min( a.x, b.x );
+		var y = Mathf.Min( a.y, b.y );
+		var z = Mathf.Min( a.z, b.z );
+		return new Vector3( x, y, z );
+	}
+	public static Vector4 Min( Vector4 a, Vector4 b ) {
+		var x = Mathf.Min( a.x, b.x );
+		var y = Mathf.Min( a.y, b.y );
+		var z = Mathf.Min( a.z, b.z );
+		var w = Mathf.Min( a.w, b.w );
+		return new Vector4( x, y, z, w );
+	}
+	
+	public static Vector2 Max( Vector2 a, Vector2 b ) {
+		var x = Mathf.Max( a.x, b.x );
+		var y = Mathf.Max( a.y, b.y );
+		return new Vector2( x, y );
+	}
+	public static Vector3 Max( Vector3 a, Vector3 b ) {
+		var x = Mathf.Max( a.x, b.x );
+		var y = Mathf.Max( a.y, b.y );
+		var z = Mathf.Max( a.z, b.z );
+		return new Vector3( x, y, z );
+	}
+	public static Vector4 Max( Vector4 a, Vector4 b ) {
+		var x = Mathf.Max( a.x, b.x );
+		var y = Mathf.Max( a.y, b.y );
+		var z = Mathf.Max( a.z, b.z );
+		var w = Mathf.Max( a.w, b.w );
+		return new Vector4( x, y, z, w );
+	}
+#endregion
 }
 
 public static class VectorExtensions {
