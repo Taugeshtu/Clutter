@@ -256,6 +256,13 @@ public static class ListExtensions {
 #endregion
 	
 	
+#region Misc
+	public static List<T> ToList<T>( this IEnumerable<T> collection ) {
+		return new List<T>( collection );
+	}
+#endregion
+	
+	
 #region Temporary
 #endregion
 }
