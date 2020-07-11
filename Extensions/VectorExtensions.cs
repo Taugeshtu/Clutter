@@ -121,6 +121,13 @@ public static class VectorExtensions {
 #endregion
 	
 	
+#region Vector2Int converters
+	//===========================================================
+	public static Vector2 ToVector2( this Vector2Int v ) { return new Vector2( v.x, v.y ); }
+	public static Vector2Int ToVector2Int( this Vector2 v ) { return new Vector2Int( Mathf.RoundToInt( v.x ), Mathf.RoundToInt( v.y ) ); }
+#endregion
+	
+	
 #region Component access
 	//===========================================================
 	public static float[] Components( this Vector2 v ) { return new float[] {v.x, v.y}; }
