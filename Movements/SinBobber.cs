@@ -11,7 +11,7 @@ public class SinBobber : MonoBehaviour {
 	private Vector3 m_localPosition = Vector3.zero;
 	
 #region Implementation
-	void Awake() {
+	void Start() {
 		m_localPosition = transform.localPosition;
 	}
 	
