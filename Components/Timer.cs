@@ -17,7 +17,10 @@ public class Timer {
 	}
 	
 	public float Factor {
-		get { return Mathf.InverseLerp( m_startTime, m_startTime + m_duration, Time.time ); }
+		get {
+			if( !IsStarted ) { return 1f; }
+			return Mathf.InverseLerp( m_startTime, m_startTime + m_duration, Time.time );
+		}
 	}
 	
 #region Implementation
