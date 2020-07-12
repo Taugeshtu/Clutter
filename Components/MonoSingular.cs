@@ -14,8 +14,8 @@ public abstract class MonoSingular<T> : MonoBehaviour where T: MonoSingular<T>, 
 	public static T s_Instance {
 		get {
 			if( s_behaviour == null ) {
-				var mockSpawned = new GameObject( "TestSpawn" );
-				s_behaviour = mockSpawned.AddComponent<T>().Behaviour;
+				var mockSpawned = new T();
+				s_behaviour = mockSpawned.Behaviour;
 				DestroyImmediate( mockSpawned );
 			}
 			
