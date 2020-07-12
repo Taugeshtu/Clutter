@@ -23,14 +23,15 @@ public class Timer {
 #region Implementation
 	public static Timer Off {
 		get {
-			var result = new Timer( 0 );
-			result.m_startTime = -50;
+			var result = new Timer( -50, 0 );
 			return result;
 		}
 	}
 	
-	public Timer( float duration, bool independent = false ) {
-		m_startTime = Time.time;
+	public Timer( float duration, bool independent = false ) : this( Time.time, duration, independent ) {}
+	
+	private Timer( float startTime, float duration, bool independent = false ) {
+		m_startTime = startTime;
 		m_duration = duration;
 		m_independent = independent;
 		
