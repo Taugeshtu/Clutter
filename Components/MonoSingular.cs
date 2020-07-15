@@ -5,25 +5,43 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace Clutter {
+[System.AttributeUsage( System.AttributeTargets.Class, Inherited = false )]
+public class SingularBehaviour : System.Attribute {
+	public bool SpawnIfMissing { get; private set; }
+	public bool DontDestroy { get; private set; }
+	public bool SearchInactive { get; private set; }
+	
+	public static SingularBehaviour Default {
+		get {
+			return new SingularBehaviour( false, false, false );;
+		}
+	}
+	
+	public SingularBehaviour( bool spawnIfMissing, bool dontDestroy, bool searchInactive ) {
+		SpawnIfMissing = spawnIfMissing;
+		DontDestroy = dontDestroy;
+		SearchInactive = searchInactive;
+	}
+}
+
 public abstract class MonoSingular<T> : MonoBehaviour where T: MonoSingular<T>, new() {
 	private static StringBuilder s_builder = new StringBuilder();
 	private static string s_typeString = typeof( T ).ToString();
 	private static T s_actualInstance;
-	private static BehaviourSettings s_behaviour;
 	
 	public static T s_Instance {
 		get {
-			if( s_behaviour == null ) {
-				var mockSpawned = new T();
-				s_behaviour = mockSpawned.Behaviour;
-				DestroyImmediate( mockSpawned );
-			}
-			
 			if( s_actualInstance != null ) { return s_actualInstance; }
 			
-			var foundInstances = Extensions.FindInstances<T>( s_behaviour.SearchInactive );
+			var behaviour = System.Attribute.GetCustomAttribute( typeof( T ), typeof( SingularBehaviour ) ) as SingularBehaviour;
+			if( behaviour == null ) {
+				behaviour = SingularBehaviour.Default;
+				_logWarning( "Behaviour is not defined! Consider using [SingularBehaviour] attribute; using Default for now" );
+			}
+			
+			var foundInstances = Extensions.FindInstances<T>( behaviour.SearchInactive );
 			if( foundInstances.Count == 0 ) {
-				if( s_behaviour.SpawnIfMissing ) {
+				if( behaviour.SpawnIfMissing ) {
 					s_actualInstance = _SpawnInstance();
 				}
 				else {
@@ -38,29 +56,13 @@ public abstract class MonoSingular<T> : MonoBehaviour where T: MonoSingular<T>, 
 				s_actualInstance = foundInstances[0];
 			}
 			
-			if( s_behaviour.DontDestroy && (s_actualInstance != null) ) {
+			if( behaviour.DontDestroy && (s_actualInstance != null) ) {
 				DontDestroyOnLoad( s_actualInstance.gameObject );
 			}
 			
 			return s_actualInstance;
 		}
 	}
-	
-#region Behaviour settings
-	protected class BehaviourSettings {
-		public bool SpawnIfMissing { get; private set; }
-		public bool DontDestroy { get; private set; }
-		public bool SearchInactive { get; private set; }
-		
-		public BehaviourSettings( bool spawnIfMissing, bool dontDestroy, bool searchInactive = true ) {
-			SpawnIfMissing = spawnIfMissing;
-			DontDestroy = dontDestroy;
-			SearchInactive = searchInactive;
-		}
-	}
-	
-	protected abstract BehaviourSettings Behaviour { get; }
-#endregion
 	
 	
 #region Public
