@@ -344,6 +344,19 @@ public static class VectorExtensions {
 	public static Vector3 Cross( this Vector3 a, Vector3 b ) {
 		return Vector3.Cross( a, b );
 	}
+	
+	//===========================================================
+	public static Quaternion RotateTowards( this Quaternion from, Quaternion to, float maxChangeDegrees ) {
+		return from.RotateTowards( to, maxChangeDegrees, Vector3.forward );
+	}
+	
+	public static Quaternion RotateTowards( this Quaternion from, Quaternion to, float maxChangeDegrees, Vector3 orientationHint ) {
+		var fromOrientation = from *orientationHint;
+		var toOrientation = to *orientationHint;
+		var angleDiff = Vector3.Angle( fromOrientation, toOrientation );
+		var factor = Mathf.Clamp01( maxChangeDegrees /angleDiff );
+		return Quaternion.Slerp( from, to, factor );
+	}
 #endregion
 	
 	
