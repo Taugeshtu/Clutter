@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class Timer {
 	private static List<Timer> s_timers = new List<Timer>();
 	
-	private float m_startTime;
+	private float m_startTime = -50;
 	private float m_duration;
 	private bool m_independent = false;
 	
@@ -20,6 +20,13 @@ public class Timer {
 		get {
 			if( !IsStarted ) { return 1f; }
 			return Mathf.InverseLerp( m_startTime, m_startTime + m_duration, Time.time );
+		}
+	}
+	
+	public float Elapsed {
+		get {
+			if( !IsStarted ) { return 0; }
+			return Time.time - m_startTime;
 		}
 	}
 	
