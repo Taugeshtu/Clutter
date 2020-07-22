@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 
+[System.Serializable]
 public class RasterCurve {
 	[SerializeField] private AnimationCurve m_curve;
-	[SerializeField] private int m_precision  = 512;
+	[SerializeField] private int m_precision = 512;
 	
 	private bool m_isBaked;
 	private float[] m_bakedData;
