@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
+// TODO: figure out how to switch that to struct, so it's super-duper light
 public class Timer {
 	private static List<Timer> s_timers = new List<Timer>();
 	
@@ -9,7 +10,7 @@ public class Timer {
 	private bool m_independent = false;
 	
 	public bool IsDone {
-		get { return (Time.time > m_startTime + m_duration); }
+		get { return (Time.time > m_startTime + m_duration + Time.deltaTime); }
 	}
 	
 	public bool IsStarted {
@@ -18,7 +19,7 @@ public class Timer {
 	
 	public float Factor {
 		get {
-			if( !IsStarted ) { return 1f; }
+			if( !IsStarted ) { return 1f; }	// really have to consider reworking that on CK's end. This is a crutch
 			return Mathf.InverseLerp( m_startTime, m_startTime + m_duration, Time.time );
 		}
 	}
