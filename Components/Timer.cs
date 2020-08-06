@@ -1,13 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-// TODO: figure out how to switch that to struct, so it's super-duper light
-public class Timer {
+public struct Timer {
 	private static List<Timer> s_timers = new List<Timer>();
 	
-	private float m_startTime = -50;
+	private float m_startTime;
 	private float m_duration;
-	private bool m_independent = false;
+	private bool m_independent;
 	
 	public bool IsDone {
 		get { return (Time.time > m_startTime + m_duration + Time.deltaTime); }
@@ -19,7 +18,7 @@ public class Timer {
 	
 	public float Factor {
 		get {
-			if( !IsStarted ) { return 1f; }	// really have to consider reworking that on CK's end. This is a crutch
+			if( !IsStarted ) { return 0f; }
 			return Mathf.InverseLerp( m_startTime, m_startTime + m_duration, Time.time );
 		}
 	}
@@ -53,10 +52,12 @@ public class Timer {
 	
 #region Public
 	public static void ShiftAll( float amount ) {
-		foreach( var timer in s_timers ) {
-			if( timer.m_independent ) { continue; }
+		for( var i = 0; i < s_timers.Count; i++ ) {
+			var timer = s_timers[i];
 			timer.m_startTime += amount;
+			s_timers[i] = timer;
 		}
+		Debug.LogError( "FIXME: THIS DOES NOT WORK WITH A STRUCT!" );
 	}
 #endregion
 	
