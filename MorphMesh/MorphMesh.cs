@@ -570,7 +570,7 @@ public class MorphMesh {
 				vertexEdges.AddRange( tris.Edges );
 			}
 			
-			foreach( var pair in vertexEdges.HalfN2() ) {
+			foreach( var pair in vertexEdges.IteratePairs() ) {
 				var edgeA = pair.Item1;
 				var edgeB = pair.Item2;
 				if( edgeA.B == edgeB.A ) {

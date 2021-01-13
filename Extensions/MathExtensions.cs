@@ -26,7 +26,7 @@ public static class MathExtensions {
 		var range = max - min;
 		var diff = a - min;
 		a = a - (float) System.Math.Round( diff /range ) *range;
-		if (a < 0) {
+		if( a < 0 ) {
 			a = a + max - min;
 		}
 		return a;
@@ -124,7 +124,7 @@ public static class MathExtensions {
 		var lo = 0;
 		var hi = list.Count - 1;
 		while( lo < hi ) {
-			int m = (hi + lo) / 2;  // this might overflow; be careful.
+			int m = (hi + lo) / 2;		// this might overflow; be careful.
 			
 			if( comp.Compare( list[m], value ) < 0 ) {
 				lo = m + 1;

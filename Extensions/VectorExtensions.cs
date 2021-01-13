@@ -385,16 +385,16 @@ public static class VectorExtensions {
 	
 #region Validity
 	private static bool _IsAnyNaN( params float[] items ) {
-		foreach( var item in items ) {
-			if( float.IsNaN( item ) ) {
+		for( var i = 0; i < items.Length; i++ ) {
+			if( float.IsNaN( items[i] ) ) {
 				return true;
 			}
 		}
 		return false;
 	}
 	private static bool _IsAnyMinValue( params int[] items ) {
-		foreach( var item in items ) {
-			if( item == int.MinValue ) {
+		for( var i = 0; i < items.Length; i++ ) {
+			if( items[i] == int.MinValue ) {
 				return true;
 			}
 		}

@@ -31,17 +31,16 @@ public static class Draw {
 		var binormal = Vector3.forward;
 		Vector3.OrthoNormalize( ref direction, ref tangent, ref binormal );
 		
-		var points = new Vector3[] {
-			origin - direction *size + tangent *size /3,
-			origin - direction *size - tangent *size /3,
-			origin - direction *size + binormal *size /3,
-			origin - direction *size - binormal *size /3
-		};
+		var p1 = -direction *size + tangent *size /3;
+		var p2 = -direction *size - tangent *size /3;
+		var p3 = -direction *size + binormal *size /3;
+		var p4 = -direction *size - binormal *size /3;
 		
 		var drawColor = (color.HasValue) ? color.Value : s_color;
-		foreach( var point in points ) {
-			Debug.DrawRay( origin, point - origin, drawColor, duration );
-		}
+		Debug.DrawRay( origin, p1, drawColor, duration );
+		Debug.DrawRay( origin, p2, drawColor, duration );
+		Debug.DrawRay( origin, p3, drawColor, duration );
+		Debug.DrawRay( origin, p4, drawColor, duration );
 	}
 #endregion
 	

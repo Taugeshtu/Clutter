@@ -71,7 +71,13 @@ public static class ListExtensions {
 		return list[actualIndex];
 	}
 	
-	public static IEnumerable<ValueTuple<T, T>> HalfN2<T>( this IList<T> list ) {
+	// For a list {A, B, C, D}
+	// it will iterate pairs as follows:
+	// (A,B) (A,C) (A,D)
+	// (B,C) (B,D)
+	// (C,D)
+	
+	public static IEnumerable<ValueTuple<T, T>> IteratePairs<T>( this IList<T> list ) {
 		var count = list.Count;
 		for( var iA = 0; iA < count - 1; iA++ ) {
 		for( var iB = iA + 1; iB < count; iB++ ) {
@@ -91,28 +97,53 @@ public static class ListExtensions {
 	public static void Swap<T>( this IList<T> list, int indexA, int indexB, int range = 1, bool silentFail = false ) {
 		if( indexA == indexB ) { return; }	// NOP
 		
+		var rangeA = new Range( indexA, indexA + range );
+		var rangeB = new Range( indexB, indexB + range );
+		
 		if( silentFail ) {
 			var bound = list.Count - range;
 			if( indexA < 0 || indexA > bound ) { return; }
 			if( indexB < 0 || indexB > bound ) { return; }
+			if( rangeA.Intersects( rangeB ) ) { return; }
+		}
+		else {
+			if( rangeA.Intersects( rangeB ) ) {
+				var message = "Swap ranges overlap - this will confuse the operation. Expecting range <= "
+					+System.Math.Abs( indexA - indexB )+" for swap marks ["+indexA+"], ["+indexB+"]";
+				throw new ArgumentOutOfRangeException( "range", range, message );
+			}
 		}
 		
-		var held = list[indexA];
-		list[indexA] = list[indexB];
-		list[indexB] = held;
+		var held = default( T );
+		for( var shift= 0; shift < range; shift++ ) {
+			var shiftedA = indexA + shift;
+			var shiftedB = indexB + shift;
+			held = list[shiftedA];
+			list[shiftedA] = list[shiftedB];
+			list[shiftedB] = held;
+		}
 	}
 	
 	public static void HalfSwap<T>( this IList<T> list, int deadIndex, int aliveIndex, int range = 1, bool silentFail = false ) {
 		if( deadIndex == aliveIndex ) { return; }	// NOP
 		
+		var rangeA = new Range( deadIndex, deadIndex + range );
+		var rangeB = new Range( aliveIndex, aliveIndex + range );
+		
 		if( silentFail ) {
 			var bound = list.Count - range;
 			if( deadIndex < 0 || deadIndex > bound ) { return; }
 			if( aliveIndex < 0 || aliveIndex > bound ) { return; }
+			if( rangeA.Intersects( rangeB ) ) { return; }
+		}
+		else {
+			if( rangeA.Intersects( rangeB ) ) {
+				throw new ArgumentOutOfRangeException( "range", range, "Swap ranges overlap - this will confuse the operation" );
+			}
 		}
 		
-		for( var i = 0; i < range; i++ ) {
-			list[deadIndex + i] = list[aliveIndex + i];
+		for( var shift = 0; shift < range; shift++ ) {
+			list[deadIndex + shift] = list[aliveIndex + shift];
 		}
 	}
 #endregion
