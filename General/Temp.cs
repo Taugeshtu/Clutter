@@ -6,7 +6,6 @@ public static class Temp {
 	private const string c_namelessTag = "temp";
 	
 	private static TwoKeyDictionary<string, Type, object> s_tempContainers = new TwoKeyDictionary<string, Type, object>();
-	// private static Dictionary<(string, Type), object> s_tempContainers = new Dictionary<(string, Type), object>();
 	
 #region Public
 	public static List<T> List<T>( int desiredCapacity ) {
