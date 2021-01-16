@@ -145,6 +145,70 @@ public static class VectorExtensions {
 #endregion
 	
 	
+#region Vector2 component reordering
+	//===========================================================
+	public static Vector2 YX( this Vector2 v ) { return new Vector2( v.y, v.x ); }
+#endregion
+	
+	
+#region Vector3 component reordering
+	//===========================================================
+	public static Vector3 XZY( this Vector3 v ) { return new Vector3( v.x, v.z, v.y ); }
+	public static Vector3 YXZ( this Vector3 v ) { return new Vector3( v.y, v.x, v.z ); }
+	public static Vector3 YZX( this Vector3 v ) { return new Vector3( v.y, v.z, v.x ); }
+	public static Vector3 ZXY( this Vector3 v ) { return new Vector3( v.z, v.x, v.y ); }
+	public static Vector3 ZYX( this Vector3 v ) { return new Vector3( v.z, v.y, v.x ); }
+#endregion
+	
+	
+#region Vector4 component reordering
+	//===========================================================
+	public static Vector4 XYZW( this Vector4 v ) { return new Vector4( v.x, v.y, v.z, v.w ); }
+	public static Vector4 XYWZ( this Vector4 v ) { return new Vector4( v.x, v.y, v.w, v.z ); }
+	public static Vector4 XZYW( this Vector4 v ) { return new Vector4( v.x, v.z, v.y, v.w ); }
+	public static Vector4 XZWY( this Vector4 v ) { return new Vector4( v.x, v.z, v.w, v.y ); }
+	public static Vector4 XWYZ( this Vector4 v ) { return new Vector4( v.x, v.w, v.y, v.z ); }
+	public static Vector4 XWZY( this Vector4 v ) { return new Vector4( v.x, v.w, v.z, v.y ); }
+	
+	public static Vector4 YXZW( this Vector4 v ) { return new Vector4( v.y, v.x, v.z, v.w ); }
+	public static Vector4 YXWZ( this Vector4 v ) { return new Vector4( v.y, v.x, v.w, v.z ); }
+	public static Vector4 YZXW( this Vector4 v ) { return new Vector4( v.y, v.z, v.x, v.w ); }
+	public static Vector4 YZWX( this Vector4 v ) { return new Vector4( v.y, v.z, v.w, v.x ); }
+	public static Vector4 YWXZ( this Vector4 v ) { return new Vector4( v.y, v.w, v.x, v.z ); }
+	public static Vector4 YWZX( this Vector4 v ) { return new Vector4( v.y, v.w, v.z, v.x ); }
+	
+	public static Vector4 ZXYW( this Vector4 v ) { return new Vector4( v.z, v.x, v.y, v.w ); }
+	public static Vector4 ZXWY( this Vector4 v ) { return new Vector4( v.z, v.x, v.w, v.y ); }
+	public static Vector4 ZYXW( this Vector4 v ) { return new Vector4( v.z, v.y, v.x, v.w ); }
+	public static Vector4 ZYWX( this Vector4 v ) { return new Vector4( v.z, v.y, v.w, v.x ); }
+	public static Vector4 ZWXY( this Vector4 v ) { return new Vector4( v.z, v.w, v.x, v.y ); }
+	public static Vector4 ZWYX( this Vector4 v ) { return new Vector4( v.z, v.w, v.y, v.x ); }
+	
+	public static Vector4 WXYZ( this Vector4 v ) { return new Vector4( v.w, v.x, v.y, v.z ); }
+	public static Vector4 WXZY( this Vector4 v ) { return new Vector4( v.w, v.x, v.z, v.y ); }
+	public static Vector4 WYXZ( this Vector4 v ) { return new Vector4( v.w, v.y, v.x, v.z ); }
+	public static Vector4 WYZX( this Vector4 v ) { return new Vector4( v.w, v.y, v.z, v.x ); }
+	public static Vector4 WZXY( this Vector4 v ) { return new Vector4( v.w, v.z, v.x, v.y ); }
+	public static Vector4 WZYX( this Vector4 v ) { return new Vector4( v.w, v.z, v.y, v.x ); }
+#endregion
+	
+	
+#region Vector2Int component reordering
+	//===========================================================
+	public static Vector2Int YX( this Vector2Int v ) { return new Vector2Int( v.y, v.x ); }
+#endregion
+	
+	
+#region Vector3Int component reordering
+	//===========================================================
+	public static Vector3Int XZY( this Vector3Int v ) { return new Vector3Int( v.x, v.z, v.y ); }
+	public static Vector3Int YXZ( this Vector3Int v ) { return new Vector3Int( v.y, v.x, v.z ); }
+	public static Vector3Int YZX( this Vector3Int v ) { return new Vector3Int( v.y, v.z, v.x ); }
+	public static Vector3Int ZXY( this Vector3Int v ) { return new Vector3Int( v.z, v.x, v.y ); }
+	public static Vector3Int ZYX( this Vector3Int v ) { return new Vector3Int( v.z, v.y, v.x ); }
+#endregion
+	
+	
 #region Component access
 	//===========================================================
 	public static float[] Components( this Vector2 v ) { return new float[] {v.x, v.y}; }

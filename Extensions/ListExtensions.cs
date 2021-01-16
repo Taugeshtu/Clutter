@@ -23,19 +23,32 @@ public static class ListExtensions {
 			list.Add( template );
 		}
 	}
+	
+	public static void ClearExpand<T>( this List<T> list, int desiredCapacity ) {
+		list.Clear();
+		if( list.Capacity < desiredCapacity ) {
+			list.Capacity = desiredCapacity;
+		}
+	}
 #endregion
 	
 	
-#region At-s
-	public static T GetAt<T>( this IList<T> list, int index, T template = default( T ) ) {
-		if( index < 0 ) { return template; }
-		if( index >= list.Count ) { return template; }
-		return list[index];
+#region Access
+	public static TV GetAdd<TK, TV>( this Dictionary<TK, TV> map, TK key, TV template = default( TV ) ) {
+		if( map.ContainsKey( key ) ) { return map[key]; }
+		map[key] = template;
+		return template;
 	}
 	
 	public static TV GetAt<TK, TV>( this IDictionary<TK, TV> map, TK key, TV template = default( TV ) ) {
 		if( map.ContainsKey( key ) ) { return map[key]; }
 		return template;
+	}
+	
+	public static T GetAt<T>( this IList<T> list, int index, T template = default( T ) ) {
+		if( index < 0 ) { return template; }
+		if( index >= list.Count ) { return template; }
+		return list[index];
 	}
 	
 	// returns true if list was grown
