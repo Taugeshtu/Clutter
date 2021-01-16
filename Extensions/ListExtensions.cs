@@ -35,9 +35,14 @@ public static class ListExtensions {
 	
 #region Access
 	public static TV GetAdd<TK, TV>( this Dictionary<TK, TV> map, TK key, TV template = default( TV ) ) {
-		if( map.ContainsKey( key ) ) { return map[key]; }
-		map[key] = template;
-		return template;
+		TV result;
+		if( map.TryGetValue( key, out result ) ) {
+			return result;
+		}
+		else {
+			map[key] = template;
+			return template;
+		}
 	}
 	
 	public static TV GetAt<TK, TV>( this IDictionary<TK, TV> map, TK key, TV template = default( TV ) ) {
