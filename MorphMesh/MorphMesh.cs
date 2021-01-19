@@ -621,7 +621,7 @@ public class MorphMesh {
 				t_vertexMapping[actualIndex] = c_invalidID;
 				
 				m_ownersExt.Remove( actualIndex );
-				_MoveVertexData( lastAliveIndex, index );
+				_RemoveVertexData( lastAliveIndex, index );
 				lastAliveIndex -= 1;
 				wasMoved = true;
 			}
@@ -659,19 +659,20 @@ public class MorphMesh {
 		
 		// Shifting dead triangles to the back of the containers
 		var lastAliveIndex = trianglesCount - 1;
-		var index = 0;
-		while( index <= lastAliveIndex ) {
-			var indexIndex = index *3;
-			var deadByList = m_deadTriangles.Contains( index );
-			var deadByVerts = (m_indeces[indexIndex + 0] == c_invalidID) || (m_indeces[indexIndex + 1] == c_invalidID) || (m_indeces[indexIndex + 2] == c_invalidID);
-			var isDead = deadByList || deadByVerts;
+		var triangleIndex = 0;
+		while( triangleIndex <= lastAliveIndex ) {
+			var indexIndex = triangleIndex *3;
+			var isDead = m_deadTriangles.Contains( triangleIndex )
+				|| (m_indeces[indexIndex + 0] == c_invalidID)
+				|| (m_indeces[indexIndex + 1] == c_invalidID)
+				|| (m_indeces[indexIndex + 2] == c_invalidID);
 			
 			if( isDead ) {
-				_MoveTriangleData( lastAliveIndex, index );
+				_RemoveTriangleData( lastAliveIndex, triangleIndex );
 				lastAliveIndex -= 1;
 			}
 			else {
-				index += 1;
+				triangleIndex += 1;
 			}
 		}
 		
@@ -686,34 +687,35 @@ public class MorphMesh {
 		m_generation += 1;
 	}
 	
-	private void _MoveVertexData( int sourceIndex, int destIndex ) {
-		m_positions.HalfSwap( destIndex, sourceIndex );
-		m_colors.HalfSwap( destIndex, sourceIndex, 1, true );
+	// [aliveIndex], source, gets moved to => [deadIndex], destination
+	private void _RemoveVertexData( int aliveIndex, int deadIndex ) {
+		m_positions.HalfSwap( deadIndex, aliveIndex );
+		m_colors.HalfSwap( deadIndex, aliveIndex, 1, true );
 		// TODO: also other data, should it arise!
 		
-		var destOwner = new VertexOwnership( this, destIndex );
-		var sourceOwner = new VertexOwnership( this, sourceIndex );
+		var destOwner = new VertexOwnership( this, deadIndex );
+		var sourceOwner = new VertexOwnership( this, aliveIndex );
 		destOwner.MoveOwnershipFrom( ref sourceOwner );
 	}
 	
-	private void _MoveTriangleData( int sourceIndex, int destIndex ) {
+	private void _RemoveTriangleData( int aliveIndex, int deadIndex ) {
 		// ownership:
-		foreach( var vert in GetTriangle( destIndex ) ) {
-			vert.m_ownership.RemapOwner( destIndex, c_invalidID );
+		foreach( var vert in GetTriangle( deadIndex ) ) {
+			vert.m_ownership.RemapOwner( deadIndex, c_invalidID );
 		}
-		foreach( var vert in GetTriangle( sourceIndex ) ) {
-			vert.m_ownership.RemapOwner( sourceIndex, destIndex );
+		foreach( var vert in GetTriangle( aliveIndex ) ) {
+			vert.m_ownership.RemapOwner( aliveIndex, deadIndex );
 		}
 		
-		m_indeces.HalfSwap( destIndex *3, sourceIndex *3, 3 );
+		m_indeces.HalfSwap( deadIndex *3, aliveIndex *3, 3 );
 		
 		// handling death info (so consequtive tris handling will work):
-		var sourceDead = m_deadTriangles.Remove( sourceIndex );
+		var sourceDead = m_deadTriangles.Remove( aliveIndex );
 		if( sourceDead ) {
-			m_deadTriangles.Add( destIndex );
+			m_deadTriangles.Add( deadIndex );
 		}
 		else {
-			m_deadTriangles.Remove( destIndex );
+			m_deadTriangles.Remove( deadIndex );
 		}
 	}
 	

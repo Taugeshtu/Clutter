@@ -115,22 +115,7 @@ public static class ListExtensions {
 	public static void Swap<T>( this IList<T> list, int indexA, int indexB, int range = 1, bool silentFail = false ) {
 		if( indexA == indexB ) { return; }	// NOP
 		
-		var rangeA = new Range( indexA, indexA + range );
-		var rangeB = new Range( indexB, indexB + range );
-		
-		if( silentFail ) {
-			var bound = list.Count - range;
-			if( indexA < 0 || indexA > bound ) { return; }
-			if( indexB < 0 || indexB > bound ) { return; }
-			if( rangeA.Intersects( rangeB ) ) { return; }
-		}
-		else {
-			if( rangeA.Intersects( rangeB ) ) {
-				var message = "Swap ranges overlap - this will confuse the operation. Expecting range <= "
-					+System.Math.Abs( indexA - indexB )+" for swap marks ["+indexA+"], ["+indexB+"]";
-				throw new ArgumentOutOfRangeException( "range", range, message );
-			}
-		}
+		_BoundsCheck( indexA, indexB, range, list.Count, silentFail );
 		
 		var held = default( T );
 		for( var shift= 0; shift < range; shift++ ) {
@@ -145,24 +130,32 @@ public static class ListExtensions {
 	public static void HalfSwap<T>( this IList<T> list, int deadIndex, int aliveIndex, int range = 1, bool silentFail = false ) {
 		if( deadIndex == aliveIndex ) { return; }	// NOP
 		
-		var rangeA = new Range( deadIndex, deadIndex + range );
-		var rangeB = new Range( aliveIndex, aliveIndex + range );
-		
-		if( silentFail ) {
-			var bound = list.Count - range;
-			if( deadIndex < 0 || deadIndex > bound ) { return; }
-			if( aliveIndex < 0 || aliveIndex > bound ) { return; }
-			if( rangeA.Intersects( rangeB ) ) { return; }
-		}
-		else {
-			if( rangeA.Intersects( rangeB ) ) {
-				throw new ArgumentOutOfRangeException( "range", range, "Swap ranges overlap - this will confuse the operation" );
-			}
-		}
+		_BoundsCheck( deadIndex, aliveIndex, range, list.Count, silentFail );
 		
 		for( var shift = 0; shift < range; shift++ ) {
 			list[deadIndex + shift] = list[aliveIndex + shift];
 		}
+	}
+	
+	private static void _BoundsCheck( int indexA, int indexB, int range, int listCount, bool silentFail ) {
+		#if UNITY_EDITOR
+			var rangeA = new Range( indexA, indexA + range - 1 );	// Note: "-1" makes range tight, since it's inclusive!
+			var rangeB = new Range( indexB, indexB + range - 1 );
+			
+			if( silentFail ) {
+				var bound = listCount - range;
+				if( indexA < 0 || indexA > bound ) { return; }
+				if( indexB < 0 || indexB > bound ) { return; }
+				if( rangeA.Intersects( rangeB ) ) { return; }
+			}
+			else {
+				if( rangeA.Intersects( rangeB ) ) {
+					var message = "Swap ranges overlap - this will confuse the operation. Expecting range <= "
+						+System.Math.Abs( indexA - indexB )+" for swap marks ["+indexA+"] <-> ["+indexB+"]";
+					throw new ArgumentOutOfRangeException( "range", range, message );
+				}
+			}
+		#endif
 	}
 #endregion
 	
