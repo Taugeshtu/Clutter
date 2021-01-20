@@ -59,8 +59,12 @@ public static class GeometricExtensions {
 		return pose.rotation.Inverted() *(globalPosition - pose.position);
 	}
 	
+	// Note: will return "to" in "from"s local space
 	public static Pose FromToPose( this Pose from, Pose to ) {
-		return to.GetTransformedBy( from );
+		var invertedFromRotation = from.rotation.Inverted();
+		var position = invertedFromRotation *( to.position - from.position );
+		var rotation = invertedFromRotation *to.rotation;
+		return new Pose( position, rotation );
 	}
 #endregion
 	
