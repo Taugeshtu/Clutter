@@ -31,11 +31,7 @@ public static class GeometricExtensions {
 	
 	
 #region Pose
-	public static void ApplyTo( this Pose pose, Transform target, Space space = Space.World ) {
-		target.Apply( pose, space );
-	}
-	
-	public static void Apply( this Transform target, Pose pose, Space space = Space.World ) {
+	public static void SetPose( this Transform target, Pose pose, Space space = Space.World ) {
 		if( space == Space.World ) {
 			target.position = pose.position;
 			target.rotation = pose.rotation;
@@ -53,6 +49,18 @@ public static class GeometricExtensions {
 		else {
 			return new Pose( source.localPosition, source.localRotation );
 		}
+	}
+	
+	public static Vector3 Transform( this Pose pose, Vector3 localPosition ) {
+		return (pose.rotation *localPosition) + pose.position;
+	}
+	
+	public static Vector3 InverseTransform( this Pose pose, Vector3 globalPosition ) {
+		return pose.rotation.Inverted() *(globalPosition - pose.position);
+	}
+	
+	public static Pose FromToPose( this Pose from, Pose to ) {
+		return to.GetTransformedBy( from );
 	}
 #endregion
 	
@@ -103,6 +111,13 @@ public static class GeometricExtensions {
 	public static float Distance( this Bounds a, Bounds b ) {
 		var closestPointInB = b.ClosestPoint( a );
 		return a.Distance( closestPointInB );
+	}
+#endregion
+	
+	
+#region Quaternion
+	public static Quaternion Inverted( this Quaternion rotation ) {
+		return Quaternion.Inverse( rotation );
 	}
 #endregion
 }
