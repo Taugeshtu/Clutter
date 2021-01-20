@@ -1,8 +1,9 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Clutter {
-public class SizedList<T> {
+public class SizedList<T> : IEnumerable<T>, IEnumerable {
 	private List<T> m_buffer;
 	private int m_insertionIndex = 0;
 	
@@ -32,6 +33,16 @@ public class SizedList<T> {
 #region Implementation
 	public SizedList( int capacity ) {
 		ReInitialize( capacity );
+	}
+	
+	System.Collections.IEnumerator IEnumerable.GetEnumerator() { return this.GetEnumerator(); }
+	public IEnumerator<T> GetEnumerator() {
+		var count = Count;
+		var capacity = Capacity;
+		for( var i = 0; i < count; i++ ) {
+			var accessIndex = (m_insertionIndex - 1 - i + capacity) %capacity;
+			yield return m_buffer[accessIndex];
+		}
 	}
 #endregion
 	
