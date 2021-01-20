@@ -9,6 +9,10 @@ public class CircularCache<TKey, TValue> {
 	
 	public int Capacity { get; private set; }
 	
+	public TValue this[TKey key] {
+		get { return Get( key ); }
+		set { Push( key, value ); }
+	}
 	
 #region Implementation
 	public CircularCache( int capacity ) {
@@ -22,7 +26,7 @@ public class CircularCache<TKey, TValue> {
 		ReInitialize( Capacity );
 	}
 	public void ReInitialize( int capacity ) {
-		if( capacity < 1 ) { throw new System.Exception( "Circular cache can't have no capacity!" ); }
+		if( capacity < 1 ) { throw new System.Exception( "CircularCache can't have no capacity!" ); }
 		
 		Capacity = capacity;
 		
