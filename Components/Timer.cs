@@ -8,6 +8,10 @@ public struct Timer {
 	private float m_duration;
 	private bool m_independent;
 	
+	public bool IsOngoing {
+		get { return IsStarted && !IsDone; }
+	}
+	
 	public bool IsDone {
 		get { return (Time.time > m_startTime + m_duration + Time.deltaTime); }
 	}
