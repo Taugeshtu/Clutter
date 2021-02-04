@@ -116,7 +116,7 @@ public struct Vector3b : IEquatable<Vector3b> {
 		return "("+x+", "+y+", "+z+")";
 	}
 	
-	public Vector3 ToVector3Int() {
+	public Vector3Int ToVector3Int() {
 		return new Vector3Int( (x ? 1 : 0), (y ? 1 : 0), (z ? 1 : 0) );
 	}
 #endregion
