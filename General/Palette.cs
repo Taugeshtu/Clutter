@@ -81,4 +81,47 @@ public static class Palette {
 	public static Color lightMagenta { get		{ return new Color( 1, h, 1 ); } }
 	public static Color lightRose { get			{ return new Color( 1, h, l ); } }
 	public static Color lightPink { get			{ return lightRose; } }
+	
+	
+	private static List<Color> s_spectrum = new List<Color>() {
+		red,
+		orange,
+		yellow,
+		lime,
+		green,
+		aquamarine,
+		cyan,
+		marine,
+		blue,
+		violet,
+		magenta,
+		rose,
+		pink
+	};
+	
+	private static List<Color> s_darkSpectrum = new List<Color>() {
+		darkRed,
+		darkOrange,
+		darkYellow,
+		darkLime,
+		darkGreen,
+		darkAquamarine,
+		darkCyan,
+		darkMarine,
+		darkBlue,
+		darkViolet,
+		darkMagenta,
+		darkRose,
+		darkPink
+	};
+	
+	public static Color GetSpectrum( int i ) {
+		i = i %s_spectrum.Count;
+		return s_spectrum[i];
+	}
+	
+	public static Color GetDarkSpectrum( int i ) {
+		i = i %s_darkSpectrum.Count;
+		return s_darkSpectrum[i];
+	}
 }

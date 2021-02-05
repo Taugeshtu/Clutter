@@ -23,6 +23,19 @@ public static class Extensions {
 		return instances[0];
 	}
 	
+	public static T GetAddComponent<T>( this Component component ) where T : Component {
+		return component.gameObject.GetAddComponent<T>();
+	}
+	
+	public static T GetAddComponent<T>( this GameObject go ) where T : Component {
+		T result = default( T );
+		var found = go.TryGetComponent<T>( out result );
+		if( !found ) {
+			result = go.AddComponent<T>();
+		}
+		return result;
+	}
+	
 #region Temporary
 #endregion
 }

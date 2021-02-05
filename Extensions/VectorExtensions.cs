@@ -244,6 +244,10 @@ public static class VectorExtensions {
 	public static Vector4 WithZ( this Vector4 v, float z ) { return new Vector4( v.x, v.y, z, v.w ); }
 	
 	public static Vector4 WithW( this Vector4 v, float w ) { return new Vector4( v.x, v.y, v.z, w ); }
+	
+	public static Vector2 WithMagnitude( this Vector2 v, float magnitude ) { return v.normalized *magnitude; }
+	public static Vector3 WithMagnitude( this Vector3 v, float magnitude ) { return v.normalized *magnitude; }
+	public static Vector4 WithMagnitude( this Vector4 v, float magnitude ) { return v.normalized *magnitude; }
 #endregion
 	
 	
@@ -484,6 +488,10 @@ public static class VectorExtensions {
 	}
 	public static string LogExact( this Vector4 a ) {
 		return "("+a.x+", "+a.y+", "+a.z+", "+a.w+")";
+	}
+	
+	public static string LogExact( this Quaternion q ) {
+		return "("+q.x+", "+q.y+", "+q.z+", "+q.w+")";
 	}
 	
 	//===========================================================
