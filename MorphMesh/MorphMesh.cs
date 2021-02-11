@@ -357,6 +357,63 @@ public class MorphMesh {
 #endregion
 	
 	
+#region Primitive ops
+	public void EmitIcoSphere( float radius = 1f, int subdivisions = 0 ) { EmitIcoSphere( Pose.identity, Vector3.one *radius, subdivisions ); }
+	public void EmitIcoSphere( Vector3 scale, int subdivisions = 0 ) { EmitIcoSphere( Pose.identity, scale, subdivisions ); }
+	public void EmitIcoSphere( Vector3 position, Quaternion rotation, float radius = 1f, int subdivisions = 0 ) { EmitIcoSphere( position, rotation, Vector3.one *radius, subdivisions ); }
+	public void EmitIcoSphere( Vector3 position, Quaternion rotation, Vector3 scale, int subdivisions = 0 ) {
+		var pose = new Pose( position, rotation );
+		EmitIcoSphere( pose, scale, subdivisions );
+	}
+	public void EmitIcoSphere( Pose pose, float radius = 1f, int subdivisions = 0 ) { EmitIcoSphere( pose, Vector3.one *radius, subdivisions ); }
+	public void EmitIcoSphere( Pose pose, Vector3 scale, int subdivisions = 0 ) {
+		var t = (1 + Mathf.Sqrt( 5 )) /2;	// no idea... wiki math
+		
+		var v0 = EmitVertex( pose.Transform( new Vector3( -1,  t,  0 ).normalized.ComponentMul( scale ) ) );
+		var v1 = EmitVertex( pose.Transform( new Vector3(  1,  t,  0 ).normalized.ComponentMul( scale ) ) );
+		var v2 = EmitVertex( pose.Transform( new Vector3( -1, -t,  0 ).normalized.ComponentMul( scale ) ) );
+		var v3 = EmitVertex( pose.Transform( new Vector3(  1, -t,  0 ).normalized.ComponentMul( scale ) ) );
+		var v4 = EmitVertex( pose.Transform( new Vector3(  0, -1,  t ).normalized.ComponentMul( scale ) ) );
+		var v5 = EmitVertex( pose.Transform( new Vector3(  0,  1,  t ).normalized.ComponentMul( scale ) ) );
+		var v6 = EmitVertex( pose.Transform( new Vector3(  0, -1, -t ).normalized.ComponentMul( scale ) ) );
+		var v7 = EmitVertex( pose.Transform( new Vector3(  0,  1, -t ).normalized.ComponentMul( scale ) ) );
+		var v8 = EmitVertex( pose.Transform( new Vector3(  t,  0, -1 ).normalized.ComponentMul( scale ) ) );
+		var v9 = EmitVertex( pose.Transform( new Vector3(  t,  0,  1 ).normalized.ComponentMul( scale ) ) );
+		var v10 = EmitVertex( pose.Transform( new Vector3( -t,  0, -1 ).normalized.ComponentMul( scale ) ) );
+		var v11 = EmitVertex( pose.Transform( new Vector3( -t,  0,  1 ).normalized.ComponentMul( scale ) ) );
+		
+		// 5 faces around point 0
+		EmitTriangle( ref v0, ref v11, ref  v5 );
+		EmitTriangle( ref v0, ref  v5, ref  v1 );
+		EmitTriangle( ref v0, ref  v1, ref  v7 );
+		EmitTriangle( ref v0, ref  v7, ref v10 );
+		EmitTriangle( ref v0, ref v10, ref v11 );
+		// 5 adjacent faces
+		EmitTriangle( ref  v1, ref  v5, ref v9 );
+		EmitTriangle( ref  v5, ref v11, ref v4 );
+		EmitTriangle( ref v11, ref v10, ref v2 );
+		EmitTriangle( ref v10, ref  v7, ref v6 );
+		EmitTriangle( ref  v7, ref  v1, ref v8 );
+		// 5 faces around point 3
+		EmitTriangle( ref v3, ref v9, ref v4 );
+		EmitTriangle( ref v3, ref v4, ref v2 );
+		EmitTriangle( ref v3, ref v2, ref v6 );
+		EmitTriangle( ref v3, ref v6, ref v8 );
+		EmitTriangle( ref v3, ref v8, ref v9 );
+		// 5 adjacent faces
+		EmitTriangle( ref v4, ref v9, ref  v5 );
+		EmitTriangle( ref v2, ref v4, ref v11 );
+		EmitTriangle( ref v6, ref v2, ref v10 );
+		EmitTriangle( ref v8, ref v6, ref  v7 );
+		EmitTriangle( ref v9, ref v8, ref  v1 );
+		
+		for( var i = 0; i < subdivisions; i++ ) {
+			Subdivide();
+		}
+	}
+#endregion
+	
+	
 #region Geometry ops
 	public void MergeVertices( float treshold = 0.001f ) {
 		t_weldMap.Clear();
@@ -587,6 +644,10 @@ public class MorphMesh {
 		foreach( var weldGroup in t_weldMap.Values ) {
 			_MergeVertices( weldGroup );
 		}
+	}
+	
+	public void Subdivide() {
+		// TODO: walk live triangles, split them; don't forget ownership data!
 	}
 #endregion
 	
