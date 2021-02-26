@@ -140,4 +140,29 @@ public static class MathExtensions {
 		return lo;
 	}
 #endregion
+	
+	
+#region Bit fuckery
+	public static bool GetBit( this byte x, int bitIndex ) {
+		return (x & (1 << bitIndex)) != 0;
+	}
+	
+	public static int CeilToPOT( this int x ) {
+		var ceiledToPOT = 1;
+		while( ceiledToPOT < x ) {
+			ceiledToPOT <<= 1;
+		}
+		return ceiledToPOT;
+	}
+	
+	public static (int, int) GetCeiledPOT( this int x ) {
+		var ceiledToPOT = 1;
+		var power = 0;
+		while( ceiledToPOT < x ) {
+			ceiledToPOT <<= 1;
+			power += 1;
+		}
+		return (ceiledToPOT, power);
+	}
+#endregion
 }
