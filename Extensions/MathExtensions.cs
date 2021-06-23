@@ -147,6 +147,16 @@ public static class MathExtensions {
 		return (x & (1 << bitIndex)) != 0;
 	}
 	
+	public static int SetBit( this ref int x, int bitIndex, bool bitValue ) {
+		if( bitValue ) {
+			x |= 1 << bitIndex;
+		}
+		else {
+			x &= ~(1 << bitIndex);
+		}
+		return x;
+	}
+	
 	public static int CeilToPOT( this int x ) {
 		var ceiledToPOT = 1;
 		while( ceiledToPOT < x ) {
