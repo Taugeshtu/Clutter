@@ -48,6 +48,11 @@ public static class MathExtensions {
 	public static bool EpsilonEquals( this double a, double b ) {
 		return System.Math.Abs( (float) (a - b) ) < c_epsilon*2f;
 	}
+	
+	public static float SetMagnitude( this ref float x, float mag ) {
+		x = Math.Sign( x ) *mag;
+		return x;
+	}
 #endregion
 	
 	
