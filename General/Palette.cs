@@ -124,4 +124,21 @@ public static class Palette {
 		i = i %s_darkSpectrum.Count;
 		return s_darkSpectrum[i];
 	}
+	
+	#region ----------------------------------------- EXTENSIONS -------------------------------------------------------
+	public static Color WithR( this Color c, float r ) { return new Color(   r, c.g, c.b, c.a ); }
+	public static Color WithG( this Color c, float g ) { return new Color( c.r,   g, c.b, c.a ); }
+	public static Color WithB( this Color c, float b ) { return new Color( c.r, c.g,   b, c.a ); }
+	public static Color WithA( this Color c, float a ) { return new Color( c.r, c.g, c.b,   a ); }
+	
+	public static Color Lighter( this Color c, float factor = 0.5f ) {
+		var faded = Color.white.WithA( c.a );
+		return Color.Lerp( c, faded, factor );
+	}
+	
+	public static Color Darker( this Color c, float factor = 0.5f ) {
+		var faded = Color.black.WithA( c.a );
+		return Color.Lerp( c, faded, factor );
+	}
+	#endregion
 }
