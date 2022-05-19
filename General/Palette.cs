@@ -140,5 +140,9 @@ public static class Palette {
 		var faded = Color.black.WithA( c.a );
 		return Color.Lerp( c, faded, factor );
 	}
+	
+	public static Color Mix( this Color a, Color b, float factor = 0.5f ) {
+		return Color.Lerp( a, b, factor );
+	}
 	#endregion
 }
