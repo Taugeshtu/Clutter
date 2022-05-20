@@ -15,6 +15,15 @@ public static class MathExtensions {
 		return resultAngle;
 	}
 	
+	public static UnityEngine.Vector3 ToAngles( this UnityEngine.Vector3 eulerAngles ) {
+		var result = new UnityEngine.Vector3(
+			eulerAngles.x.ToAngle(),
+			eulerAngles.y.ToAngle(),
+			eulerAngles.z.ToAngle()
+		);
+		return result;
+	}
+	
 	public static string ToAngleString( this float angle ) {
 		return angle.ToAngle().ToString( "n1" );
 	}
