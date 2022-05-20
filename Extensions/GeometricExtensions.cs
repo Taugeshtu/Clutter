@@ -51,19 +51,58 @@ public static class GeometricExtensions {
 		}
 	}
 	
+	// Transforming
 	public static Vector3 Transform( this Pose pose, Vector3 localPosition ) {
 		return (pose.rotation *localPosition) + pose.position;
 	}
 	
-	public static Vector3 InverseTransform( this Pose pose, Vector3 globalPosition ) {
-		return pose.rotation.Inverted() *(globalPosition - pose.position);
+	public static Vector3 InverseTransform( this Pose pose, Vector3 worldPosition ) {
+		return pose.rotation.Inverted() *(worldPosition - pose.position);
+	}
+	
+	public static Pose Transform( this Transform transform, Pose localPose ) {
+		return transform.GetPose().Transform( localPose );
+	}
+	
+	public static Pose Transform( this Pose ownPose, Pose localPose ) {
+		var position = ownPose.Transform( localPose.position );
+		var rotation = ownPose.rotation *localPose.rotation;
+		return new Pose( position, rotation );
 	}
 	
 	// Note: will return "to" in "from"s local space
-	public static Pose FromToPose( this Pose from, Pose to ) {
+	public static Pose InverseTransform( this Transform from, Pose to ) {
+		return from.GetPose().InverseTransform( to );
+	}
+	public static Pose InverseTransform( this Pose from, Pose to ) {
 		var invertedFromRotation = from.rotation.Inverted();
 		var position = invertedFromRotation *( to.position - from.position );
 		var rotation = invertedFromRotation *to.rotation;
+		return new Pose( position, rotation );
+	}
+	
+	// Lerps
+	public static Pose Lerp( this Pose from, Pose to, float factor ) {
+		var position = Vector3.Lerp( from.position, to.position, factor );
+		var rotation = Quaternion.Lerp( from.rotation, to.rotation, factor );
+		return new Pose( position, rotation );
+	}
+	
+	public static Pose LerpUnclamped( this Pose from, Pose to, float factor ) {
+		var position = Vector3.LerpUnclamped( from.position, to.position, factor );
+		var rotation = Quaternion.LerpUnclamped( from.rotation, to.rotation, factor );
+		return new Pose( position, rotation );
+	}
+	
+	public static Pose Slerp( this Pose from, Pose to, float factor ) {
+		var position = Vector3.Slerp( from.position, to.position, factor );
+		var rotation = Quaternion.Slerp( from.rotation, to.rotation, factor );
+		return new Pose( position, rotation );
+	}
+	
+	public static Pose SlerpUnclamped( this Pose from, Pose to, float factor ) {
+		var position = Vector3.SlerpUnclamped( from.position, to.position, factor );
+		var rotation = Quaternion.SlerpUnclamped( from.rotation, to.rotation, factor );
 		return new Pose( position, rotation );
 	}
 #endregion
