@@ -4,6 +4,7 @@ using System.Collections.Generic;
 //===========================================================//===========================================================
 public static class Vector {
 #region Invalids
+	// Prefabs:
 	public static Vector2 Invalid2 {
 		get {
 			return new Vector2( float.NaN, float.NaN );
