@@ -15,6 +15,15 @@ public static class MathExtensions {
 		return resultAngle;
 	}
 	
+	public static UnityEngine.Vector3 ToAngles( this UnityEngine.Vector3 eulerAngles ) {
+		var result = new UnityEngine.Vector3(
+			eulerAngles.x.ToAngle(),
+			eulerAngles.y.ToAngle(),
+			eulerAngles.z.ToAngle()
+		);
+		return result;
+	}
+	
 	public static string ToAngleString( this float angle ) {
 		return angle.ToAngle().ToString( "n1" );
 	}
@@ -78,6 +87,45 @@ public static class MathExtensions {
 		}
 		else {
 			return true;
+		}
+	}
+	
+	public static int InverseClamp( this int x, int min, int max ) {
+		if( x < min ) {
+			return x;
+		}
+		else if( x > max ) {
+			return x;
+		}
+		else {
+			var mid = (min + max) *0.5f;
+			return (x < mid) ? min : max;
+		}
+	}
+	
+	public static float InverseClamp( this float x, float min, float max ) {
+		if( x < min ) {
+			return x;
+		}
+		else if( x > max ) {
+			return x;
+		}
+		else {
+			var mid = (min + max) *0.5f;
+			return (x < mid) ? min : max;
+		}
+	}
+	
+	public static double InverseClamp( this double x, double min, double max ) {
+		if( x < min ) {
+			return x;
+		}
+		else if( x > max ) {
+			return x;
+		}
+		else {
+			var mid = (min + max) *0.5f;
+			return (x < mid) ? min : max;
 		}
 	}
 #endregion
