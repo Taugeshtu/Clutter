@@ -65,6 +65,17 @@ public static class Vector {
 		var w = Mathf.Min( a.w, b.w );
 		return new Vector4( x, y, z, w );
 	}
+	public static Vector2Int Min( Vector2Int a, Vector2Int b ) {
+		var x = Mathf.Min( a.x, b.x );
+		var y = Mathf.Min( a.y, b.y );
+		return new Vector2Int( x, y );
+	}
+	public static Vector3Int Min( Vector3Int a, Vector3Int b ) {
+		var x = Mathf.Min( a.x, b.x );
+		var y = Mathf.Min( a.y, b.y );
+		var z = Mathf.Min( a.z, b.z );
+		return new Vector3Int( x, y, z );
+	}
 	
 	public static Vector2 Max( Vector2 a, Vector2 b ) {
 		var x = Mathf.Max( a.x, b.x );
@@ -84,6 +95,18 @@ public static class Vector {
 		var w = Mathf.Max( a.w, b.w );
 		return new Vector4( x, y, z, w );
 	}
+	public static Vector2Int Max( Vector2Int a, Vector2Int b ) {
+		var x = Mathf.Max( a.x, b.x );
+		var y = Mathf.Max( a.y, b.y );
+		return new Vector2Int( x, y );
+	}
+	public static Vector3Int Max( Vector3Int a, Vector3Int b ) {
+		var x = Mathf.Max( a.x, b.x );
+		var y = Mathf.Max( a.y, b.y );
+		var z = Mathf.Max( a.z, b.z );
+		return new Vector3Int( x, y, z );
+	}
+	
 #endregion
 }
 
