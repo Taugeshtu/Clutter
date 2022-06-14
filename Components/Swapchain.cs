@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 public class Swapchain<T> {
 	private readonly int _depth;
@@ -17,6 +19,24 @@ public class Swapchain<T> {
 		_items = new T[_depth];
 		for( var i = 0; i < _depth; i++ )
 			_items[i] = spawner();
+	}
+	
+	public Swapchain( T a, T b ) : this( new T[] { a, b } ) {}
+	public Swapchain( T a, T b, T c ) : this( new T[] { a, b, c } ) {}
+	public Swapchain( T a, T b, T c, T d ) : this( new T[] { a, b, c, d } ) {}
+	public Swapchain( T[] items ) {
+		_depth = items.Length;
+		_items = items;
+	}
+	
+	public Swapchain( IEnumerable<T> items ) {
+		_depth = items.Count();
+		_items = new T[_depth];
+		var index = 0;
+		foreach( var item in items ) {
+			_items[index] = item;
+			index += 1;
+		}
 	}
 	
 	public void Tick() {
