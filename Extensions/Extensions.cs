@@ -3,6 +3,7 @@ using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
 public static class Extensions {
+#region GOs and Components
 	public static List<T> FindInstances<T>( bool searchInactive ) where T: Component {
 		var result = new List<T>();
 		
@@ -35,7 +36,12 @@ public static class Extensions {
 		}
 		return result;
 	}
-	
-#region Temporary
+#endregion
+
+
+#region Textures
+	public static Vector2Int GetSize( this Texture texture ) {
+		return new Vector2Int( texture.width, texture.height );
+	}
 #endregion
 }
