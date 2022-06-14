@@ -303,4 +303,48 @@ public static class Draw {
 		Sphere( p2, color, radius, duration );
 	}
 #endregion
+	
+	
+#region Grid
+	public static void Grid( Vector2 cellSize, Vector2Int gridSize, Color? color = null, float duration = 0 ) {
+		Grid( cellSize, gridSize, Vector2.zero, Quaternion.identity, color, duration );
+	}
+	public static void Grid( Vector2 cellSize, Vector2Int gridSize, Vector2 offset, Color? color = null, float duration = 0 ) {
+		Grid( cellSize, gridSize, offset, Quaternion.identity, color, duration );
+	}
+	public static void Grid( Vector2 cellSize, Vector2Int gridSize, Quaternion rotation, Color? color = null, float duration = 0 ) {
+		Grid( cellSize, gridSize, Vector2.zero, rotation, color, duration );
+	}
+	public static void Grid( Vector2 cellSize, Vector2Int gridSize, Vector2 offset, Quaternion rotation, Color? color = null, float duration = 0 ) {
+		color = color.HasValue ? color : Color.gray.WithA( 0.5f );
+		var width = gridSize.x *cellSize.x;
+		var height = gridSize.y *cellSize.y;
+		
+		void DrawStroke( Vector2 stroke, Vector2 localOffset ) {
+			var a = (offset + localOffset);
+			var b = a + stroke;
+			Line( rotation *a.X0Y(), rotation *b.X0Y(), color, duration );
+		}
+		
+		// Verticals:
+		var stroke = Vector2.up *height;
+		for( var x = 0; x < gridSize.x; x++ ) {
+			if( x == 0 )
+				DrawStroke( stroke, Vector2.zero );
+			
+			var localOffset = Vector2.right *cellSize.x *(x + 1);
+			DrawStroke( stroke, localOffset );
+		}
+		
+		// Horizontals:
+		stroke = Vector2.right *width;
+		for( var y = 0; y < gridSize.y; y++ ) {
+			if( y == 0 )
+				DrawStroke( stroke, Vector2.zero );
+			
+			var localOffset = Vector2.up *cellSize.y *(y + 1);
+			DrawStroke( stroke, localOffset );
+		}
+	}
+#endregion
 }
