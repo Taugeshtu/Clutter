@@ -1,8 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Experimental.Rendering;
 using System.Collections.Generic;
 
 public static class Extensions {
+#region GOs and Components
 	public static List<T> FindInstances<T>( bool searchInactive ) where T: Component {
 		var result = new List<T>();
 		
@@ -35,7 +37,26 @@ public static class Extensions {
 		}
 		return result;
 	}
+#endregion
+
+
+#region Textures
+	public static Vector2Int GetSize( this Texture texture ) {
+		return new Vector2Int( texture.width, texture.height );
+	}
 	
-#region Temporary
+	public static Texture2D Clone( this Texture2D source ) {
+		var target = new Texture2D( source.width, source.height, source.graphicsFormat, TextureCreationFlags.None );
+		target.filterMode = source.filterMode;
+		Graphics.CopyTexture( source, target );
+		return target;
+	}
+	
+	public static RenderTexture Clone( this RenderTexture source ) {
+		var target = new RenderTexture( source );
+		target.filterMode = source.filterMode;
+		Graphics.CopyTexture( source, target );
+		return target;
+	}
 #endregion
 }
