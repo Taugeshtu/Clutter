@@ -60,6 +60,14 @@ public static class GeometricExtensions {
 		return pose.rotation.Inverted() *(worldPosition - pose.position);
 	}
 	
+	public static Vector3 TransformDirection( this Pose pose, Vector3 localDirection ) {
+		return pose.rotation *localDirection;
+	}
+	
+	public static Vector3 InverseTransformDirection( this Pose pose, Vector3 worldDirection ) {
+		return pose.rotation.Inverted() *worldDirection;
+	}
+	
 	public static Pose Transform( this Transform transform, Pose localPose ) {
 		return transform.GetPose().Transform( localPose );
 	}
