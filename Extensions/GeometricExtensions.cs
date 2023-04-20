@@ -27,6 +27,48 @@ public static class GeometricExtensions {
 	public static bool IsValid( this Plane plane ) {
 		return plane.normal.IsValid() && !float.IsNaN( plane.distance );
 	}
+	
+	public static Plane BestFittingPlane( this IEnumerable<Vector3> points ) {
+		var average = Vector3.zero;
+		var pointsCount = 0;
+		foreach( var point in points ) {
+			average += point;
+			pointsCount += 1;
+		}
+		
+		if( pointsCount < 3 )
+			throw new System.ArgumentOutOfRangeException( "points", pointsCount, "Must be at least 3 points in the list or more" );
+		
+		average /= pointsCount;
+		
+		// Calculate the covariance matrix
+		float xx = 0f, xy = 0f, xz = 0f, yy = 0f, yz = 0f, zz = 0f;
+		foreach( var point in points ) {
+			var diff = point - average;
+			xx += diff.x * diff.x;
+			xy += diff.x * diff.y;
+			xz += diff.x * diff.z;
+			yy += diff.y * diff.y;
+			yz += diff.y * diff.z;
+			zz += diff.z * diff.z;
+		}
+		
+		float detX = yy * zz - yz * yz;
+		float detY = xx * zz - xz * xz;
+		float detZ = xx * yy - xy * xy;
+		
+		// Find the normal with the largest determinant
+		Vector3 normal;
+		if( detX > detY && detX > detZ )
+			normal = new Vector3( detX, xz * yz - xy * zz, xy * yz - xz * yy );
+		else if( detY > detZ )
+			normal = new Vector3( xz * yz - xy * zz, detY, xy * xz - yz * xx );
+		else
+			normal = new Vector3( xy * yz - xz * yy, xy * xz - yz * xx, detZ );
+		normal.Normalize();
+		
+		return new Plane( normal, average );
+	}
 #endregion
 	
 	
@@ -170,5 +212,31 @@ public static class GeometricExtensions {
 	public static Quaternion Inverted( this Quaternion rotation ) {
 		return Quaternion.Inverse( rotation );
 	}
+#endregion
+
+
+#region Misc
+	public static Vector3Int HilbertToXYZ( int index, int order ) {
+		var mask = (1 << order) - 1;
+		var x = 0;
+		var y = 0;
+		var z = 0;
+		
+		for( var s = 1; s < (1 << order); s <<= 1 ) {
+			var rx = 1 & (index >> 2);
+			var ry = 1 & (index >> 1);
+			var rz = 1 & index;
+			
+			var t = rx ^ rz;
+			x ^= (~ry & mask) & (t ^ -ry);
+			y ^= ry & (t ^ rx);
+			z ^= rz & (t ^ rx);
+			
+			index >>= 3;
+		}
+		
+		return new Vector3Int( x, y, z );
+	}
+
 #endregion
 }
