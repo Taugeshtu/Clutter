@@ -313,6 +313,24 @@ public static class VectorExtensions {
 	}
 	
 	//===========================================================
+	public static Vector2Int Wrapped( this Vector2Int a, Vector2Int limits ) {
+		return new Vector2Int( a.x %limits.x, a.y %limits.y );
+	}
+	public static Vector3Int Wrapped( this Vector3Int a, Vector3Int limits ) {
+		return new Vector3Int( a.x %limits.x, a.y %limits.y, a.z %limits.z );
+	}
+	
+	public static Vector2 Wrapped( this Vector2 a, Vector2 limits ) {
+		return new Vector2( Mathf.Repeat( a.x, limits.x ), Mathf.Repeat( a.y, limits.y ) );
+	}
+	public static Vector3 Wrapped( this Vector3 a, Vector3 limits ) {
+		return new Vector3( Mathf.Repeat( a.x, limits.x ), Mathf.Repeat( a.y, limits.y ), Mathf.Repeat( a.z, limits.z ) );
+	}
+	public static Vector4 Wrapped( this Vector4 a, Vector4 limits ) {
+		return new Vector4( Mathf.Repeat( a.x, limits.x ), Mathf.Repeat( a.y, limits.y ), Mathf.Repeat( a.z, limits.z ), Mathf.Repeat( a.w, limits.w ) );
+	}
+	
+	//===========================================================
 	public static Vector2Int Clamped01( this Vector2Int a ) {
 		return a.Clamped( Vector2Int.zero, Vector2Int.one );
 	}
