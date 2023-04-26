@@ -7,7 +7,8 @@ using SegmentType = DesignCurve.SegmentType;
 
 [CustomPropertyDrawer(typeof(DesignCurve))]
 public class InteractiveImagePropertyDrawer : PropertyDrawer {
-	private const int _SamplesPerSegment = 10;
+	private const int _SamplesPerSegmentPreview = 6;
+	private const int _SamplesPerSegmentFull = 20;
 	private const int _FloatingInputThreshold = 30;
 	private static Vector2 _FloatingInputSize = new Vector2( _RulerPointWidth, EditorGUIUtility.singleLineHeight );
 	private static Vector2 _DeleteButtonSize = new Vector2( 20, 20 );
@@ -47,6 +48,15 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 		_currentHeight = EditorGUIUtility.singleLineHeight;
 		EditorGUI.PropertyField( labelRect, property, label, false );
 		
+		if( !property.isExpanded ) {
+			var previewRect = new Rect( labelRect );
+			var previewWidth = position.width - EditorGUIUtility.labelWidth - 3;
+			previewRect.position += Vector2.right *(position.width - previewWidth);
+			previewRect.width = previewWidth;
+			EditorGUI.DrawRect( previewRect, Color.black.Mix( Color.white, 0.5f ) );
+			_DrawCurve( _curve, previewRect, Color.cyan, _SamplesPerSegmentPreview );
+		}
+		
 		if( property.isExpanded ) {
 			var currentEvent = Event.current;
 			var imageRect = new Rect( position.x, position.y + EditorGUIUtility.singleLineHeight, position.width, _ImageHeight );
@@ -54,12 +64,12 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 			imageRect.width -= _Padding *2;
 			var isHovered = imageRect.Contains( currentEvent.mousePosition );
 			
-			var curveColor = Palette.orange;
+			var curveColor = Color.cyan;
 			_currentHeight += _ImageHeight;
 			EditorGUI.DrawRect( imageRect, Color.black.Mix( Color.white, 0.5f ) );
 			_DrawTicks( _curve, imageRect, Color.black );
 			_DrawTails( _curve.Points[0], _curve.Points[_curve.Points.Count - 1], imageRect, Color.black );
-			_DrawCurve( _curve, imageRect, curveColor );
+			_DrawCurve( _curve, imageRect, curveColor, _SamplesPerSegmentFull );
 			
 			_currentHeight += EditorGUIUtility.singleLineHeight;
 			_DrawRuler( target, _curve, imageRect );
@@ -106,7 +116,7 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 		return fieldInfo.GetValue( targetObject ) as DesignCurve;
 	}
 	
-	private static void _DrawCurve( DesignCurve curve, Rect imageRect, Color color ) {
+	private static void _DrawCurve( DesignCurve curve, Rect imageRect, Color color, int samplesPerSegment ) {
 		Handles.color = color;
 		
 		var pointsToDraw = new List<Vector2>( curve.Points );
@@ -121,8 +131,8 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 			else if( segment == SegmentType.ConstRight )
 				pointsToDraw.Add( new Vector2( pointA.x + 0.001f, pointB.y ) );
 			else {
-				var xStep = (pointB - pointA).x /(_SamplesPerSegment + 1);
-				for( var sample = 0; sample < _SamplesPerSegment; sample++ ) {
+				var xStep = (pointB - pointA).x /(samplesPerSegment + 1);
+				for( var sample = 0; sample < samplesPerSegment; sample++ ) {
 					var x = pointA.x + xStep *(sample + 1);
 					var y = curve[x];
 					pointsToDraw.Add( new Vector2( x, y ) );

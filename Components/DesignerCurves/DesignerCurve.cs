@@ -9,6 +9,7 @@ public class DesignCurve {
 		ConstRight,
 		// etc...
 		Quad,
+		InverseQuad,
 	}
 	
 	public List<Vector2> Points = new List<Vector2>() { Vector2.zero, Vector2.one, };
@@ -81,6 +82,9 @@ public class DesignCurve {
 				return pointB.y;
 			case SegmentType.Quad:
 				return Mathf.Lerp( pointA.y, pointB.y, factor *factor );
+			case SegmentType.InverseQuad:
+				var invFactor = 1f - factor;
+				return Mathf.Lerp( pointA.y, pointB.y, 1 - invFactor *invFactor );
 		}
 		return 0f;
 	}
