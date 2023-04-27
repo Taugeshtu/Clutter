@@ -10,7 +10,7 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 	private const int _PixelsPerSamplePreview = 10;
 	private const int _PixelsPerSampleFull = 5;
 	private const int _FloatingInputThreshold = 30;
-	private static Vector2 _FloatingInputSize = new Vector2( _RulerPointWidth, EditorGUIUtility.singleLineHeight );
+	private static Vector2 _FloatingInputSize = new Vector2( _RulerInputWidth, EditorGUIUtility.singleLineHeight );
 	private static Vector2 _DeleteButtonSize = new Vector2( 20, 20 );
 	private const float _DoubleClickTime = 0.35f;
 	
@@ -19,7 +19,7 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 	
 	private const float _ImageHeight = 150f;
 	private const float _Padding = 10f;
-	private const float _RulerPointWidth = 30f;
+	private const float _RulerInputWidth = 30f;
 	private const float _RulerSpacing = 3f;
 	
 	private DesignCurve _curve;
@@ -42,6 +42,11 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 		
 		if( _curve == null )
 			_curve = _GetDesignCurve( property );
+		
+		if( _curve == null ) {
+			_curve = new DesignCurve();
+			_SetDesignCurve( property, _curve );
+		}
 		_curve.Sanitize();
 		
 		var labelRect = position;
@@ -51,7 +56,7 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 		
 		if( !property.isExpanded ) {
 			var previewRect = new Rect( labelRect );
-			var previewWidth = position.width - EditorGUIUtility.labelWidth - 3;
+			var previewWidth = position.width - EditorGUIUtility.labelWidth - EditorGUIUtility.standardVerticalSpacing;
 			previewRect.position += Vector2.right *(position.width - previewWidth);
 			previewRect.width = previewWidth;
 			EditorGUI.DrawRect( previewRect, Color.black.Mix( Color.white, 0.5f ) );
@@ -71,7 +76,7 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 			var isHovered = imageRect.Contains( currentEvent.mousePosition );
 			
 			_currentHeight += EditorGUIUtility.standardVerticalSpacing + _ImageHeight;
-			EditorGUI.DrawRect( imageRect, Color.black.Mix( Color.white, 0.5f ).WithA( 0.5f ) );
+			EditorGUI.DrawRect( imageRect, Color.black.Mix( Color.white, 0.5f ) );
 			Handles.color = Color.black;
 			_DrawTicks( _curve, imageRect );
 			_DrawTails( _curve.Points[0], _curve.Points[_curve.Points.Count - 1], imageRect );
@@ -115,15 +120,26 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 		EditorGUI.EndProperty();
 	}
 	
-	private DesignCurve _GetDesignCurve( SerializedProperty property ) {
-		var serializedObject = property.serializedObject;
-		
-		var targetObject = serializedObject.targetObject;
+	private void _SetDesignCurve( SerializedProperty property, DesignCurve newCurve ) {
+		var targetObject = property.serializedObject.targetObject;
 		var targetType = targetObject.GetType();
 		var fieldInfo = targetType.GetField( property.propertyPath,
 			BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public );
 		
-		return fieldInfo.GetValue( targetObject ) as DesignCurve;
+		if( fieldInfo != null ) {
+			fieldInfo.SetValue( targetObject, newCurve );
+		}
+	}
+	
+	private DesignCurve _GetDesignCurve( SerializedProperty property ) {
+		var targetObject = property.serializedObject.targetObject;
+		var targetType = targetObject.GetType();
+		var fieldInfo = targetType.GetField( property.propertyPath,
+			BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public );
+		
+		return (fieldInfo == null)
+					? null
+					: fieldInfo.GetValue( targetObject ) as DesignCurve;
 	}
 	
 	private static void _DrawCurveBlended( DesignCurve curve, Rect container, int pixelsPerSample ) {
@@ -195,12 +211,12 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 		for( var i = 0; i < curve.Points.Count; i++ ) {
 			var x = curve.Points[i].x;
 			var rect = new Rect( position.position, Vector2.zero );
-			var xOffset = x *position.width - x *_RulerPointWidth;
+			var xOffset = x *position.width - x *_RulerInputWidth;
 			rect.position += Vector2.right *xOffset;
 			rect.position += Vector2.up *yOffset;
 			
 			rect.height = EditorGUIUtility.singleLineHeight;
-			rect.width = _RulerPointWidth;
+			rect.width = _RulerInputWidth;
 			
 			var style = (i == curve.Points.Count - 1) ? _RightAligned : _LeftAligned;
 			var newX = EditorGUI.FloatField( rect, x, style );
@@ -212,7 +228,7 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 			if( i > 0 ) {
 				var segment = curve.Segments[i - 1];
 				var segmentRect = new Rect( position.position, Vector2.zero );
-				var segmentOffset = (prevRectOffset + _RulerPointWidth) + _RulerSpacing;
+				var segmentOffset = (prevRectOffset + _RulerInputWidth) + _RulerSpacing;
 				segmentRect.position += Vector2.right *segmentOffset;
 				segmentRect.position += Vector2.up *yOffset;
 				
