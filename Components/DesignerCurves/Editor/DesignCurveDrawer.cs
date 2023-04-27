@@ -7,8 +7,8 @@ using SegmentType = DesignCurve.SegmentType;
 
 [CustomPropertyDrawer(typeof(DesignCurve))]
 public class InteractiveImagePropertyDrawer : PropertyDrawer {
-	private const int _SamplesPerSegmentPreview = 6;
-	private const int _SamplesPerSegmentFull = 20;
+	private const int _PixelsPerSamplePreview = 10;
+	private const int _PixelsPerSampleFull = 5;
 	private const int _FloatingInputThreshold = 30;
 	private static Vector2 _FloatingInputSize = new Vector2( _RulerPointWidth, EditorGUIUtility.singleLineHeight );
 	private static Vector2 _DeleteButtonSize = new Vector2( 20, 20 );
@@ -38,6 +38,7 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 	public override void OnGUI( Rect position, SerializedProperty property, GUIContent label ) {
 		EditorGUI.BeginProperty( position, label, property );
 		var target = property.serializedObject.targetObject;
+		var curveColor = Color.cyan;
 		
 		if( _curve == null )
 			_curve = _GetDesignCurve( property );
@@ -46,7 +47,7 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 		var labelRect = position;
 		labelRect.height = EditorGUIUtility.singleLineHeight;
 		_currentHeight = EditorGUIUtility.singleLineHeight;
-		EditorGUI.PropertyField( labelRect, property, label, false );
+		EditorGUI.PropertyField( labelRect, property, label, true );
 		
 		if( !property.isExpanded ) {
 			var previewRect = new Rect( labelRect );
@@ -54,22 +55,31 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 			previewRect.position += Vector2.right *(position.width - previewWidth);
 			previewRect.width = previewWidth;
 			EditorGUI.DrawRect( previewRect, Color.black.Mix( Color.white, 0.5f ) );
-			_DrawCurve( _curve, previewRect, Color.cyan, _SamplesPerSegmentPreview );
+			Handles.color = curveColor;
+			_DrawCurveNoBlend( _curve, previewRect, _PixelsPerSamplePreview );
 		}
 		
 		if( property.isExpanded ) {
+			// accounting for the blend slider
+			_currentHeight += EditorGUIUtility.standardVerticalSpacing + EditorGUIUtility.singleLineHeight;
+			
 			var currentEvent = Event.current;
-			var imageRect = new Rect( position.x, position.y + EditorGUIUtility.singleLineHeight, position.width, _ImageHeight );
+			var offset = _currentHeight + EditorGUIUtility.standardVerticalSpacing;
+			var imageRect = new Rect( position.x, position.y + offset, position.width, _ImageHeight );
 			imageRect.position += Vector2.right *_Padding;
 			imageRect.width -= _Padding *2;
 			var isHovered = imageRect.Contains( currentEvent.mousePosition );
 			
-			var curveColor = Color.cyan;
-			_currentHeight += _ImageHeight;
-			EditorGUI.DrawRect( imageRect, Color.black.Mix( Color.white, 0.5f ) );
-			_DrawTicks( _curve, imageRect, Color.black );
-			_DrawTails( _curve.Points[0], _curve.Points[_curve.Points.Count - 1], imageRect, Color.black );
-			_DrawCurve( _curve, imageRect, curveColor, _SamplesPerSegmentFull );
+			_currentHeight += EditorGUIUtility.standardVerticalSpacing + _ImageHeight;
+			EditorGUI.DrawRect( imageRect, Color.black.Mix( Color.white, 0.5f ).WithA( 0.5f ) );
+			Handles.color = Color.black;
+			_DrawTicks( _curve, imageRect );
+			_DrawTails( _curve.Points[0], _curve.Points[_curve.Points.Count - 1], imageRect );
+			Handles.color = curveColor;
+			if( _curve.NeighbourBlendingBand.EpsilonEquals( 0f ) )
+				_DrawCurveNoBlend( _curve, imageRect, _PixelsPerSampleFull );
+			else
+				_DrawCurveBlended( _curve, imageRect, _PixelsPerSampleFull );
 			
 			_currentHeight += EditorGUIUtility.singleLineHeight;
 			_DrawRuler( target, _curve, imageRect );
@@ -116,9 +126,18 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 		return fieldInfo.GetValue( targetObject ) as DesignCurve;
 	}
 	
-	private static void _DrawCurve( DesignCurve curve, Rect imageRect, Color color, int samplesPerSegment ) {
-		Handles.color = color;
-		
+	private static void _DrawCurveBlended( DesignCurve curve, Rect container, int pixelsPerSample ) {
+		var pointsToDraw = new List<Vector2>();
+		var samplesCount = Mathf.CeilToInt( container.width /pixelsPerSample );
+		for( var i = 0; i <= samplesCount; i++ ) {
+			var x = i / (float)samplesCount;
+			var y = curve[x];
+			pointsToDraw.Add( new Vector2( x, y ) );
+		}
+		_DrawCurve( pointsToDraw, container );
+	}
+	
+	private static void _DrawCurveNoBlend( DesignCurve curve, Rect container, int pixelsPerSample ) {
 		var pointsToDraw = new List<Vector2>( curve.Points );
 		for( var i = 0; i < curve.Segments.Count; i++ ) {
 			var pointA = curve.Points[i];
@@ -131,6 +150,7 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 			else if( segment == SegmentType.ConstRight )
 				pointsToDraw.Add( new Vector2( pointA.x + 0.001f, pointB.y ) );
 			else {
+				var samplesPerSegment = Mathf.CeilToInt( (pointB - pointA).x *container.width /pixelsPerSample );
 				var xStep = (pointB - pointA).x /(samplesPerSegment + 1);
 				for( var sample = 0; sample < samplesPerSegment; sample++ ) {
 					var x = pointA.x + xStep *(sample + 1);
@@ -141,6 +161,10 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 		}
 		pointsToDraw.Sort( (a, b) => a.x.CompareTo( b.x ) );
 		
+		_DrawCurve( pointsToDraw, container );
+	}
+	
+	private static void _DrawCurve( List<Vector2> pointsToDraw, Rect imageRect ) {
 		for( var i = 1; i < pointsToDraw.Count; i++ ) {
 			var a = pointsToDraw[i - 1];
 			a.y = 1 - a.y;
@@ -155,9 +179,7 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 		}
 	}
 	
-	private static void _DrawTicks( DesignCurve curve, Rect imageRect, Color color ) {
-		Handles.color = color;
-		
+	private static void _DrawTicks( DesignCurve curve, Rect imageRect ) {
 		for( var i = 0; i < curve.Points.Count; i++ ) {
 			var point = curve.Points[i];
 			var pixelPoint = point.WithY( 1 - point.y ).ComponentMul( imageRect.size ) + imageRect.position;
@@ -266,9 +288,7 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 		}
 	}
 	
-	private static void _DrawTails( Vector2 start, Vector2 end, Rect imageRect, Color color ) {
-		Handles.color = color;
-		
+	private static void _DrawTails( Vector2 start, Vector2 end, Rect imageRect ) {
 		var dash = 3f;
 		var a = start.WithY( 1 - start.y ).ComponentMul( imageRect.size ) + imageRect.position;
 		var b = a + Vector2.left *_Padding;
