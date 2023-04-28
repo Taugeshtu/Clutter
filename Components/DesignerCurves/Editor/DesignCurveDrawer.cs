@@ -6,7 +6,7 @@ using System.Linq;
 
 using SegmentType = DesignCurve.SegmentType;
 
-[CustomPropertyDrawer(typeof(DesignCurve))]
+[CustomPropertyDrawer( typeof( DesignCurve ), true )]
 public class InteractiveImagePropertyDrawer : PropertyDrawer {
 	private const int _PixelsPerSamplePreview = 10;
 	private const int _PixelsPerSampleFull = 5;
@@ -46,8 +46,8 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 		
 		var labelRect = position;
 		labelRect.height = EditorGUIUtility.singleLineHeight;
-		_currentHeight = EditorGUIUtility.singleLineHeight;
 		EditorGUI.PropertyField( labelRect, property, label, true );
+		_currentHeight = EditorGUI.GetPropertyHeight( property, GUIContent.none, true );
 		
 		if( !property.isExpanded ) {
 			var previewRect = new Rect( labelRect );
@@ -62,9 +62,6 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 		if( property.isExpanded ) {
 			var savedIndent = EditorGUI.indentLevel;
 			EditorGUI.indentLevel = 0;
-			
-			// accounting for the blend slider
-			_currentHeight += EditorGUIUtility.standardVerticalSpacing + EditorGUIUtility.singleLineHeight;
 			
 			var currentEvent = Event.current;
 			var offset = _currentHeight + EditorGUIUtility.standardVerticalSpacing;

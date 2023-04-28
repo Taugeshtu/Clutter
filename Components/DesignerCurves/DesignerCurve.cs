@@ -17,7 +17,7 @@ public class DesignCurve {
 	[HideInInspector] public List<Vector2> Points = new List<Vector2>() { Vector2.zero, Vector2.one, };
 	[HideInInspector] public List<SegmentType> Segments = new List<SegmentType>() { SegmentType.Linear };
 	
-	public float this[float x] {
+	public virtual float this[float x] {
 		get {
 			if( Points.Count == 0 )
 				return 0f;

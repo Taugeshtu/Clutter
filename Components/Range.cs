@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
+[System.Serializable]
 public struct Range {
 	private float m_min;
 	private float m_max;
@@ -98,6 +99,14 @@ public struct Range {
 		if( x < m_min ) { return m_min; }
 		if( x > m_max ) { return m_max; }
 		return x;
+	}
+	
+	public float Transform( float localValue ) {
+		return m_min + localValue *size;
+	}
+	
+	public float InverseTransform( float globalValue ) {
+		return (globalValue - m_min) /size;
 	}
 #endregion
 	
