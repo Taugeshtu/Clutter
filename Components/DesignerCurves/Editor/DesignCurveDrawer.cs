@@ -9,9 +9,8 @@ using SegmentType = DesignCurve.SegmentType;
 public class InteractiveImagePropertyDrawer : PropertyDrawer {
 	private const int _PixelsPerSamplePreview = 10;
 	private const int _PixelsPerSampleFull = 5;
+	
 	private const int _FloatingInputThreshold = 30;
-	private static Vector2 _FloatingInputSize = new Vector2( _RulerInputWidth, EditorGUIUtility.singleLineHeight );
-	private static Vector2 _DeleteButtonSize = new Vector2( 20, 20 );
 	private const float _DoubleClickTime = 0.35f;
 	
 	private static GUIStyle _LeftAligned = new GUIStyle( EditorStyles.numberField ) { alignment = TextAnchor.MiddleLeft };
@@ -21,6 +20,8 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 	private const float _Padding = 10f;
 	private const float _RulerInputWidth = 30f;
 	private const float _RulerSpacing = 3f;
+	private static Vector2 _FloatingInputSize = new Vector2( _RulerInputWidth, EditorGUIUtility.singleLineHeight );
+	private static Vector2 _DeleteButtonSize = new Vector2( 20, 20 );
 	
 	private DesignCurve _curve;
 	private float _currentHeight = EditorGUIUtility.singleLineHeight;
@@ -37,17 +38,10 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 	
 	public override void OnGUI( Rect position, SerializedProperty property, GUIContent label ) {
 		EditorGUI.BeginProperty( position, label, property );
+		
+		_curve = _GetInitSanitizedCurve( property, _curve );
 		var target = property.serializedObject.targetObject;
 		var curveColor = Color.cyan;
-		
-		if( _curve == null )
-			_curve = _GetDesignCurve( property );
-		
-		if( _curve == null ) {
-			_curve = new DesignCurve();
-			_SetDesignCurve( property, _curve );
-		}
-		_curve.Sanitize();
 		
 		var labelRect = position;
 		labelRect.height = EditorGUIUtility.singleLineHeight;
@@ -120,7 +114,19 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 		EditorGUI.EndProperty();
 	}
 	
-	private void _SetDesignCurve( SerializedProperty property, DesignCurve newCurve ) {
+	private static DesignCurve _GetInitSanitizedCurve( SerializedProperty property, DesignCurve curve ) {
+		if( curve == null )
+			curve = _GetDesignCurve( property );
+		
+		if( curve == null ) {
+			curve = new DesignCurve();
+			_SetDesignCurve( property, curve );
+		}
+		curve.Sanitize();
+		return curve;
+	}
+	
+	private static void _SetDesignCurve( SerializedProperty property, DesignCurve newCurve ) {
 		var targetObject = property.serializedObject.targetObject;
 		var targetType = targetObject.GetType();
 		var fieldInfo = targetType.GetField( property.propertyPath,
@@ -131,7 +137,7 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 		}
 	}
 	
-	private DesignCurve _GetDesignCurve( SerializedProperty property ) {
+	private static DesignCurve _GetDesignCurve( SerializedProperty property ) {
 		var targetObject = property.serializedObject.targetObject;
 		var targetType = targetObject.GetType();
 		var fieldInfo = targetType.GetField( property.propertyPath,
