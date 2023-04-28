@@ -2,6 +2,7 @@ using UnityEditor;
 using UnityEngine;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Linq;
 
 using SegmentType = DesignCurve.SegmentType;
 
@@ -130,28 +131,56 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 		return curve;
 	}
 	
-	private static void _SetDesignCurve( SerializedProperty property, DesignCurve newCurve ) {
-		var targetObject = property.serializedObject.targetObject;
-		var targetType = targetObject.GetType();
-		var fieldInfo = targetType.GetField( property.propertyPath,
-			BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public );
-		
-		if( fieldInfo != null ) {
-			fieldInfo.SetValue( targetObject, newCurve );
-		}
-	}
-	
 	private static DesignCurve _GetDesignCurve( SerializedProperty property ) {
 		var targetObject = property.serializedObject.targetObject;
-		var targetType = targetObject.GetType();
-		var fieldInfo = targetType.GetField( property.propertyPath,
-			BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public );
-		
-		return (fieldInfo == null)
-					? null
-					: fieldInfo.GetValue( targetObject ) as DesignCurve;
+		return GetNestedPropertyValue<DesignCurve>( targetObject, property.propertyPath );
 	}
 	
+	private static void _SetDesignCurve( SerializedProperty property, DesignCurve newCurve ) {
+		var targetObject = property.serializedObject.targetObject;
+		SetNestedPropertyValue( targetObject, property.propertyPath, newCurve );
+	}
+	
+	private static T GetNestedPropertyValue<T>( object target, string propertyPath ) {
+		var targetType = target.GetType();
+		var pathSegments = propertyPath.Split( '.' );
+		object currentTarget = target;
+		
+		foreach( var segment in pathSegments ) {
+			if( currentTarget == null ) break;
+			
+			var fieldInfo = targetType.GetField( segment, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public );
+			if( fieldInfo == null ) return default( T );
+			
+			currentTarget = fieldInfo.GetValue( currentTarget );
+			targetType = fieldInfo.FieldType;
+		}
+		
+		return (T) currentTarget;
+	}
+	
+	private static void SetNestedPropertyValue( object target, string propertyPath, object value ) {
+		var targetType = target.GetType();
+		var pathSegments = propertyPath.Split( '.' );
+		object currentTarget = target;
+		FieldInfo lastFieldInfo = null;
+		
+		foreach( var segment in pathSegments ) {
+			if( currentTarget == null ) break;
+			
+			lastFieldInfo = targetType.GetField( segment, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public );
+			if( lastFieldInfo == null ) return;
+			
+			if( segment != pathSegments.Last() ) {
+				currentTarget = lastFieldInfo.GetValue( currentTarget );
+				targetType = lastFieldInfo.FieldType;
+			}
+		}
+		
+		if( lastFieldInfo != null )
+			lastFieldInfo.SetValue( currentTarget, value );
+	}
+
 	private static void _DrawCurveBlended( DesignCurve curve, Rect container, int pixelsPerSample ) {
 		var pointsToDraw = new List<Vector2>();
 		var samplesCount = Mathf.CeilToInt( container.width /pixelsPerSample );
