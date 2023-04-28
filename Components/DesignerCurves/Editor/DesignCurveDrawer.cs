@@ -59,6 +59,9 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 		}
 		
 		if( property.isExpanded ) {
+			var savedIndent = EditorGUI.indentLevel;
+			EditorGUI.indentLevel = 0;
+			
 			// accounting for the blend slider
 			_currentHeight += EditorGUIUtility.standardVerticalSpacing + EditorGUIUtility.singleLineHeight;
 			
@@ -109,6 +112,7 @@ public class InteractiveImagePropertyDrawer : PropertyDrawer {
 			
 			// forcing Unity to provide us with snappy updates!
 			EditorUtility.SetDirty( property.serializedObject.targetObject );
+			EditorGUI.indentLevel = savedIndent;
 		}
 		
 		EditorGUI.EndProperty();
