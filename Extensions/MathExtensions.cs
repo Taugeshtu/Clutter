@@ -227,5 +227,9 @@ public static class MathExtensions {
 		}
 		return (ceiledToPOT, power);
 	}
+	
+	public static int ToInt( this bool b ) {
+		return b ? 1 : 0;
+	}
 #endregion
 }
