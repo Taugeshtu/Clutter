@@ -410,6 +410,11 @@ public static class VectorExtensions {
 		return Vector4.Project( original, normal );
 	}
 	
+	public static Vector3 ProjectedOn( this Vector3 point, Plane plane ) {
+		var inPlaneDiff = point.Flat( plane.normal );
+		return inPlaneDiff - plane.normal *plane.distance;
+	}
+	
 	//===========================================================
 	public static float CoAligness( this Vector3 a, Vector3 b ) {
 		var projection = Vector3.Project( a, b );
