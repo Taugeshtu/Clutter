@@ -313,6 +313,17 @@ public static class VectorExtensions {
 	}
 	
 	//===========================================================
+	public static Vector2 ClampedMagnitude( this Vector2 v, float magnitude ) {
+		return v.WithMagnitude( Mathf.Min( v.magnitude, magnitude ) );
+	}
+	public static Vector3 MagnitudeClamped( this Vector3 v, float magnitude ) {
+		return v.WithMagnitude( Mathf.Min( v.magnitude, magnitude ) );
+	}
+	public static Vector4 ClampedMagnitude( this Vector4 v, float magnitude ) {
+		return v.WithMagnitude( Mathf.Min( v.magnitude, magnitude ) );
+	}
+	
+	//===========================================================
 	public static Vector2Int Wrapped( this Vector2Int a, Vector2Int limits ) {
 		return new Vector2Int( a.x %limits.x, a.y %limits.y );
 	}
