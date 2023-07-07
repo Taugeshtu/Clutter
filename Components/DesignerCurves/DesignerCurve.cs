@@ -129,3 +129,16 @@ public class DesignCurve {
 		}
 	}
 }
+
+[System.Serializable]
+public class ScaledDesignCurve : DesignCurve {
+	public Range xRange = new Range( 0, 1 );
+	public Range yRange = new Range( 0, 1 );
+	
+	public override float this[float x] {
+		get {
+			var baseResult = base[xRange.InverseTransform( x )];
+			return yRange.Transform( baseResult );
+		}
+	}
+}
