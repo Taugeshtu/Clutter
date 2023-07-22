@@ -13,7 +13,7 @@ public class SingularBehaviour : System.Attribute {
 	
 	public static SingularBehaviour Default {
 		get {
-			return new SingularBehaviour( false, false, false );;
+			return new SingularBehaviour( false, false, false );
 		}
 	}
 	
