@@ -69,6 +69,66 @@ public static class GeometricExtensions {
 		
 		return new Plane( normal, average );
 	}
+	
+	// This will give height along "cutPlaneNormal" that will slice the rectangle defined by frame, size such that
+	// area UNDER the Plane( cutPlaneNormal, cutPlaneNormal *height ) is areaPortion of rect's total area
+	public static float AreaFitCut( Pose frame, Vector2 size, Vector3 cutPlaneNormal, float areaPortion ) {
+		var tangent = Vector3.forward;
+		Vector3.OrthoNormalize( ref cutPlaneNormal, ref tangent );
+		var cutPlaneFrame = new Pose( Vector3.zero, Quaternion.LookRotation( tangent, cutPlaneNormal ) );
+		frame = cutPlaneFrame.InverseTransform( frame );
+		var cutFramePlaneHeight = AreaFitCutHorizontal( frame, size, areaPortion );
+		return cutFramePlaneHeight;
+	}
+	// See "AreaFitCut", except here the plane is assumed horizontal
+	public static float AreaFitCutHorizontal( Pose frame, Vector2 size, float areaPortion ) {
+		var halfSize = size /2;
+		var A = frame.Transform( new Vector3( halfSize.x, 0, halfSize.y ) );
+		var B = frame.Transform( new Vector3(-halfSize.x, 0, halfSize.y ) );
+		var C = frame.Transform( new Vector3(-halfSize.x, 0,-halfSize.y ) );
+		var D = frame.Transform( new Vector3( halfSize.x, 0,-halfSize.y ) );
+		var deviation = Mathf.Abs( A.y - B.y ) + Mathf.Abs( A.y - C.y ) + Mathf.Abs( A.y - D.y );
+		if( deviation.EpsilonEquals( 0f ) )
+			return A.y;
+		
+		var totalArea = size.x *size.y;
+		var areaWanted = totalArea *areaPortion;
+		
+		var corners = new Vector3[] { A, B, C, D };
+		System.Array.Sort( corners, (a, b) => a.y.CompareTo( b.y ) );
+		var high = corners[3];
+		var midHigh = corners[2];
+		var midLow = corners[1];
+		var low = corners[0];
+		
+		var factorMidHigh = Mathf.InverseLerp( high.y, midLow.y, midHigh.y );
+		var xMidHigh = Vector3.Lerp( high, midLow, factorMidHigh );
+		
+		var factorMidLow = Mathf.InverseLerp( low.y, midHigh.y, midLow.y );
+		var xMidLow = Vector3.Lerp( low, midHigh, factorMidLow );
+		
+		var areaTopTriangle = Vector3.Cross( (high - midHigh), (xMidHigh - midHigh) ).magnitude /2;
+		var areaMid = Vector3.Cross( (midHigh - xMidHigh), (midLow - xMidHigh) ).magnitude;
+		var areaBottomTriangle = areaTopTriangle;
+		
+		if( areaWanted < areaBottomTriangle ) {
+			var factor = Mathf.Sqrt( areaWanted /areaBottomTriangle );
+			return Mathf.Lerp( low.y, midLow.y, factor );
+		}
+		else if( areaWanted < (areaBottomTriangle + areaMid) ) {
+			var wantedAreaInMid = areaWanted - areaBottomTriangle;
+			var factor = wantedAreaInMid /areaMid;
+			return Mathf.Lerp( midLow.y, midHigh.y, factor );
+		}
+		else if( areaWanted < totalArea ) {
+			var missingAreaInHigh = totalArea - areaWanted;
+			var factor = Mathf.Sqrt( missingAreaInHigh /areaTopTriangle );
+			return Mathf.Lerp( high.y, midHigh.y, factor );
+		}
+		else {
+			return high.y;
+		}
+	}
 #endregion
 	
 	
@@ -120,14 +180,14 @@ public static class GeometricExtensions {
 		return new Pose( position, rotation );
 	}
 	
-	// Note: will return "to" in "from"s local space
-	public static Pose InverseTransform( this Transform from, Pose to ) {
-		return from.GetPose().InverseTransform( to );
+	// Note: will return "target" in "from"s local space
+	public static Pose InverseTransform( this Transform from, Pose target ) {
+		return from.GetPose().InverseTransform( target );
 	}
-	public static Pose InverseTransform( this Pose from, Pose to ) {
+	public static Pose InverseTransform( this Pose from, Pose target ) {
 		var invertedFromRotation = from.rotation.Inverted();
-		var position = invertedFromRotation *( to.position - from.position );
-		var rotation = invertedFromRotation *to.rotation;
+		var position = invertedFromRotation *( target.position - from.position );
+		var rotation = invertedFromRotation *target.rotation;
 		return new Pose( position, rotation );
 	}
 	
