@@ -381,6 +381,16 @@ public static class VectorExtensions {
 		return new Vector4( a.x *b.x, a.y *b.y, a.z *b.z, a.w *b.w );
 	}
 	
+	public static Vector2 ComponentMul( this Vector2 a, float x, float y ) {
+		return new Vector2( a.x *x, a.y *y );
+	}
+	public static Vector3 ComponentMul( this Vector3 a, float x, float y, float z ) {
+		return new Vector3( a.x *x, a.y *y, a.z *z );
+	}
+	public static Vector4 ComponentMul( this Vector4 a, float x, float y, float z, float w ) {
+		return new Vector4( a.x *x, a.y *y, a.z *z, a.w *w );
+	}
+	
 	//===========================================================
 	public static Vector2 ComponentDiv( this Vector2 a, Vector2 b ) {
 		return new Vector2( a.x /b.x, a.y /b.y );
@@ -391,6 +401,17 @@ public static class VectorExtensions {
 	public static Vector4 ComponentDiv( this Vector4 a, Vector4 b ) {
 		return new Vector4( a.x /b.x, a.y /b.y, a.z /b.z, a.w /b.w );
 	}
+	
+	public static Vector2 ComponentDiv( this Vector2 a, float x, float y ) {
+		return new Vector2( a.x /x, a.y /y );
+	}
+	public static Vector3 ComponentDiv( this Vector3 a, float x, float y, float z ) {
+		return new Vector3( a.x /x, a.y /y, a.z /z );
+	}
+	public static Vector4 ComponentDiv( this Vector4 a, float x, float y, float z, float w ) {
+		return new Vector4( a.x /x, a.y /y, a.z /z, a.w /w );
+	}
+	
 #endregion
 	
 	
