@@ -72,7 +72,7 @@ public static class GeometricExtensions {
 	
 	// This will give height along "cutPlaneNormal" that will slice the rectangle defined by frame, size such that
 	// area UNDER the Plane( cutPlaneNormal, cutPlaneNormal *height ) is areaPortion of rect's total area
-	public static float AreaFitCut( (Pose frame, Vector2 size) rect, Vector3 cutPlaneNormal, float areaPortion ) {
+	public static float AreaFitCut( this (Pose frame, Vector2 size) rect, Vector3 cutPlaneNormal, float areaPortion ) {
 		var tangent = Vector3.forward;
 		Vector3.OrthoNormalize( ref cutPlaneNormal, ref tangent );
 		var cutPlaneFrame = new Pose( Vector3.zero, Quaternion.LookRotation( tangent, cutPlaneNormal ) );
@@ -81,7 +81,7 @@ public static class GeometricExtensions {
 		return cutFramePlaneHeight;
 	}
 	// See "AreaFitCut", except here the plane is assumed horizontal
-	public static float AreaFitCutHorizontal( (Pose frame, Vector2 size) rect, float areaPortion ) {
+	public static float AreaFitCutHorizontal( this (Pose frame, Vector2 size) rect, float areaPortion ) {
 		var halfSize = rect.size /2;
 		var A = rect.frame.Transform( new Vector3( halfSize.x, 0, halfSize.y ) );
 		var B = rect.frame.Transform( new Vector3(-halfSize.x, 0, halfSize.y ) );
@@ -130,7 +130,7 @@ public static class GeometricExtensions {
 		}
 	}
 	
-	public static float CutArea( (Pose frame, Vector2 size) rect, Plane plane ) {
+	public static float CutArea( this (Pose frame, Vector2 size) rect, Plane plane ) {
 		var tangent = Vector3.forward;
 		var cutPlaneNormal = plane.normal;
 		Vector3.OrthoNormalize( ref cutPlaneNormal, ref tangent );
@@ -139,7 +139,7 @@ public static class GeometricExtensions {
 		var cutFramePlaneHeight = AreaFitCutHorizontal( rect, -plane.distance );
 		return cutFramePlaneHeight;
 	}
-	public static float CutAreaHorizontal( (Pose frame, Vector2 size) rect, float planeHeight ) {
+	public static float CutAreaHorizontal( this (Pose frame, Vector2 size) rect, float planeHeight ) {
 		var totalArea = rect.size.x *rect.size.y;
 		var halfSize = rect.size /2;
 		var A = rect.frame.Transform( new Vector3( halfSize.x, 0, halfSize.y ) );
@@ -190,6 +190,19 @@ public static class GeometricExtensions {
 		}
 		else {
 			return totalArea;
+		}
+	}
+	
+	public static float SubmersionFactor( this (Vector3 a, Vector3 b) edge, Plane plane ) {
+		var aAbovePlane = plane.GetSide( edge.a );
+		var bAbovePlane = plane.GetSide( edge.b );
+		if( aAbovePlane == bAbovePlane ) {
+			return aAbovePlane ? 0 : 1;
+		}
+		else {
+			var projectedAbove = aAbovePlane ? edge.a.ProjectedOn( plane.normal ) : edge.b.ProjectedOn( plane.normal );
+			var projectedBelow = aAbovePlane ? edge.b.ProjectedOn( plane.normal ) : edge.a.ProjectedOn( plane.normal );
+			return Mathf.InverseLerp( projectedBelow.magnitude, projectedAbove.magnitude, -plane.distance );
 		}
 	}
 #endregion
