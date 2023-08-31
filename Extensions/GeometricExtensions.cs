@@ -146,9 +146,6 @@ public static class GeometricExtensions {
 		var B = rect.frame.Transform( new Vector3(-halfSize.x, 0, halfSize.y ) );
 		var C = rect.frame.Transform( new Vector3(-halfSize.x, 0,-halfSize.y ) );
 		var D = rect.frame.Transform( new Vector3( halfSize.x, 0,-halfSize.y ) );
-		var deviation = Mathf.Abs( A.y - B.y ) + Mathf.Abs( A.y - C.y ) + Mathf.Abs( A.y - D.y );
-		if( deviation.EpsilonEquals( 0f ) )
-			return totalArea;
 		
 		var corners = new Vector3[] { A, B, C, D };
 		System.Array.Sort( corners, (a, b) => a.y.CompareTo( b.y ) );
