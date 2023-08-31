@@ -136,7 +136,7 @@ public static class GeometricExtensions {
 		Vector3.OrthoNormalize( ref cutPlaneNormal, ref tangent );
 		var cutPlaneFrame = new Pose( Vector3.zero, Quaternion.LookRotation( tangent, cutPlaneNormal ) );
 		rect.frame = cutPlaneFrame.InverseTransform( rect.frame );
-		var cutFramePlaneHeight = AreaFitCutHorizontal( rect, -plane.distance );
+		var cutFramePlaneHeight = CutAreaHorizontal( rect, -plane.distance );
 		return cutFramePlaneHeight;
 	}
 	public static float CutAreaHorizontal( this (Pose frame, Vector2 size) rect, float planeHeight ) {
@@ -149,7 +149,6 @@ public static class GeometricExtensions {
 		var deviation = Mathf.Abs( A.y - B.y ) + Mathf.Abs( A.y - C.y ) + Mathf.Abs( A.y - D.y );
 		if( deviation.EpsilonEquals( 0f ) )
 			return totalArea;
-		
 		
 		var corners = new Vector3[] { A, B, C, D };
 		System.Array.Sort( corners, (a, b) => a.y.CompareTo( b.y ) );
