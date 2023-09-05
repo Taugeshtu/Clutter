@@ -225,6 +225,13 @@ public static class GeometricExtensions {
 		}
 	}
 	
+	public static Pose WithPosition( this Pose pose, Vector3 newPosition ) {
+		return new Pose( newPosition, pose.rotation );
+	}
+	public static Pose WithRotation( this Pose pose, Quaternion newRotation ) {
+		return new Pose( pose.position, newRotation );
+	}
+	
 	// Transforming
 	public static Vector3 Transform( this Pose pose, Vector3 localPosition ) {
 		return (pose.rotation *localPosition) + pose.position;
