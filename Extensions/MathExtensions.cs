@@ -80,6 +80,12 @@ public static class MathExtensions {
 			return x;
 		}
 	}
+	public static T AtMost<T>( this T x, T maxAllowed ) where T : IComparable<T> {
+		return x.CompareTo( maxAllowed ) < 0 ? x : maxAllowed;
+	}
+	public static T AtLeast<T>( this T x, T minAllowed ) where T : IComparable<T> {
+		return x.CompareTo( minAllowed ) > 0 ? x : minAllowed;
+	}
 	
 	public static bool IsInRange<T>( this T x, T min, T max ) where T: IComparable<T> {
 		if( x.CompareTo( min ) < 0 ) {
