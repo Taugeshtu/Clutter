@@ -114,6 +114,9 @@ public static class VectorExtensions {
 	
 #region Vector2 converters
 	//===========================================================
+	public static Vector2 ToVector2( this (float x, float y) v ) { return new Vector2( v.x, v.y ); }
+	public static (float x, float y) ToTuple( this Vector2 v ) { return (v.x, v.y); }
+	
 	public static Vector3 XY0( this Vector2 v ) { return new Vector3( v.x, v.y, 0 ); }
 	public static Vector3 X0Y( this Vector2 v ) { return new Vector3( v.x, 0, v.y ); }
 #endregion
@@ -121,6 +124,9 @@ public static class VectorExtensions {
 	
 #region Vector3 converters
 	//===========================================================
+	public static Vector3 ToVector3( this (float x, float y, float z) v ) { return new Vector3( v.x, v.y, v.z ); }
+	public static (float x, float y, float z) ToTuple( this Vector3 v ) { return (v.x, v.y, v.z); }
+	
 	public static Vector2 XY( this Vector3 v ) { return new Vector2( v.x, v.y ); }
 	public static Vector2 XZ( this Vector3 v ) { return new Vector2( v.x, v.z ); }
 	public static Vector2 YX( this Vector3 v ) { return new Vector2( v.y, v.x ); }
@@ -132,6 +138,9 @@ public static class VectorExtensions {
 	
 #region Vector4 converters
 	//===========================================================
+	public static Vector4 ToVector4( this (float x, float y, float z, float w) v ) { return new Vector4( v.x, v.y, v.z, v.w ); }
+	public static (float x, float y, float z, float w) ToTuple( this Vector4 v ) { return (v.x, v.y, v.z, v.w); }
+	
 	public static Vector3 XYZ( this Vector4 v ) { return new Vector3( v.x, v.y, v.z ); }
 	public static Vector2 XY( this Vector4 v ) { return new Vector2( v.x, v.y ); }
 	public static Vector2 ZW( this Vector4 v ) { return new Vector2( v.z, v.w ); }
@@ -149,6 +158,9 @@ public static class VectorExtensions {
 	//===========================================================
 	public static Vector2 ToVector2( this Vector2Int v ) { return new Vector2( v.x, v.y ); }
 	public static Vector2Int ToVector2Int( this Vector2 v ) { return new Vector2Int( Mathf.RoundToInt( v.x ), Mathf.RoundToInt( v.y ) ); }
+	public static Vector2Int ToVector2Int( this (int x, int y) v ) { return new Vector2Int( v.x, v.y ); }
+	public static Vector2Int ToVector2Int( this (float x, float y) v ) { return new Vector2Int( Mathf.RoundToInt( v.x ), Mathf.RoundToInt( v.y ) ); }
+	public static (int x, int y) ToTuple( this Vector2Int v ) { return (v.x, v.y); }
 	
 	public static Vector3Int XY0( this Vector2Int v ) { return new Vector3Int( v.x, v.y, 0 ); }
 	public static Vector3Int X0Y( this Vector2Int v ) { return new Vector3Int( v.x, 0, v.y ); }
@@ -159,6 +171,9 @@ public static class VectorExtensions {
 	//===========================================================
 	public static Vector3 ToVector3( this Vector3Int v ) { return new Vector3( v.x, v.y, v.z ); }
 	public static Vector3Int ToVector3Int( this Vector3 v ) { return new Vector3Int( Mathf.RoundToInt( v.x ), Mathf.RoundToInt( v.y ), Mathf.RoundToInt( v.z ) ); }
+	public static Vector3Int ToVector3Int( this (int x, int y, int z) v ) { return new Vector3Int( v.x, v.y, v.z ); }
+	public static Vector3Int ToVector3Int( this (float x, float y, float z) v ) { return new Vector3Int( Mathf.RoundToInt( v.x ), Mathf.RoundToInt( v.y ), Mathf.RoundToInt( v.z ) ); }
+	public static (int x, int y, int z) ToTuple( this Vector3Int v ) { return (v.x, v.y, v.z); }
 	
 	public static Vector2Int XY( this Vector3Int v ) { return new Vector2Int( v.x, v.y ); }
 	public static Vector2Int XZ( this Vector3Int v ) { return new Vector2Int( v.x, v.z ); }
