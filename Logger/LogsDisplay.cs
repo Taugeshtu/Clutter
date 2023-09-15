@@ -17,9 +17,6 @@ public class LogsDisplay : MonoSingular<LogsDisplay> {
 	
 	private List<GameObject> _spawned = new List<GameObject>();
 	
-	private bool _isPinned = true;
-	private bool _hadRebuilt = false;
-	
 	public static void Push( Log.Tag tag, string message ) {
 		if( s_Instance == null )
 			return;
@@ -32,15 +29,8 @@ public class LogsDisplay : MonoSingular<LogsDisplay> {
 	}
 	
 	void Update() {
-		if( _isPinned && _hadRebuilt ) {
-			_hadRebuilt = false;
-			_scrollable.verticalNormalizedPosition = 0;
-		}
-		
 		if( !_historyDirty )
 			return;
-		
-		_isPinned = _scrollable.verticalNormalizedPosition < 0.02f;
 		
 		var logsCount = _history.Count;
 		var itemsCount = Mathf.Max( _spawned.Count, logsCount );
