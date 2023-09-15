@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-using Debug = UnityEngine.Debug;
-
 public class WatchDog {
 	private Stopwatch m_watch;
 	
@@ -61,7 +59,7 @@ public class WatchDog {
 	}
 	
 	public void Log() {
-		Debug.LogError( GetReport() );
+		Clutter.Log.Error( GetReport() );
 	}
 #endregion
 	

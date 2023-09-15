@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using Clutter;
 
 public struct Timer {
 	private static List<Timer> s_timers = new List<Timer>();
@@ -61,7 +62,7 @@ public struct Timer {
 			timer.m_startTime += amount;
 			s_timers[i] = timer;
 		}
-		Debug.LogError( "FIXME: THIS DOES NOT WORK WITH A STRUCT!" );
+		Log.Error( "FIXME: THIS DOES NOT WORK WITH A STRUCT!" );
 	}
 #endregion
 	

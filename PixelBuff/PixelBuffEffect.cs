@@ -13,7 +13,7 @@ public class PixelBuffEffect : MonoBehaviour {
 			if( m_material == null ) {
 				var shader = Shader.Find( "Hidden/PixelBuff" );
 				if( shader == null ) {
-					Debug.LogWarning( "Couldn't find PixelBuff shader!" );
+					Clutter.Log.Warning( "Couldn't find PixelBuff shader!" );
 				}
 				else {
 					m_material = new Material( shader );

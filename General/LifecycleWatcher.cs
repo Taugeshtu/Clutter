@@ -1,8 +1,9 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Clutter;
 
 public class LifecycleWatcher : MonoBehaviour {
-	public string tag;
+	public new string tag;
 	public bool watchAwake = false;
 	public bool watchDestroy = false;
 	public bool watchEnable = false;
@@ -33,6 +34,6 @@ public class LifecycleWatcher : MonoBehaviour {
 	
 	private void _Log( string message ) {
 		var tagString = string.IsNullOrEmpty( tag ) ? gameObject.name : tag;
-		Debug.Log( Time.frameCount+" \""+tagString+"\" | "+message+", hc: "+GetHashCode(), this );
+		Log.Message( Time.frameCount+" \""+tagString+"\" | "+message+", hc: "+GetHashCode(), this );
 	}
 }

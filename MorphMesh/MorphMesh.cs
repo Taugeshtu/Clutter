@@ -141,10 +141,6 @@ public class MorphMesh {
 		
 		return result.ToString();
 	}
-	
-	public void Log() {
-		Debug.Log( Dump() );
-	}
 #endregion
 	
 	
@@ -880,7 +876,7 @@ public class MorphMesh {
 	private MeshFilter _GetFilterTarget( Component target ) {
 		if( target == null ) {
 			if( Target == null ) {
-				Debug.LogWarning( "Tried to get filter target, but both specified and set beforehand targets are null!" );
+				Log.Warning( "Tried to get filter target, but both specified and set beforehand targets are null!" );
 			}
 			return Target;
 		}
@@ -891,7 +887,7 @@ public class MorphMesh {
 		}
 		
 		if( filterTarget == null ) {
-			Debug.LogWarning( "Tried to find filter target on '"+target.gameObject.name+"', but no MeshFilter was found there!" );
+			Log.Warning( "Tried to find filter target on '"+target.gameObject.name+"', but no MeshFilter was found there!" );
 		}
 		return filterTarget;
 	}

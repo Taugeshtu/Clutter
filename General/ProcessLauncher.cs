@@ -2,8 +2,6 @@ using System;
 using System.IO;
 using System.Diagnostics;
 
-using Debug = UnityEngine.Debug;
-
 public static class ProcessLauncher {
 	public static Process Launch(
 	string path, string args = "", bool printOutput = true, bool printErrors = true,
@@ -18,8 +16,8 @@ public static class ProcessLauncher {
 		process.StartInfo.RedirectStandardError = true;
 		process.EnableRaisingEvents = true;
 		
-		Action<string> Log = (message) => Debug.Log( "("+exeName+"): "+message );
-		Action<string> LogError = (message) => Debug.LogError( "("+exeName+"): "+message );
+		Action<string> Log = (message) => Clutter.Log.Message( "("+exeName+"): "+message );
+		Action<string> LogError = (message) => Clutter.Log.Error( "("+exeName+"): "+message );
 		
 		process.OutputDataReceived += (sender, e) => {
 			if( !string.IsNullOrEmpty( e.Data ) && printOutput ) {

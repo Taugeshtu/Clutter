@@ -72,17 +72,17 @@ public abstract class MonoSingular<T> : MonoBehaviour where T: MonoSingular<T>, 
 #region Internals
 	protected static void _log( string message ) {
 		var formatted = _FormatMessage( message );
-		Debug.Log( formatted, s_actualInstance );
+		Log.Message( formatted, false, s_actualInstance );
 	}
 	
 	protected static void _logWarning( string message ) {
 		var formatted = _FormatMessage( message );
-		Debug.LogWarning( formatted, s_actualInstance );
+		Log.Warning( formatted, false, s_actualInstance );
 	}
 	
 	protected static void _logError( string message ) {
 		var formatted = _FormatMessage( message );
-		Debug.LogError( formatted, s_actualInstance );
+		Log.Error( formatted, false, s_actualInstance );
 	}
 #endregion
 	

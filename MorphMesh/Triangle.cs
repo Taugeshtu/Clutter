@@ -212,7 +212,7 @@ public struct Triangle : IEnumerable<Vertex>, IEnumerable, IEquatable<Triangle> 
 		if( hasBack ) {
 			return PlaneSide.Back;
 		}
-		Debug.LogError( "This triangle is neither in front nor back, nor intersecting! WHAT THE HELL?!" );
+		Log.Error( "This triangle is neither in front nor back, nor intersecting! WHAT THE HELL?!" );
 		return PlaneSide.Back;
 	}
 	
