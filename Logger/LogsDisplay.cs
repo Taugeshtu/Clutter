@@ -16,6 +16,7 @@ public class LogsDisplay : MonoSingular<LogsDisplay> {
 	[SerializeField] private int _historySize = 50;
 	
 	private List<GameObject> _spawned = new List<GameObject>();
+	private bool _IsPinned = false;
 	
 	public static void Push( Log.Tag tag, string message ) {
 		if( s_Instance == null )
@@ -26,9 +27,17 @@ public class LogsDisplay : MonoSingular<LogsDisplay> {
 		_history.Enqueue( (tag, message) );
 		if( _history.Count > s_Instance._historySize )
 			_history.Dequeue();
+		
+		s_Instance._IsPinned = (s_Instance._scrollable.verticalNormalizedPosition < 0.02f);
 	}
 	
 	void Update() {
+		if( _IsPinned && !_historyDirty ) {
+			// rebuild already happened, but we need to auto-scroll
+			_IsPinned = false;
+			s_Instance._scrollable.verticalNormalizedPosition = 0;
+		}
+		
 		if( !_historyDirty )
 			return;
 		
@@ -52,6 +61,7 @@ public class LogsDisplay : MonoSingular<LogsDisplay> {
 				_spawned[i].SetActive( false );
 			}
 		}
+		_historyDirty = false;
 	}
 	
 	private string _FormatLog( (Log.Tag tag, string message) log ) {
