@@ -10,6 +10,7 @@ public struct Vertex : IEnumerable<Triangle>, IEnumerable, IEquatable<Vertex> {
 	internal VertexOwnership m_ownership;
 	private List<Vector3> _positions { get { return m_mesh.m_positions; } }
 	private List<Color> _colors { get { return m_mesh.m_colors; } }
+	private List<Vector2> _uvs { get { return m_mesh.m_uvs; } }
 	// TODO: UVs, etc
 	
 	public long Generation;
@@ -29,6 +30,11 @@ public struct Vertex : IEnumerable<Triangle>, IEnumerable, IEquatable<Vertex> {
 	public Color Color {
 		get { return _colors.GetAt( Index, Color.white ); }
 		set { _colors.SetAt( Index, value, Color.white ); }
+	}
+	
+	public Vector2 UV {
+		get { return _uvs.GetAt( Index, Vector2.zero ); }
+		set { _uvs.SetAt( Index, value, Vector2.zero ); }
 	}
 	
 #region Implementation

@@ -12,6 +12,7 @@ public class MorphMesh {
 	// - - - - VERTEX DATA - - - -
 	internal List<Vector3> m_positions = new List<Vector3>( c_initialVertexCapacity );
 	internal List<Color> m_colors = new List<Color>( c_initialVertexCapacity );	// todo: don't allocate if you don't need
+	internal List<Vector2> m_uvs = new List<Vector2>( c_initialVertexCapacity );	// todo: don't allocate if you don't need
 	
 	internal List<int> m_ownersCount = new List<int>( c_initialVertexCapacity );
 	internal List<int> m_ownersFast = new List<int>( c_initialVertexCapacity *VertexOwnership.c_ownersFast );	// Note: not sure how worth it this optimization is
@@ -45,6 +46,12 @@ public class MorphMesh {
 		}
 	}
 	
+	public bool HasUVs {
+		get {
+			return (m_positions.Count > 0) && (m_uvs.Count > 0);
+		}
+	}
+	
 	public int VertexCount {
 		get {
 			return m_topVertexIndex + 1;
@@ -66,6 +73,7 @@ public class MorphMesh {
 	public void Clear() {
 		m_positions.Clear();
 		m_colors.Clear();
+		m_uvs.Clear();
 		
 		m_ownersCount.Clear();
 		m_ownersFast.Clear();
@@ -158,6 +166,7 @@ public class MorphMesh {
 		mesh.GetTriangles( m_indeces, 0 );
 		mesh.GetVertices( m_positions );
 		mesh.GetColors( m_colors );
+		mesh.GetUVs(0, m_uvs );
 		
 		m_topVertexIndex = m_positions.Count - 1;
 		m_topTriangleIndex = (m_indeces.Count /3) - 1;
@@ -182,6 +191,7 @@ public class MorphMesh {
 		mesh.Clear();
 		mesh.SetVertices( m_positions );
 		mesh.SetColors( HasColors ? m_colors : null );
+		mesh.SetUVs( 0, HasUVs ? m_uvs : null );
 		mesh.SetTriangles( m_indeces, 0 );
 		mesh.RecalculateNormals();
 		
@@ -251,13 +261,14 @@ public class MorphMesh {
 	
 #region Vertex ops
 	public Vertex EmitVertex( Vector3 position ) {
-		return EmitVertex( position, Color.white );
+		return EmitVertex( position, Color.white, Vector2.zero );
 	}
-	public Vertex EmitVertex( Vector3 position, Color color ) {
+	public Vertex EmitVertex( Vector3 position, Color color, Vector2 uv ) {
 		m_topVertexIndex += 1;
 		
 		m_positions.Add( position );
 		m_colors.Add( color );
+		m_uvs.Add( uv );
 		// TODO: other porperties
 		m_ownersCount.Add( 0 );
 		m_ownersFast.Resize( (m_topVertexIndex + 1) *VertexOwnership.c_ownersFast, c_invalidID );
@@ -696,6 +707,7 @@ public class MorphMesh {
 		var itemsToRemove = vertexCount - firstDeadIndex;
 		m_positions.RemoveRange( firstDeadIndex, itemsToRemove );
 		m_colors.RemoveRange( firstDeadIndex, itemsToRemove );
+		m_uvs.RemoveRange( firstDeadIndex, itemsToRemove );
 		m_ownersCount.RemoveRange( firstDeadIndex, itemsToRemove );
 		m_ownersFast.RemoveRange( firstDeadIndex *VertexOwnership.c_ownersFast, itemsToRemove *VertexOwnership.c_ownersFast );
 		
@@ -748,6 +760,7 @@ public class MorphMesh {
 	private void _RemoveVertexData( int aliveIndex, int deadIndex ) {
 		m_positions.HalfSwap( deadIndex, aliveIndex );
 		m_colors.HalfSwap( deadIndex, aliveIndex, 1, true );
+		m_uvs.HalfSwap( deadIndex, aliveIndex, 1, true );
 		// TODO: also other data, should it arise!
 		
 		var destOwner = new VertexOwnership( this, deadIndex );
@@ -895,6 +908,9 @@ public class MorphMesh {
 	private void _SyncPropertiesSizes() {
 		if( HasColors ) {
 			m_colors.Resize( m_positions.Count, Color.white );
+		}
+		if( HasUVs ) {
+			m_uvs.Resize( m_positions.Count, Vector2.zero );
 		}
 	}
 	
