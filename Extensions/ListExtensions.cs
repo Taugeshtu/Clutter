@@ -249,7 +249,7 @@ public static class ListExtensions {
 		var counter = 0;
 		
 		foreach( var item in list ) {
-			if( canBeNull && item.Equals( default( T ) ) ) {
+			if( canBeNull && object.Equals( item, default( T ) ) ) {
 				builder.Append( "-null-" );
 			}
 			else {
