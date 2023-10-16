@@ -240,5 +240,9 @@ public static class MathExtensions {
 	public static int ToInt( this bool b ) {
 		return b ? 1 : 0;
 	}
+	
+	public static bool ToBool( this int x ) {
+		return x == 0 ? false : true;
+	}
 #endregion
 }
