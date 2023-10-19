@@ -28,10 +28,18 @@ public abstract class MonoSingular<T> : MonoBehaviour where T: MonoSingular<T>, 
 	private static StringBuilder s_builder = new StringBuilder();
 	private static string s_typeString = typeof( T ).ToString();
 	private static T s_actualInstance;
+	private static bool s_shouldMarkPersisting = false;
 	
 	public static T s_Instance {
 		get {
-			if( s_actualInstance != null ) { return s_actualInstance; }
+			if( s_actualInstance != null ) {
+				if( s_shouldMarkPersisting && Application.isPlaying ) {
+					s_shouldMarkPersisting = false;
+					DontDestroyOnLoad( s_actualInstance.gameObject );
+				}
+				
+				return s_actualInstance;
+			}
 			
 			var behaviour = System.Attribute.GetCustomAttribute( typeof( T ), typeof( SingularBehaviour ) ) as SingularBehaviour;
 			if( behaviour == null ) {
@@ -41,23 +49,22 @@ public abstract class MonoSingular<T> : MonoBehaviour where T: MonoSingular<T>, 
 			
 			var foundInstances = Extensions.FindInstances<T>( behaviour.SearchInactive );
 			if( foundInstances.Count == 0 ) {
-				if( behaviour.SpawnIfMissing ) {
+				if( behaviour.SpawnIfMissing )
 					s_actualInstance = _SpawnInstance();
-				}
-				else {
+				else
 					_logWarning( "No instances found, strategy is 'Don't spawn if missing'. Things will break" );
-				}
-			}
-			else if( foundInstances.Count == 1 ) {
-				s_actualInstance = foundInstances[0];
 			}
 			else {
-				_logWarning( "More than one. Will try to not fail by using the first one" );
+				if( foundInstances.Count > 1 )
+					_logWarning( "More than one. Will try to not fail by using the first one" );
 				s_actualInstance = foundInstances[0];
 			}
 			
-			if( behaviour.DontDestroy && (s_actualInstance != null) ) {
-				DontDestroyOnLoad( s_actualInstance.gameObject );
+			if( behaviour.DontDestroy ) {
+				if( s_actualInstance != null && Application.isPlaying )
+					DontDestroyOnLoad( s_actualInstance.gameObject );
+				else
+					s_shouldMarkPersisting = true;
 			}
 			
 			return s_actualInstance;
