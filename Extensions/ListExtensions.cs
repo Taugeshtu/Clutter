@@ -103,6 +103,41 @@ public static class ListExtensions {
 		}
 		}
 	}
+	
+	// Usage:
+	// var items = new List<float>() { 0, 1, 5 };
+	// var testValue = 1.5f;
+	// var index = items.FindClosestMatchIndex( (x) => x.CompareTo( testValue ), (x) => (x - testValue).Abs() );
+	// should return 1 - index of "1" in the list, since it's closest to testValue
+	// "evaluator" is "how does an item from the list compare to our target?" return 0 if exact match, -1 if item is smaller than target
+	// "diff" is "what's the difference metric between a list item and target?" - for final stage decision
+	// "diff" MUST return an absolute difference, no sign
+	public static int FindClosestMatchIndex<T, TDiff>( this IList<T> items, Func<T, int> evaluator, Func<T, TDiff> diff ) where TDiff:IComparable {
+		int low = 0, high = items.Count - 1;
+		
+		while( low <= high ) {
+			var mid = (low + high) /2;
+			var evaluation = evaluator( items[mid] );
+			if( evaluation == 0 ) {
+				return mid;
+			}
+			else if( evaluation == -1 ) {
+				low = mid + 1;
+			}
+			else {
+				high = mid - 1;
+			}
+		}
+		
+		// If we're at the extremes of the list
+		if( low >= items.Count ) return high;
+		if( high < 0 ) return low;
+		
+		// Compare and return the closest index
+		var diffLow = diff( items[low] );
+		var diffHigh = diff( items[high] );
+		return diffLow.CompareTo( diffHigh ) == -1 ? low : high;
+	}
 #endregion
 	
 	

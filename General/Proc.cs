@@ -122,6 +122,7 @@ public static class ProcExtFloat {
 	
 	public static float Arch( this float x ) { return Proc.Arch( x ); }
 	
+	public static int Abs( this int x ) { return Mathf.Abs( x ); }
 	public static float Abs( this float x ) { return Proc.Abs( x ); }
 	public static float AbsTop( this float x ) { return Proc.AbsTop( x ); }
 	public static float Bounce( this float x ) { return Proc.Bounce( x ); }
