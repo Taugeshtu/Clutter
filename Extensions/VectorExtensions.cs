@@ -328,13 +328,13 @@ public static class VectorExtensions {
 	}
 	
 	//===========================================================
-	public static Vector2 ClampedMagnitude( this Vector2 v, float magnitude ) {
+	public static Vector2 MagnitudeClamped( this Vector2 v, float magnitude ) {
 		return v.WithMagnitude( Mathf.Min( v.magnitude, magnitude ) );
 	}
 	public static Vector3 MagnitudeClamped( this Vector3 v, float magnitude ) {
 		return v.WithMagnitude( Mathf.Min( v.magnitude, magnitude ) );
 	}
-	public static Vector4 ClampedMagnitude( this Vector4 v, float magnitude ) {
+	public static Vector4 MagnitudeClamped( this Vector4 v, float magnitude ) {
 		return v.WithMagnitude( Mathf.Min( v.magnitude, magnitude ) );
 	}
 	
