@@ -7,6 +7,10 @@ public static class StringExtensions {
 		var removeStart = builder.Length - count;
 		builder.Remove( removeStart, count );
 	}
+	
+	public static string TakeFirst( this string s, int count ) {
+		return s.Substring( 0, count.AtMost( s.Length ) );
+	}
 #endregion
 	
 	
