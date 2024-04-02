@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class CloudView : MonoBehaviour {
 	[SerializeField] private RectTransform _viewport;
-	[SerializeField] private CloudItem _testPrefab;
 	
 	private Vector2 _viewportSize => new Vector2( _viewport.rect.width, _viewport.rect.height );
 	

@@ -3,18 +3,18 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class Draggable : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDragHandler {
-	private Vector3 _startDragPosition;
-	private Vector2 _dragOffset;
+	protected Vector3 _startDragPosition;
+	protected Vector3 _startDragPointer;
 	
 	public bool IsDragged { get; protected set; }
 	
 	public virtual void OnBeginDrag( PointerEventData eventData ) {
 		IsDragged = true;
-		_startDragPosition = transform.position;
 		
 		// Convert the mouse position to world point in canvas space
-		RectTransformUtility.ScreenPointToWorldPointInRectangle( (RectTransform) transform, eventData.position, eventData.pressEventCamera, out var globalMousePos );
-		_dragOffset = _startDragPosition - globalMousePos;
+		RectTransformUtility.ScreenPointToWorldPointInRectangle( (RectTransform) transform, eventData.position, eventData.pressEventCamera, out var pointer );
+		_startDragPosition = transform.position;
+		_startDragPointer = pointer;
 	}
 	
 	public virtual void OnEndDrag( PointerEventData eventData ) {
@@ -25,9 +25,9 @@ public class Draggable : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDra
 		if( !IsDragged ) return;
 		
 		// Convert the mouse position to world point in canvas space
-		if( RectTransformUtility.ScreenPointToWorldPointInRectangle( (RectTransform) transform, eventData.position, eventData.pressEventCamera, out var globalMousePos ) ) {
+		if( RectTransformUtility.ScreenPointToWorldPointInRectangle( (RectTransform) transform, eventData.position, eventData.pressEventCamera, out var pointer ) ) {
 			// Update the position of the object being dragged
-			transform.position = globalMousePos + (Vector3) _dragOffset;
+			transform.position = _startDragPosition + (pointer - _startDragPointer);
 		}
 	}
 }
