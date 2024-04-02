@@ -8,6 +8,10 @@ public static class StringExtensions {
 		builder.Remove( removeStart, count );
 	}
 	
+	public static string TrimEnd( this string source, int count ) {
+		return source.Substring( 0, source.Length - count );
+	}
+	
 	public static string TakeFirst( this string s, int count ) {
 		return s.Substring( 0, count.AtMost( s.Length ) );
 	}
