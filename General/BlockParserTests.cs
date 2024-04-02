@@ -26,6 +26,14 @@ Nested tag included
 	};
 	
 	private static List<(string start, string end, string source, List<string> results)> _testsMultiple = new List<(string, string, string, List<string>)>() {
+		( "x", "z",
+@"x1xNz_trash_z x2z",
+new List<string>() {
+
+@"1xNz_trash_",
+@"2",
+		} ),
+		
 		( "<tag>\n", "\n</tag>",
 @"
 ignore this

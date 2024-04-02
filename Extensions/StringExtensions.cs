@@ -16,21 +16,25 @@ public static class StringExtensions {
 	
 #region Ops
 	public static IEnumerable<int> AllIndicesOf( this string text, string pattern ) {
+		return text.AllIndicesOf( pattern, 0, text.Length );
+	}
+	// Note: calling convention is that "endIndex" is the next index BEYOND the range we're looking in. Could be text.Length
+	public static IEnumerable<int> AllIndicesOf( this string text, string pattern, int startIndex, int endIndex ) {
 		// source: https://stackoverflow.com/a/62282084
 		// Promises O(N+M) complexity
 		if( string.IsNullOrEmpty( pattern ) )
 			throw new System.ArgumentNullException( nameof( pattern ) );
-		return _Kmp( text, pattern );
+		return _KMP( text, pattern, startIndex, endIndex );
 	}
 	
-	private static IEnumerable<int> _Kmp( string text, string pattern ) {
+	private static IEnumerable<int> _KMP( string text, string pattern, int startIndex, int endIndex ) {
 		var M = pattern.Length;
-		var N = text.Length;
+		var N = endIndex - startIndex;
 		
 		var lps = _LongestPrefixSuffix( pattern );
-		int i = 0, j = 0;
+		int i = startIndex, j = 0;
 		
-		while( i < N ) {
+		while( i < endIndex ) {
 			if( pattern[j] == text[i] ) {
 				j++;
 				i++;
@@ -39,8 +43,7 @@ public static class StringExtensions {
 				yield return i - j;
 				j = lps[j - 1];
 			}
-			
-			else if( i < N && pattern[j] != text[i] ) {
+			else if( i < endIndex && pattern[j] != text[i] ) {
 				if( j != 0 )
 					j = lps[j - 1];
 				else

@@ -12,30 +12,42 @@ public static class BlockParser {
 		
 		public string Extracted => (start == -1 || end == -1) ? null : source.Substring( start, end - start );
 		
-		public Block( string source ) : this( source, -1, -1 ) {}
+		public static Block Invalid => new Block( null, -1, -1 );
+		public Block( string source ) : this( source, 0, source.Length ) {}
 		public Block( string source, int start, int end ) {
 			this.source = source;
 			this.start = start;
 			this.end = end;
 		}
+		
+		public override string ToString() {
+			return $"[{start}:{end}] {Extracted}";
+		}
 	}
 	
 	public static Block Extract( string source, string blockStart, string blockEnd ) {
-		var startIndex = source.IndexOf( blockStart );
+		return new Block( source ).Extract( blockStart, blockEnd );
+	}
+	public static Block Extract( this Block source, string blockStart, string blockEnd ) {
+		var startIndex = source.source.IndexOf( blockStart, source.start, source.end - source.start );
 		if( startIndex == -1 )
-			return new Block( source );
+			return Block.Invalid;
 		
-		var endIndex = source.LastIndexOf( blockEnd, source.Length - 1, source.Length - (startIndex + blockStart.Length) );
+		var endIndex = source.source.LastIndexOf( blockEnd, source.end - 1, source.end - (startIndex + blockStart.Length) );
 		if( endIndex == -1 )
-			return new Block( source );
+			return Block.Invalid;
 		
 		var contentStartIndex = startIndex + blockStart.Length;
-		return new Block( source, contentStartIndex, endIndex );
+		return new Block( source.source, contentStartIndex, endIndex );
 	}
 	
 	public static IEnumerable<Block> ExtractAll( string source, string blockStart, string blockEnd ) {
-		var starts = source.AllIndicesOf( blockStart );
-		var ends = source.AllIndicesOf( blockEnd );
+		return new Block( source ).ExtractAll( blockStart, blockEnd );
+	}
+	public static IEnumerable<Block> ExtractAll( this Block source, string blockStart, string blockEnd ) {
+		var sourceSTR = source.source;
+		var starts = sourceSTR.AllIndicesOf( blockStart, source.start, source.end );
+		var ends = sourceSTR.AllIndicesOf( blockEnd, source.start, source.end );
 		
 		// Reconciliation
 		var markers = new List<(int index, bool isStart)>();
@@ -44,7 +56,7 @@ public static class BlockParser {
 		markers.Sort( (a, b) => a.index.CompareTo( b.index ) );
 		
 		// Filtering markers to produce biggest possible top-level spans
-		var filteredBlocks = new List<int>();	// alternating start, end indexes
+		var filteredBlocks = new List<int>();   // alternating start, end indexes
 		var previousIsStart = false;
 		foreach( var marker in markers ) {
 			if( marker.isStart ) {
@@ -69,7 +81,7 @@ public static class BlockParser {
 		for( var i = 0; i < filteredBlocks.Count - 1; i += 2 ) {
 			var startIndex = filteredBlocks[i] + blockStart.Length;
 			var endIndex = filteredBlocks[i + 1];
-			yield return new Block( source, startIndex, endIndex );
+			yield return new Block( sourceSTR, startIndex, endIndex );
 		}
 	}
 }
