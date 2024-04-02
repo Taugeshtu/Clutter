@@ -376,6 +376,13 @@ public static class GeometricExtensions {
 		
 		return new Vector3Int( x, y, z );
 	}
-
+	
+	public static Rect GetScreenSpaceRect( this RectTransform rectTransform ) {
+		var size = Vector2.Scale( rectTransform.rect.size, rectTransform.lossyScale );
+		var rect = new Rect( rectTransform.position.x, rectTransform.position.y, size.x, size.y );
+		rect.x -= (rectTransform.pivot.x *size.x);
+		rect.y -= ((1.0f - rectTransform.pivot.y) *size.y);
+		return rect;
+	}
 #endregion
 }

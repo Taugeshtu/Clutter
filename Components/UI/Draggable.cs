@@ -6,9 +6,9 @@ public class Draggable : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDra
 	private Vector3 _startDragPosition;
 	private Vector2 _dragOffset;
 	
-	public bool IsDragged { get; private set; }
+	public bool IsDragged { get; protected set; }
 	
-	public void OnBeginDrag( PointerEventData eventData ) {
+	public virtual void OnBeginDrag( PointerEventData eventData ) {
 		IsDragged = true;
 		_startDragPosition = transform.position;
 		
@@ -17,11 +17,11 @@ public class Draggable : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDra
 		_dragOffset = _startDragPosition - globalMousePos;
 	}
 	
-	public void OnEndDrag( PointerEventData eventData ) {
+	public virtual void OnEndDrag( PointerEventData eventData ) {
 		IsDragged = false;
 	}
 	
-	public void OnDrag( PointerEventData eventData ) {
+	public virtual void OnDrag( PointerEventData eventData ) {
 		if( !IsDragged ) return;
 		
 		// Convert the mouse position to world point in canvas space
