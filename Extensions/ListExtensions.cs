@@ -138,6 +138,12 @@ public static class ListExtensions {
 		var diffHigh = diff( items[high] );
 		return diffLow.CompareTo( diffHigh ) == -1 ? low : high;
 	}
+	
+	public static T Last<T>( this IList<T> list ) {
+		if( list.Count == 0 ) { throw new System.Exception( "can't get Last in an empty list" ); }
+		
+		return list[list.Count - 1];
+	}
 #endregion
 	
 	
