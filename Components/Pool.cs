@@ -40,6 +40,11 @@ public class Pool<T> where T : UnityEngine.Object {
 	public void Release( T item ) {
 		_MakeDead( item );
 	}
+	
+	public void ReleaseAll() {
+		foreach( var item in m_aliveItems.ToList() )
+			_MakeDead( item );
+	}
 #endregion
 	
 	

@@ -5,16 +5,23 @@ public class CloudLink : MonoBehaviour {
 	public CloudItem nodeA;
 	public CloudItem nodeB;
 	
+	void Update() {
+		if( nodeA != null && nodeB != null )
+			UpdateVisual();
+	}
+	
 	public void UpdateVisual() {
 		if( nodeA == null || nodeB == null )
 			return;
 		
-		var startPos = nodeA.transform.position;
-		var endPos = nodeB.transform.position;
-		var midPoint = (startPos + endPos) / 2f;
-		transform.position = midPoint;
+		var start = nodeA.transform.localPosition;
+		var end = nodeB.transform.localPosition;
+		transform.localPosition = start;
 		
-		var distance = (endPos - startPos).magnitude;
-		transform.localScale = Vector3.one.WithZ( distance );
+		var diff = (end - start);
+		transform.rotation = Quaternion.FromToRotation( Vector3.right, diff.normalized );
+		
+		var rectTransform = (RectTransform) transform;
+		rectTransform.sizeDelta = rectTransform.sizeDelta.WithX( diff.magnitude );
 	}
 }
