@@ -54,9 +54,24 @@ public class TwoKeyDictionary<TKey1, TKey2, TValue> : Dictionary<TKey1, Dictiona
 	
 	
 #region Public
+	public IEnumerable<(TKey2 key2, TValue item)> GetByFirst( TKey1 key1 ) {
+		if( TryGetValue( key1, out var container ) ) {
+			foreach( var pair in container )
+				yield return (pair.Key, pair.Value);
+		}
+	}
+	
+	public IEnumerable<(TKey1 key1, TValue item)> GetBySecond( TKey2 key2 ) {
+		foreach( var pair in this ) {
+			var key1 = pair.Key;
+			var container = pair.Value;
+			if( container.TryGetValue( key2, out var item ) )
+				yield return (key1, item);
+		}
+	}
+	
 	public TValue GetAdd( TKey1 key1, TKey2 key2, TValue template = default( TValue ) ) {
-		Dictionary<TKey2, TValue> container;
-		if( TryGetValue( key1, out container ) ) {
+		if( TryGetValue( key1, out var container ) ) {
 			return container.GetAdd( key2, template );
 		}
 		else {
@@ -68,8 +83,7 @@ public class TwoKeyDictionary<TKey1, TKey2, TValue> : Dictionary<TKey1, Dictiona
 	}
 	
 	public void Add( TKey1 key1, TKey2 key2, TValue x ) {
-		Dictionary<TKey2, TValue> container;
-		if( TryGetValue( key1, out container ) ) {
+		if( TryGetValue( key1, out var container ) ) {
 			container.Add( key2, x );
 		}
 		else {
@@ -80,8 +94,7 @@ public class TwoKeyDictionary<TKey1, TKey2, TValue> : Dictionary<TKey1, Dictiona
 	}
 	
 	public bool Remove( TKey1 key1, TKey2 key2 ) {
-		Dictionary<TKey2, TValue> container;
-		if( TryGetValue( key1, out container ) ) {
+		if( TryGetValue( key1, out var container ) ) {
 			return container.Remove( key2 );
 		}
 		else {
@@ -90,8 +103,7 @@ public class TwoKeyDictionary<TKey1, TKey2, TValue> : Dictionary<TKey1, Dictiona
 	}
 	
 	public bool ContainsKeys( TKey1 key1, TKey2 key2 ) {
-		Dictionary<TKey2, TValue> container;
-		if( TryGetValue( key1, out container ) ) {
+		if( TryGetValue( key1, out var container ) ) {
 			return container.ContainsKey( key2 );
 		}
 		else {
@@ -109,8 +121,7 @@ public class TwoKeyDictionary<TKey1, TKey2, TValue> : Dictionary<TKey1, Dictiona
 	}
 	
 	public bool TryGetValue( TKey1 key1, TKey2 key2, out TValue x ) {
-		Dictionary<TKey2, TValue> container;
-		if( TryGetValue( key1, out container ) ) {
+		if( TryGetValue( key1, out var container ) ) {
 			return container.TryGetValue( key2, out x );
 		}
 		else {
