@@ -177,7 +177,9 @@ public static class MathExtensions {
 		return source.Where( (x, i) => (i % step) == 0 );
 	}
 	
-	public static int BinarySearch<T>( this IList<T> list, T value ) {
+	// finds an index where the element is/would be inserted in the list to retain sorted state
+	// input list MUST be sorted
+	public static int BSInsertionindex<T>( this IList<T> list, T value ) {
 		if( list == null ) {
 			throw new System.ArgumentNullException( "list" );
 		}
@@ -185,8 +187,8 @@ public static class MathExtensions {
 		var comp = Comparer<T>.Default;
 		var lo = 0;
 		var hi = list.Count - 1;
-		while( lo < hi ) {
-			int m = (hi + lo) / 2;		// this might overflow; be careful.
+		while( lo <= hi ) {
+			var m = lo + (hi - lo) /2;
 			
 			if( comp.Compare( list[m], value ) < 0 ) {
 				lo = m + 1;
@@ -196,7 +198,7 @@ public static class MathExtensions {
 			}
 		}
 		
-		if( comp.Compare( list[lo], value ) < 0 ) {
+		if( lo < list.Count && comp.Compare( list[lo], value ) < 0 ) {
 			lo++;
 		}
 		return lo;
