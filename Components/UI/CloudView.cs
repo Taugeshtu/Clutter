@@ -9,7 +9,9 @@ public class CloudView : MonoBehaviour {
 	[Header( "Settings" )]
 	[SerializeField] private float _idealDistanceFactor = 1.75f;
 	[SerializeField] private float _attractMaximum = 0.0f;
+	[SerializeField] private float _safeZoneSizeFactor = 3;
 	[SerializeField] private float _repulseExponent = 0.1f;
+	[SerializeField] private float _spacing = 0;
 	[SerializeField] private float _friction = 0.13f;
 	[SerializeField] private int _iterations = 3;
 	
@@ -27,7 +29,7 @@ public class CloudView : MonoBehaviour {
 		var hadUpdates = false;
 		for( var i = 0; i < _iterations; i++ ) {
 			hadUpdates |= _AttractIteration( items, moveableItems, links, aspect );
-			hadUpdates |= _RelaxIteration( items, moveableItems, aspect );
+			hadUpdates |= _RelaxIteration( items, moveableItems );
 		}
 	}
 	
@@ -67,30 +69,49 @@ public class CloudView : MonoBehaviour {
 		return positionUpdates.Count > 0;
 	}
 	
-	private bool _RelaxIteration( IEnumerable<CloudItem> allItems, IEnumerable<CloudItem> moveableItems, float aspectBias ) {
-		var positionUpdates = new List<(CloudItem item, Vector3 position)>();
+	private bool _RelaxIteration( IEnumerable<CloudItem> allItems, IEnumerable<CloudItem> moveableItems ) {
+		var positionUpdates = new List<(CloudItem item, Vector2 position)>();
 		
 		foreach( var a in moveableItems ) {
 			var repulsion = Vector2.zero;
 			foreach( var b in allItems ) {
 				if( b == a ) continue;
 				
-				var diff = a.transform.localPosition - b.transform.localPosition;
-				var idealDistance = (a.Size + b.Size) *_idealDistanceFactor /2;
+				var diff = a.Position - b.Position;
+				var halfSumSize = (a.Size + b.Size) /2;
+				halfSumSize *= _idealDistanceFactor;
+				halfSumSize += Vector2.one *_spacing;
 				
-				var idealB2A = diff.normalized.ComponentMul( idealDistance );
-				var idealShift = (idealB2A - diff)/2;	// /2 because the other element will also move
-				repulsion += idealShift.CoAlignedComponent( diff ).XY();
+				// I need not the "projected on", but rather some kind of "where it intersects"
+				var factorX = (diff *Mathf.Sign( diff.x )).ProjectedOn( Vector2.right ).magnitude /halfSumSize.x;
+				var factorY = (diff *Mathf.Sign( diff.y )).ProjectedOn( Vector2.up ).magnitude /halfSumSize.y;
+				var depenetrationX = diff /factorX;
+				var depenetrationY = diff /factorY;
+				var shift = Vector2.zero;
+				if( factorX < 1 && factorY < 1 ) {
+					// we pick the one with lower magnitude
+					shift = (depenetrationX.magnitude < depenetrationY.magnitude)
+									? -diff + depenetrationX
+									: -diff + depenetrationY;
+				}
+				else if( factorX < 1 ) {
+					shift = -diff + depenetrationX;
+				}
+				else if( factorY < 1 ) {
+					shift = -diff + depenetrationY;
+				}
+				// else skip, no depenetration happening
+				
+				repulsion += shift;
 			}
-			repulsion.y /= aspectBias;
 			repulsion *= _repulseExponent;
 			
 			if( repulsion.magnitude > _friction )
-				positionUpdates.Add( (a, a.transform.localPosition + repulsion.XY0()) );
+				positionUpdates.Add( (a, a.Position + repulsion) );
 		}
 		
 		foreach( var (item, position) in positionUpdates ) {
-			item.transform.localPosition = position;
+			item.Position = position;
 		}
 		
 		return positionUpdates.Count > 0;
