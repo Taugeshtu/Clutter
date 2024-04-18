@@ -7,10 +7,10 @@ public class CloudView : MonoBehaviour {
 	[SerializeField] private RectTransform _viewport;
 	
 	[Header( "Settings" )]
-	[SerializeField] private float _idealDistanceFactor = 1.75f;
 	[SerializeField] private float _attractMaximum = 0.0f;
 	[SerializeField] private float _safeZoneSizeFactor = 3;
 	[SerializeField] private float _repulseExponent = 0.1f;
+	[SerializeField] private float _repulsionSoftZoneExpansion = 0;
 	[SerializeField] private float _spacing = 0;
 	[SerializeField] private float _friction = 0.13f;
 	[SerializeField] private int _iterations = 3;
@@ -28,8 +28,8 @@ public class CloudView : MonoBehaviour {
 		
 		var hadUpdates = false;
 		for( var i = 0; i < _iterations; i++ ) {
-			hadUpdates |= _AttractIteration( items, moveableItems, links, aspect );
-			hadUpdates |= _RelaxIteration( items, moveableItems );
+			// hadUpdates |= _AttractIteration( items, moveableItems, links );
+			hadUpdates |= _RelaxIteration( items );
 		}
 	}
 	
@@ -69,38 +69,51 @@ public class CloudView : MonoBehaviour {
 		return positionUpdates.Count > 0;
 	}
 	
-	private bool _RelaxIteration( IEnumerable<CloudItem> allItems, IEnumerable<CloudItem> moveableItems ) {
+	private bool _RelaxIteration( IEnumerable<CloudItem> items ) {
 		var positionUpdates = new List<(CloudItem item, Vector2 position)>();
 		
-		foreach( var a in moveableItems ) {
+		foreach( var a in items ) {
+			if( a.IsDragged ) continue;
+			
 			var repulsion = Vector2.zero;
-			foreach( var b in allItems ) {
+			foreach( var b in items ) {
 				if( b == a ) continue;
 				
 				var diff = a.Position - b.Position;
+				if( diff.magnitude < Mathf.Epsilon )	// guarding against clumped together items
+					diff = Random.insideUnitCircle.normalized;
 				var halfSumSize = (a.Size + b.Size) /2;
-				halfSumSize *= _idealDistanceFactor;
 				halfSumSize += Vector2.one *_spacing;
 				
-				// I need not the "projected on", but rather some kind of "where it intersects"
-				var factorX = (diff *Mathf.Sign( diff.x )).ProjectedOn( Vector2.right ).magnitude /halfSumSize.x;
-				var factorY = (diff *Mathf.Sign( diff.y )).ProjectedOn( Vector2.up ).magnitude /halfSumSize.y;
-				var depenetrationX = diff /factorX;
-				var depenetrationY = diff /factorY;
+				// deciding if ideal position is in horizontal offset, or vertical one
+				var diffAspect = (diff.x /diff.y).Abs();
+				var sizeAspect = halfSumSize.x /halfSumSize.y;
+				var depenetration = (diffAspect >= sizeAspect)
+									? Vector2.right *Mathf.Sign( diff.x ) *halfSumSize.x
+									: Vector2.up *Mathf.Sign( diff.y ) *halfSumSize.y;
 				var shift = Vector2.zero;
-				if( factorX < 1 && factorY < 1 ) {
-					// we pick the one with lower magnitude
-					shift = (depenetrationX.magnitude < depenetrationY.magnitude)
-									? -diff + depenetrationX
-									: -diff + depenetrationY;
+				var depenetrationMagnitudeDiff = diff.ProjectedOn( depenetration ).magnitude - halfSumSize.ProjectedOn( depenetration ).magnitude;
+				if( depenetrationMagnitudeDiff <= 0 ) {
+					shift = depenetration - diff.ProjectedOn( depenetration );
+					if( !b.IsDragged )	// accounting for immovable items
+						shift /= 2;
 				}
-				else if( factorX < 1 ) {
-					shift = -diff + depenetrationX;
+				else {
+					// flattening diff when inside horizontal/vertical "stripe" of b.Size
+					shift = diff;
+					var substractedSize = halfSumSize;
+					if( shift.x.Abs() < (halfSumSize.x /2) ) { shift.x = 0; substractedSize.x = 0; }
+					if( shift.y.Abs() < (halfSumSize.y /2) ) { shift.y = 0; substractedSize.y = 0; }
+					substractedSize.x *= Mathf.Sign( shift.x );
+					substractedSize.y *= Mathf.Sign( shift.y );
+					shift -= substractedSize;
+					
+					var softFactor = Mathf.InverseLerp( 0, (halfSumSize *_repulsionSoftZoneExpansion).magnitude, shift.magnitude );
+					softFactor = 1 - softFactor.Clamp01();
+					shift *= softFactor;
+					
+					shift = Vector2.zero;
 				}
-				else if( factorY < 1 ) {
-					shift = -diff + depenetrationY;
-				}
-				// else skip, no depenetration happening
 				
 				repulsion += shift;
 			}
