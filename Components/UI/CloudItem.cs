@@ -11,5 +11,5 @@ public class CloudItem : MonoBehaviour {
 		get { return ((RectTransform) transform).anchoredPosition; }
 		set { ((RectTransform) transform).anchoredPosition = value; }
 	}
-	public bool IsDragged => _draggable == null ? false : _draggable.IsDragged;
+	public bool IsDragged => (_draggable == null) ? false : _draggable.IsDragged;
 }
