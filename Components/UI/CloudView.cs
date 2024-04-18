@@ -47,7 +47,7 @@ public class CloudView : MonoBehaviour {
 				if( b == a ) continue;
 				
 				var diff = a.transform.localPosition - b.transform.localPosition;
-				var idealDistance = (a.Size + b.Size) *_idealDistanceFactor /2;
+				var idealDistance = (a.Size + b.Size) /2;
 				
 				var idealB2A = diff.normalized.ComponentMul( idealDistance );
 				var idealShift = (idealB2A - diff)/2;	// /2 because the other element will also move
