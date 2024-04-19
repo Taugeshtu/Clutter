@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 
 [System.Serializable]
-public struct Range {
-	private float m_min;
-	private float m_max;
+public struct RangeInt {
+	private int m_min;
+	private int m_max;
 	
-	public float min {
+	public int min {
 		get { return m_min; }
 		set {
 			m_min = value;
@@ -14,7 +14,7 @@ public struct Range {
 		}
 	}
 	
-	public float max {
+	public int max {
 		get { return m_max; }
 		set {
 			m_max = value;
@@ -22,7 +22,7 @@ public struct Range {
 		}
 	}
 	
-	public float size {
+	public int size {
 		get { return m_max - m_min; }
 	}
 	
@@ -34,18 +34,18 @@ public struct Range {
 		return $"[{min}, {max}]";
 	}
 	
-#region Implementation
-	public static Range Invalid {
-		get { return new Range( 0, -1, false ); }
+	#region Implementation
+	public static RangeInt Invalid {
+		get { return new RangeInt( 0, -1, false ); }
 	}
 	
-	public static Range ZeroOne {
-		get { return new Range( 0, 1, false ); }
+	public static RangeInt ZeroOne {
+		get { return new RangeInt( 0, 1, false ); }
 	}
 	
-	public Range( float x ) : this( x, x, false ) {}
-	public Range( float start, float end ) : this( start, end, true ) {}
-	private Range( float start, float end, bool sanitize ) {
+	public RangeInt( int x ) : this( x, x, false ) {}
+	public RangeInt( int start, int end ) : this( start, end, true ) {}
+	private RangeInt( int start, int end, bool sanitize ) {
 		m_min = start;
 		m_max = end;
 		
@@ -59,16 +59,16 @@ public struct Range {
 #region Public
 	public void Encapsulate( float x ) {
 		if( !IsValid ) {
-			m_min = x;
-			m_max = x;
+			m_min = (int) x;
+			m_max = (int) x;
 			return;
 		}
 		
-		m_min = Mathf.Min( m_min, x );
-		m_max = Mathf.Max( m_max, x );
+		m_min = (int) Mathf.Min( m_min, x );
+		m_max = (int) Mathf.Max( m_max, x );
 	}
 	
-	public void Encapsulate( Range other ) {
+	public void Encapsulate( RangeInt other ) {
 		if( !other.IsValid ) {
 			return;
 		}
@@ -87,7 +87,7 @@ public struct Range {
 		return (x >= m_min) && (x <= m_max);
 	}
 	
-	public bool Intersects( Range other ) {
+	public bool Intersects( RangeInt other ) {
 		if( !IsValid || !other.IsValid ) {
 			return false;
 		}
@@ -104,13 +104,18 @@ public struct Range {
 		if( x > m_max ) { return m_max; }
 		return x;
 	}
-	
-	public float Transform( float localValue ) {
-		return m_min + localValue *size;
+	public int Constrain( int x ) {
+		if( x < m_min ) { return m_min; }
+		if( x > m_max ) { return m_max; }
+		return x;
 	}
 	
-	public float InverseTransform( float globalValue ) {
-		return (globalValue - m_min) /size;
+	public float Transform( float localValue ) {
+		return  m_min + localValue *size;
+	}
+	
+	public int InverseTransform( float globalValue ) {
+		return Mathf.RoundToInt( (globalValue - m_min) /size );
 	}
 #endregion
 	
