@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using SysRandom = System.Random;
 
 public static partial class RNG {
+	private static readonly SysRandom _sysRandom = new SysRandom();
 	
 #region Points
 	private static Vector3[] s_cubeShifts = {
@@ -32,9 +34,9 @@ public static partial class RNG {
 	}
 	
 	public static Vector3 InUnitCube() {
-		var x = Random.Range( -0.5f, 0.5f );
-		var y = Random.Range( -0.5f, 0.5f );
-		var z = Random.Range( -0.5f, 0.5f );
+		var x = (float) (_sysRandom.NextDouble() - 0.5) *2;
+		var y = (float) (_sysRandom.NextDouble() - 0.5) *2;
+		var z = (float) (_sysRandom.NextDouble() - 0.5) *2;
 		return new Vector3( x, y, z );
 	}
 #endregion
