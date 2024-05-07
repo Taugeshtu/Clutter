@@ -47,6 +47,8 @@ public abstract class XSelector<T> {
 
 
 public interface Selection<T> {
+	IEnumerable<T> Current { get; }
+	
 	void Select( T item );
 	void Select( IEnumerable<T> items );
 	
