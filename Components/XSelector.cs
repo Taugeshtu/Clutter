@@ -6,7 +6,7 @@ using System.Linq;
 // "first we modify _current, then dispatch events"
 // need to see in practice if it's handy or an impediment
 
-public abstract class XSelector<T> {
+public abstract class Selection<T> {
 	protected HashSet<T> _current = new HashSet<T>();
 	protected HashSet<T> _scratch = new HashSet<T>();
 	
@@ -23,6 +23,14 @@ public abstract class XSelector<T> {
 		_NotifyChange();
 	}
 	
+	public abstract void Select( T item );
+	public abstract void Select( IEnumerable<T> items );
+	
+	public abstract void Drop( T item );
+	public abstract void Drop( IEnumerable<T> items );
+	
+	public abstract void Toggle( T item );
+	public abstract void Toggle( IEnumerable<T> items );
 	
 #region Internals
 	protected HashSet<T> _SetScratch( IEnumerable<T> items ) {
@@ -45,26 +53,8 @@ public abstract class XSelector<T> {
 #endregion
 }
 
-
-public interface Selection<T> {
-	IEnumerable<T> Current { get; }
-	
-	void Select( T item );
-	void Select( IEnumerable<T> items );
-	
-	void Drop( T item );
-	void Drop( IEnumerable<T> items );
-	
-	void Toggle( T item );
-	void Toggle( IEnumerable<T> items );
-	void Clear();
-	
-	event Action a_selectionChanged;
-	event Action<T, bool> a_itemSelected;
-}
-
-public class SingleSelection<T> : XSelector<T>, Selection<T> {
-	public void Select( T item ) {
+public class SingleSelection<T> : Selection<T> {
+	public override void Select( T item ) {
 		if( _current.Contains( item ) ) return;
 		
 		if( _current.Count == 0 ) {
@@ -81,7 +71,7 @@ public class SingleSelection<T> : XSelector<T>, Selection<T> {
 		_NotifyChange();
 	}
 	
-	public void Drop( T item ) {
+	public override void Drop( T item ) {
 		if( !_current.Contains( item ) ) return;
 		
 		_current.Remove( item );
@@ -90,7 +80,7 @@ public class SingleSelection<T> : XSelector<T>, Selection<T> {
 		_NotifyChange();
 	}
 	
-	public void Toggle( T item ) {
+	public override void Toggle( T item ) {
 		if( _current.Count == 0 ) {
 			_current.Add( item );
 			_NotifyPick( item );
@@ -111,18 +101,18 @@ public class SingleSelection<T> : XSelector<T>, Selection<T> {
 		_NotifyChange();
 	}
 	
-	public void Select( IEnumerable<T> items ) { _ThrowUnsupported(); }
-	public void Drop( IEnumerable<T> items ) { _ThrowUnsupported(); }
-	public void Toggle( IEnumerable<T> items ) { _ThrowUnsupported(); }
+	public override void Select( IEnumerable<T> items ) { _ThrowUnsupported(); }
+	public override void Drop( IEnumerable<T> items ) { _ThrowUnsupported(); }
+	public override void Toggle( IEnumerable<T> items ) { _ThrowUnsupported(); }
 	private void _ThrowUnsupported() {
 		throw new System.Exception( "Bulk operations not supported for SingleSelection; either use MultiSelection or rework calling code" );
 	}
 }
 
-public class MultiSelection<T> : XSelector<T>, Selection<T> {
+public class MultiSelection<T> : Selection<T> {
 	private HashSet<T> _scratch2 = new HashSet<T>();
 	
-	public void Select( T item ) {
+	public override void Select( T item ) {
 		if( _current.Contains( item ) ) return;
 		
 		_current.Add( item );
@@ -130,7 +120,7 @@ public class MultiSelection<T> : XSelector<T>, Selection<T> {
 		_NotifyPick( item );
 		_NotifyChange();
 	}
-	public void Select( IEnumerable<T> items ) {
+	public override void Select( IEnumerable<T> items ) {
 		var added = _SetScratch( items );
 		added.ExceptWith( _current );
 		if( added.Count == 0 ) return;
@@ -140,7 +130,7 @@ public class MultiSelection<T> : XSelector<T>, Selection<T> {
 		_NotifyChange();
 	}
 	
-	public void Drop( T item ) {
+	public override void Drop( T item ) {
 		if( !_current.Contains( item ) ) return;
 		
 		_current.Remove( item );
@@ -148,7 +138,7 @@ public class MultiSelection<T> : XSelector<T>, Selection<T> {
 		_NotifyDrop( item );
 		_NotifyChange();
 	}
-	public void Drop( IEnumerable<T> items ) {
+	public override void Drop( IEnumerable<T> items ) {
 		var dropped = _SetScratch( items );
 		dropped.IntersectWith( _current );
 		if( dropped.Count == 0 ) return;
@@ -158,7 +148,7 @@ public class MultiSelection<T> : XSelector<T>, Selection<T> {
 		_NotifyChange();
 	}
 	
-	public void Toggle( T item ) {
+	public override void Toggle( T item ) {
 		if( _current.Contains( item ) ) {
 			_current.Remove( item );
 			_NotifyDrop( item );
@@ -169,7 +159,7 @@ public class MultiSelection<T> : XSelector<T>, Selection<T> {
 		}
 		_NotifyChange();
 	}
-	public void Toggle( IEnumerable<T> items ) {
+	public override void Toggle( IEnumerable<T> items ) {
 		var overlap = _SetScratch( items );
 		overlap.IntersectWith( _current );
 		
