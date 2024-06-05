@@ -200,6 +200,24 @@ public class MorphMesh {
 			colliderTarget.sharedMesh = mesh;
 		}
 	}
+	
+	public UnityEngine.Mesh WriteMesh( UnityEngine.Mesh target = null ) {
+		// Note: this is necessary because dead triangles shouldn't get into render. Dead verts is ok
+		_CompactifyTriangles();
+		
+		_SyncPropertiesSizes();
+		
+		var mesh = (target == null)
+					? new UnityEngine.Mesh()
+					: target;
+		mesh.Clear();
+		mesh.SetVertices( m_positions );
+		mesh.SetColors( HasColors ? m_colors : null );
+		mesh.SetUVs( 0, HasUVs ? m_uvs : null );
+		mesh.SetTriangles( m_indeces, 0 );
+		mesh.RecalculateNormals();
+		return mesh;
+	}
 #endregion
 	
 	
