@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 namespace Clutter {
+// Circular buffer kind of storage; grows up to the size of pre-defined capacity, then starts evacuating oldest elements first
 public class SizedList<T> : IEnumerable<T>, IEnumerable {
 	private List<T> m_buffer;
 	private int m_insertionIndex = 0;
@@ -10,6 +11,8 @@ public class SizedList<T> : IEnumerable<T>, IEnumerable {
 	public int Count { get { return m_buffer.Count; } }
 	public int Capacity { get; private set; }
 	
+	// "Sort by recent" means index == 0 will return the most recent element, index == 1 will return the second most recent, etc
+	// sortByRecent == false means index ==0 will return the oldest element
 	public T this[int index, bool sortByRecent = true] {
 		get {
 			var count = Count;
@@ -28,6 +31,23 @@ public class SizedList<T> : IEnumerable<T>, IEnumerable {
 				return m_buffer[accessIndex];
 			}
 		}
+		set {
+			var count = Count;
+			var capacity = Capacity;
+			if( index > count || index < 0 || count == 0 ) {
+				throw new System.IndexOutOfRangeException( "Wanting to set item #"+index+", but so far list only has "+count+" slots" );
+			}
+			
+			if( sortByRecent ) {
+				// if limiting by Count is needed, that should be done in calling code
+				var accessIndex = (m_insertionIndex - 1 - index + capacity) %capacity;
+				m_buffer[accessIndex] = value;
+			}
+			else {
+				var accessIndex = (index + m_insertionIndex) %count;
+				m_buffer[accessIndex] = value;
+			}
+		}
 	}
 	
 #region Implementation
@@ -35,6 +55,7 @@ public class SizedList<T> : IEnumerable<T>, IEnumerable {
 		ReInitialize( capacity );
 	}
 	
+	// These return the elements in the "most recent - first" fashion
 	System.Collections.IEnumerator IEnumerable.GetEnumerator() { return this.GetEnumerator(); }
 	public IEnumerator<T> GetEnumerator() {
 		var count = Count;
@@ -69,10 +90,7 @@ public class SizedList<T> : IEnumerable<T>, IEnumerable {
 			m_buffer.Add( item );
 		}
 		else {
-			if( poppedCallback != null ) {
-				poppedCallback( m_buffer[m_insertionIndex] );
-			}
-			
+			poppedCallback?.Invoke( m_buffer[m_insertionIndex] );
 			m_buffer[m_insertionIndex] = item;
 		}
 		
