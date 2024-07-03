@@ -16,6 +16,9 @@ public abstract class Selection<T> {
 	public event Action<T, bool> a_itemSelected;	// gives item and whether it was set as selected or not
 	
 	public void Clear() {
+		if( _current.Count == 0 )
+			return;
+		
 		_SetScratch( _current );
 		_current.Clear();
 		
@@ -93,8 +96,9 @@ public class SingleSelection<T> : Selection<T> {
 			}
 			else {
 				_current.Clear();
-				_current.Add( item );
 				_NotifyDrop( dropped );
+				
+				_current.Add( item );
 				_NotifyPick( item );
 			}
 		}
@@ -166,12 +170,12 @@ public class MultiSelection<T> : Selection<T> {
 		_scratch2.Clear();
 		_scratch2.Add( items );
 		_scratch2.ExceptWith( overlap );
+		_current.Remove( overlap );
+		_NotifyDrop( overlap );
 		
 		_current.Add( _scratch2 );
-		_current.Remove( overlap );
-		
-		_NotifyDrop( overlap );
 		_NotifyPick( _scratch2 );
+		
 		_NotifyChange();
 	}
 }
