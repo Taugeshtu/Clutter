@@ -2,7 +2,7 @@ using UnityEngine;
 using System;
 
 public static class EmailUtility {
-	public static void SendEmail( string to, string subject = "", string body = "" ) {
+	public static string BuildMailto( string to, string subject = "", string body = "" ) {
 		var mailtoUri = $"mailto:{Uri.EscapeDataString(to)}";
 		
 		var hasSubject = !string.IsNullOrEmpty( subject );
@@ -17,6 +17,6 @@ public static class EmailUtility {
 		if( hasBody )
 			mailtoUri += $"body={Uri.EscapeDataString(body)}";
 		
-		Application.OpenURL( mailtoUri );
+		return mailtoUri;
 	}
 }
