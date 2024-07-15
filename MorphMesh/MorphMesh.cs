@@ -341,6 +341,11 @@ public class MorphMesh {
 	public void EmitQuad( Vector3 position, Quaternion rotation ) { EmitQuad( position, rotation, Vector2.one ); }
 	public void EmitQuad( Vector3 position, Vector2 scale ) { EmitQuad( position, Quaternion.identity, scale ); }
 	public void EmitQuad( Vector3 position, Quaternion rotation, Vector2 scale ) {
+		// Layout, viewed from above:
+		// A - B
+		// |   |
+		// D - C
+		
 		var right = rotation *(Vector3.right *scale.x);
 		var forward = rotation *(Vector3.forward *scale.y);
 		var corner = position - (right + forward) *0.5f;
