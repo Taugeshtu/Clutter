@@ -38,8 +38,6 @@ public class MorphMesh {
 	private static List<Vector3> t_weldPoints = new List<Vector3>( 10 );
 	// - - - - - - - - - - - - - -
 	
-	public MeshFilter Target { get; private set; }
-	
 	public bool HasColors {
 		get {
 			return (m_positions.Count > 0) && (m_colors.Count > 0);
@@ -60,12 +58,6 @@ public class MorphMesh {
 	
 #region Implementation
 	public MorphMesh() {}
-	
-	public MorphMesh( GameObject target ) : this( target.transform ) {}
-	
-	public MorphMesh( Component target ) {
-		Target = _GetFilterTarget( target );
-	}
 #endregion
 	
 	
@@ -905,12 +897,8 @@ public class MorphMesh {
 	
 #region Utility
 	private MeshFilter _GetFilterTarget( Component target ) {
-		if( target == null ) {
-			if( Target == null ) {
-				Log.Warning( "Tried to get filter target, but both specified and set beforehand targets are null!" );
-			}
-			return Target;
-		}
+		if( target == null )
+			return null;
 		
 		var filterTarget = target as MeshFilter;
 		if( filterTarget == null ) {
