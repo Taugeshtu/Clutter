@@ -107,6 +107,15 @@ public static class Vector {
 		return new Vector3Int( x, y, z );
 	}
 	
+	// https://en.wikipedia.org/wiki/Determinant
+	// This is a fast method to determine on which side of "zero, a" plane does "b" fall
+	// negative for clockwise side, positive for counter-clockwise side, 0 for on the plane
+	// so if we have points A, B, C
+	// and feed a == (B - A); b = (C - A)
+	// negative result will tell us that triangle is wound clockwise
+	public static float Determinant( Vector2 a, Vector2 b ) {
+		return (a.x *b.y - a.y *b.x);
+	}
 #endregion
 }
 
@@ -513,6 +522,10 @@ public static class VectorExtensions {
 	
 	public static Vector3 Cross( this Vector3 a, Vector3 b ) {
 		return Vector3.Cross( a, b );
+	}
+	
+	public static float Cross( this Vector2 a, Vector2 b ) {
+		return Vector.Determinant( a, b );
 	}
 	
 	//===========================================================
