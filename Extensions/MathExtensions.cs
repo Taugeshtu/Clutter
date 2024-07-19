@@ -62,6 +62,10 @@ public static class MathExtensions {
 		x = Math.Sign( x ) *mag;
 		return x;
 	}
+	
+	public static int Sign( this float x ) {
+		return Math.Sign( x );
+	}
 #endregion
 	
 	
