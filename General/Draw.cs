@@ -259,10 +259,10 @@ public static class Draw {
 	
 	
 #region Sphere
-	public static void Sphere( Vector3 center, Color? color = null, float size = c_crossSize, float duration = 0f ) {
-		Circle( center, Quaternion.identity, Vector2.one *size, color, 24, duration );
-		Circle( center, Quaternion.AngleAxis( 90f, Vector3.right ), Vector2.one *size, color, 24, duration );
-		Circle( center, Quaternion.AngleAxis( 90f, Vector3.forward ), Vector2.one *size, color, 24, duration );
+	public static void Sphere( Vector3 center, Color? color = null, float radius = c_crossSize, float duration = 0f ) {
+		Circle( center, Quaternion.identity, Vector2.one *radius, color, 24, duration );
+		Circle( center, Quaternion.AngleAxis( 90f, Vector3.right ), Vector2.one *radius, color, 24, duration );
+		Circle( center, Quaternion.AngleAxis( 90f, Vector3.forward ), Vector2.one *radius, color, 24, duration );
 	}
 #endregion
 	
