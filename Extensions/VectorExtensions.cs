@@ -622,6 +622,19 @@ public static class VectorExtensions {
 #endregion
 	
 	
+#region Ergonomics
+	public static Vector2 Lerp( this Vector2 from, Vector2 to, float t ) { return Vector2.Lerp( from, to, t ); }
+	public static Vector3 Lerp( this Vector3 from, Vector3 to, float t ) { return Vector3.Lerp( from, to, t ); }
+	public static Vector4 Lerp( this Vector4 from, Vector4 to, float t ) { return Vector4.Lerp( from, to, t ); }
+	public static Color Lerp( this Color from, Color to, float t ) { return Color.Lerp( from, to, t ); }
+	
+	public static Vector2 LerpUnclamped( this Vector2 from, Vector2 to, float t ) { return Vector2.LerpUnclamped( from, to, t ); }
+	public static Vector3 LerpUnclamped( this Vector3 from, Vector3 to, float t ) { return Vector3.LerpUnclamped( from, to, t ); }
+	public static Vector4 LerpUnclamped( this Vector4 from, Vector4 to, float t ) { return Vector4.LerpUnclamped( from, to, t ); }
+	public static Color LerpUnclamped( this Color from, Color to, float t ) { return Color.LerpUnclamped( from, to, t ); }
+#endregion
+	
+	
 #region Temporary
 #endregion
 }
