@@ -3,25 +3,56 @@ using System.Collections.Generic;
 
 using Clutter;
 
-[SingularBehaviour( false, true, true )]
+[SingularBehaviour( false, false, true )]
 public class CameraShake : MonoSingular<CameraShake> {
-	[Header( "Scaling" )]
-	[SerializeField] private float m_noiseGrain = 10f;
-	[SerializeField] private float m_maxDuration = 1f;
-	[SerializeField] private float m_minorValue = 0.4f;
-	[SerializeField] private float m_majorValue = 1f;
+	[System.Serializable]
+	private class ShakeLayer {
+		[Header( "Scaling" )]
+		public int _layerOffset;
+		public float _threshold = 0;
+		public float _ampLimit = 1;
+		public float _noiseFrequencyHz = 10f;
+		public float _maxDuration = 1f;
+		
+		[Header( "Amplitudes" )]
+		public float _translation = 0.1f;
+		public Vector3 _rotation = Vector3.one *10f;
+		
+		public float Trauma { get; set; }
+		public float Amplitude => Proc.P2( Trauma ).AtMost( _ampLimit );
+		
+		public (Vector3 t, Vector3 r) Process() {
+			Trauma -= Time.deltaTime /_maxDuration;
+			Trauma = Trauma.Clamp01();
+			var amplitude = Amplitude;
+			if( amplitude < _threshold )
+				return (Vector3.zero, Vector3.zero);
+			amplitude = Mathf.InverseLerp( _threshold, 1, amplitude );
+			
+			float _GetNoise( int axis, float frequency ) {
+				var value = Mathf.PerlinNoise( axis *0.129f, Time.time *frequency );
+				return value *2 - 1f;
+			}
+			var xNoise = _GetNoise( _layerOffset + 0, _noiseFrequencyHz );
+			var yNoise = _GetNoise( _layerOffset + 1024, _noiseFrequencyHz );
+			var zNoise = _GetNoise( _layerOffset + 2098, _noiseFrequencyHz );
+			var transationShake = new Vector3( xNoise, yNoise, zNoise ) *(_translation *amplitude);
+			
+			var pitchNoise = _GetNoise( _layerOffset + 13225, _noiseFrequencyHz );
+			var yawNoise = _GetNoise( _layerOffset + 4687, _noiseFrequencyHz );
+			var rollNoise = _GetNoise( _layerOffset + 5226, _noiseFrequencyHz );
+			var rotationShake = new Vector3( pitchNoise, yawNoise, rollNoise ).ComponentMul( _rotation ) *amplitude;
+			return (transationShake, rotationShake);
+		}
+	}
 	
-	[Header( "Amplitudes" )]
-	[SerializeField] private float m_translation = 0.1f;
-	[SerializeField] private Vector3 m_rotation = Vector3.one *10f;
+	[SerializeField] private ShakeLayer _layer1;
+	[SerializeField] private ShakeLayer _layer2;
+	[SerializeField] private float m_minorTrauma = 0.4f;
+	[SerializeField] private float m_majorTrauma = 1f;
 	
-	private float m_trauma = 0f;
 	private Vector3 m_savedLocalPosition;
 	private Quaternion m_savedLocalRotation;
-	
-	private float _amplitude {
-		get { return Proc.P2( m_trauma ); }
-	}
 	
 #region Implementation
 	void Awake() {
@@ -30,42 +61,31 @@ public class CameraShake : MonoSingular<CameraShake> {
 	}
 	
 	void LateUpdate() {
-		m_trauma -= Time.deltaTime /m_maxDuration;
-		m_trauma = Mathf.Clamp01( m_trauma );
-		var amplitude = _amplitude;
-		
-		var xNoise = _GetNoise( 0 );
-		var yNoise = _GetNoise( 1 );
-		var zNoise = _GetNoise( 2 );
-		var transationShake = new Vector3( xNoise, yNoise, zNoise ) *(m_translation *amplitude);
-		
-		var pitchNoise = _GetNoise( 3 );
-		var yawNoise = _GetNoise( 4 );
-		var rollNoise = _GetNoise( 5 );
-		var rotationShake = new Vector3( pitchNoise, yawNoise, rollNoise ).ComponentMul( m_rotation ) *amplitude;
-		
-		transform.localPosition = m_savedLocalPosition + transationShake;
-		transform.localRotation = m_savedLocalRotation *Quaternion.Euler( rotationShake );
+		var shakeL1 = _layer1.Process();
+		var shakeL2 = _layer2.Process();
+		transform.localPosition = m_savedLocalPosition + shakeL1.t + shakeL2.t;
+		transform.localRotation = m_savedLocalRotation *Quaternion.Euler( shakeL1.r + shakeL2.r );
 	}
 #endregion
 	
 	
 #region Public
 	public static void MakeAShake( bool isMajor ) {
-		s_Instance.m_trauma += (isMajor ? s_Instance.m_majorValue : s_Instance.m_minorValue);
+		if( s_Instance != null ) {
+			var traumaToAdd = isMajor ? s_Instance.m_majorTrauma : s_Instance.m_minorTrauma;
+			AddTrauma( traumaToAdd );
+		}
 	}
-	
 	public static void AddTrauma( float amount ) {
-		s_Instance.m_trauma += amount;
+		if( s_Instance != null ) {
+			s_Instance._layer1.Trauma += amount;
+			s_Instance._layer2.Trauma += amount;
+		}
 	}
 #endregion
 	
 	
 #region Private
-	private float _GetNoise( int axis ) {
-		var value = Mathf.PerlinNoise( axis /10f, Time.time *m_noiseGrain );
-		return value *2 - 1f;
-	}
 #endregion
 	
 	
