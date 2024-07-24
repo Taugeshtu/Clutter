@@ -95,12 +95,24 @@ public static class ListExtensions {
 	// (B,C) (B,D)
 	// (C,D)
 	
-	public static IEnumerable<ValueTuple<T, T>> IteratePairs<T>( this IList<T> list ) {
+	public static IEnumerable<(T a, T b)> IteratePairs<T>( this IList<T> list ) {
 		var count = list.Count;
 		for( var iA = 0; iA < count - 1; iA++ ) {
 		for( var iB = iA + 1; iB < count; iB++ ) {
-			yield return new ValueTuple<T, T>( list[iA], list[iB] );
+			yield return (list[iA], list[iB]);
 		}
+		}
+	}
+	public static IEnumerable<(T a, T b)> IteratePairs<T>( this IEnumerable<T> source ) {
+		using( var iterator = source.GetEnumerator() ) {
+			if( !iterator.MoveNext() )
+				yield break;
+			
+			var previous = iterator.Current;
+			while( iterator.MoveNext() ) {
+				yield return (previous, iterator.Current);
+				previous = iterator.Current;
+			}
 		}
 	}
 	
