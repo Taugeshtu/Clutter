@@ -10,6 +10,9 @@ public class Pool<T> where T : UnityEngine.Object {
 	private HashSet<T> m_aliveItems = new HashSet<T>();
 	private Stack<T> m_deadItems = new Stack<T>( 100 );
 	
+	public IEnumerable<T> Alives => m_aliveItems;
+	public int AlivesCount => m_aliveItems.Count;
+	
 #region Implementation
 	public Pool( T prefab, Transform root = null, bool autospawnRoot = true ) {
 		m_isGOPool = (typeof( T ) == typeof( GameObject ));
@@ -52,8 +55,8 @@ public class Pool<T> where T : UnityEngine.Object {
 	private void _MakeAlive( T item ) {
 		m_aliveItems.Add( item );
 		
-		var itemTransform = m_isGOPool ? (item as GameObject).transform : (item as Component).transform;
-		itemTransform.gameObject.SetActive( true );
+		var itemGO = m_isGOPool ? (item as GameObject) : (item as Component).gameObject;
+		itemGO.SetActive( true );
 	}
 	
 	private void _MakeDead( T item ) {
