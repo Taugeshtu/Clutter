@@ -31,10 +31,21 @@ public static class MathExtensions {
 	
 	
 #region Regular math
+	public static float Wrap( this float a, float max ) { return Wrap( a, 0, max ); }
 	public static float Wrap( this float a, float min, float max ) {
 		var range = max - min;
 		var diff = a - min;
 		a = a - (float) System.Math.Round( diff /range ) *range;
+		if( a < 0 ) {
+			a = a + max - min;
+		}
+		return a;
+	}
+	public static double Wrap( this double a, double max ) { return Wrap( a, 0, max ); }
+	public static double Wrap( this double a, double min, double max ) {
+		var range = max - min;
+		var diff = a - min;
+		a -= Math.Round( diff /range ) *range;
 		if( a < 0 ) {
 			a = a + max - min;
 		}
