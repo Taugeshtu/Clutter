@@ -12,6 +12,7 @@ public static class BlockParser {
 		
 		public bool IsValid => (start >=0 && end >= 0);
 		public string Extracted => (IsValid) ? source.Substring( start, end - start ) : null;
+		public int Length => (end - start);
 		
 		public static Block Invalid => new Block( null, -1, -1 );
 		public Block( string source ) : this( source, 0, source.Length ) {}
