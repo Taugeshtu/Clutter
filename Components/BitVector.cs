@@ -27,6 +27,13 @@ public unsafe struct BitVector
         {
             _heapBits = (ulong*)Marshal.AllocHGlobal(_longCount * sizeof(ulong));
         }
+
+        // Clear the memory
+        ulong* bits = GetBits();
+        for (int i = 0; i < _longCount; i++)
+        {
+            bits[i] = 0;
+        }
     }
 
     public void Dispose()
@@ -173,7 +180,7 @@ public unsafe struct BitVector
             int longIndex = i / BitsPerLong;
             int bitIndex = i % BitsPerLong;
             bool isSet = (bits[longIndex] & (1UL << bitIndex)) != 0;
-            result[i] = isSet ? 'X' : '_';
+            result[_length - 1 - i] = isSet ? 'X' : '_';
         }
 
         return new string(result);
