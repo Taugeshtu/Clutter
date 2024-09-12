@@ -172,15 +172,24 @@ public unsafe struct BitVector
     
     public override string ToString()
     {
-        char[] result = new char[_length];
+        int spacesCount = (_length - 1) / 4; // Pre-calculate the number of spaces needed
+        int totalLength = _length + spacesCount;
+        char[] result = new char[totalLength];
         ulong* bits = GetBits();
 
-        for (int i = 0; i < _length; i++)
+        for (int i = 0, j = totalLength - 1; i < _length; i++)
         {
+            if (i > 0 && i % 4 == 0)
+            {
+                result[j] = '|';
+                j--;
+            }
+
             int longIndex = i / BitsPerLong;
             int bitIndex = i % BitsPerLong;
             bool isSet = (bits[longIndex] & (1UL << bitIndex)) != 0;
-            result[_length - 1 - i] = isSet ? 'X' : '_';
+            result[j] = isSet ? 'X' : '_';
+            j--;
         }
 
         return new string(result);
