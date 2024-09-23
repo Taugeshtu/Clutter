@@ -2,6 +2,8 @@ using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
+// the bits are going from left to right, as a list
+// that's the way they are printed in, which is REVERSE to how binary notation is going (caution)
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 public struct BitVector
 {
@@ -84,6 +86,23 @@ public struct BitVector
         x = (x + (x >> 4)) & 0x0f0f0f0f0f0f0f0fUL;
         return (int)((x * 0x0101010101010101UL) >> 56);
     }
+    
+    public override string ToString()
+    {
+        int spacesCount = (_length - 1) / 4;
+        int totalLength = _length + spacesCount;
+        char[] result = new char[totalLength];
+
+        for (int inBit = 0, outChar = 0; outChar < totalLength; outChar++)
+        {
+            if (outChar > 0 && (outChar + 1) % 5 == 0)
+                result[outChar] = '|';
+            else
+                result[outChar] = this[inBit++] ? 'X' : '_';
+        }
+
+        return new string(result);
+    }
 
     public static BitVector operator &(BitVector left, BitVector right)
     {
@@ -130,26 +149,75 @@ public struct BitVector
         return result;
     }
     
-    public override string ToString()
+    public static BitVector operator +(BitVector left, BitVector right)
     {
-        int spacesCount = (_length - 1) / 4;
-        int totalLength = _length + spacesCount;
-        char[] result = new char[totalLength];
+        var result = new BitVector(left._length + right._length);
+        for( var i = 0; i < result._length; i++ )
+            result[i] = (i < left._length) ? left[i] : right[i - left._length];
+        return result;
+    }
 
-        for (int i = 0, j = totalLength - 1; i < _length; i++)
+    public static BitVector operator +(int left, BitVector right)
+    {
+        if (left < 0)
+            throw new ArgumentOutOfRangeException(nameof(left), "Padding value must be non-negative.");
+
+        var result = new BitVector(left + right._length);
+        for( var i = 0; i < result._length; i++ )
+            result[i] = (i < left) ? false : right[i - left];
+        return result;
+    }
+
+    public static BitVector operator +(BitVector left, int right)
+    {
+        if (right < 0)
+            throw new ArgumentOutOfRangeException(nameof(right), "Padding value must be non-negative.");
+
+        var result = new BitVector(left._length + right);
+        for( var i = 0; i < result._length; i++ )
+            result[i] = (i < left._length) ? left[i] : false;
+        return result;
+    }
+
+    /*
+    // these ops are disabled for now because I'm not sure about their code
+    public static BitVector operator -(int left, BitVector right)
+    {
+        if (left < 0 || left >= right._length)
+            throw new ArgumentOutOfRangeException(nameof(left), "Trim value must be non-negative and less than the BitVector length.");
+
+        var result = new BitVector(right._length - left);
+        int startLong = left / BitsPerLong;
+        int startBit = left % BitsPerLong;
+
+        for (int i = 0; i < result._bits.Length; i++)
         {
-            if (i > 0 && i % 4 == 0)
-            {
-                result[j] = '|';
-                j--;
-            }
-
-            result[j] = this[i] ? 'X' : '_';
-            j--;
+            result._bits[i] = right._bits[startLong + i] >> startBit;
+            if (startBit > 0 && i + startLong + 1 < right._bits.Length)
+                result._bits[i] |= right._bits[startLong + i + 1] << (BitsPerLong - startBit);
         }
 
-        return new string(result);
+        return result;
     }
-    
-    public string Print => ToString();
+
+    public static BitVector operator -(BitVector left, int right)
+    {
+        if (right < 0 || right >= left._length)
+            throw new ArgumentOutOfRangeException(nameof(right), "Trim value must be non-negative and less than the BitVector length.");
+
+        var result = new BitVector(left._length - right);
+        int leftLongCount = (left._length + BitsPerLong - 1) / BitsPerLong;
+        int resultLongCount = (result._length + BitsPerLong - 1) / BitsPerLong;
+
+        // Copy bits
+        Array.Copy(left._bits, 0, result._bits, 0, resultLongCount);
+
+        // Clear any extra bits in the last ulong
+        int extraBits = result._length % BitsPerLong;
+        if (extraBits > 0)
+            result._bits[resultLongCount - 1] &= (1UL << extraBits) - 1;
+
+        return result;
+    }
+    */
 }

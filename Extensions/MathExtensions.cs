@@ -84,6 +84,7 @@ public static class MathExtensions {
 	public static float Clamp01( this int x ) { return UnityEngine.Mathf.Clamp01( x ); }
 	public static float Clamp01( this float x ) { return UnityEngine.Mathf.Clamp01( x ); }
 	
+	// Note: this is INCLUSIVE on both ends
 	public static T Clamp<T>( this T x, T min, T max ) where T : IComparable<T> {
 		if( x.CompareTo( min ) < 0 ) {
 			return min;
