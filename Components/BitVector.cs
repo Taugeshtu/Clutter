@@ -96,9 +96,9 @@ public struct BitVector
         for (int inBit = 0, outChar = 0; outChar < totalLength; outChar++)
         {
             if (outChar > 0 && (outChar + 1) % 5 == 0)
-                result[outChar] = '|';
+                result[outChar] = '\'';
             else
-                result[outChar] = this[inBit++] ? 'X' : '_';
+                result[outChar] = this[inBit++] ? '!' : '.';
         }
 
         return new string(result);
