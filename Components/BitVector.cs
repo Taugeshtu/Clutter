@@ -1,11 +1,13 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Collections;
+using System.Collections.Generic;
 
 // the bits are going from left to right, as a list
 // that's the way they are printed in, which is REVERSE to how binary notation is going (caution)
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
-public struct BitVector
+public partial struct BitVector : IEnumerable<bool>
 {
     private const int BitsPerLong = sizeof(ulong) * 8;
     private readonly ulong[] _bits;
@@ -220,4 +222,42 @@ public struct BitVector
         return result;
     }
     */
+
+    public IEnumerator<bool> GetEnumerator()
+    {
+        return new BitVectorEnumerator(this);
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    private struct BitVectorEnumerator : IEnumerator<bool>
+    {
+        private readonly BitVector _bitVector;
+        private int _index;
+
+        public BitVectorEnumerator(BitVector bitVector)
+        {
+            _bitVector = bitVector;
+            _index = -1;
+        }
+
+        public bool Current => _bitVector[_index];
+
+        object IEnumerator.Current => Current;
+
+        public void Dispose() { }
+
+        public bool MoveNext()
+        {
+            return ++_index < _bitVector.Length;
+        }
+
+        public void Reset()
+        {
+            _index = -1;
+        }
+    }
 }
