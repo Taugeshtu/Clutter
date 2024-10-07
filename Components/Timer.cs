@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using Clutter;
-using System.Threading.Tasks;
 
 public struct Timer {
 	private static List<Timer> s_timers = new List<Timer>();
@@ -66,13 +65,13 @@ public struct Timer {
 		Log.Error( "FIXME: THIS DOES NOT WORK WITH A STRUCT!" );
 	}
 	
-	public static async Task WaitFor( float seconds, bool useScaledTime = true ) {
+	public static async System.Threading.Tasks.Task WaitFor( float seconds, bool useScaledTime = true ) {
 		var endTime = (useScaledTime ? Time.time : Time.unscaledTime) + seconds;
 		while( true ) {
 			var currentTime = useScaledTime ? Time.time : Time.unscaledTime;
 			if( currentTime >= endTime )
 				break;
-			await Task.Yield();
+			await System.Threading.Tasks.Task.Yield();
 		}
 	}
 #endregion
