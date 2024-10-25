@@ -327,6 +327,24 @@ public static class VectorExtensions {
 	}
 	
 	//===========================================================
+	public static Vector2Int Sign( this Vector2Int a ) {
+		return new Vector2Int( System.Math.Sign( a.x ), System.Math.Sign( a.y ) );
+	}
+	public static Vector3Int Sign( this Vector3Int a ) {
+		return new Vector3Int( System.Math.Sign( a.x ), System.Math.Sign( a.y ), System.Math.Sign( a.z ) );
+	}
+	
+	public static Vector2 Sign( this Vector2 a ) {
+		return new Vector2( Mathf.Sign( a.x ), Mathf.Sign( a.y ) );;
+	}
+	public static Vector3 Sign( this Vector3 a ) {
+		return new Vector3( Mathf.Sign( a.x ), Mathf.Sign( a.y ), Mathf.Sign( a.z ) );
+	}
+	public static Vector4 Sign( this Vector4 a ) {
+		return new Vector4( Mathf.Sign( a.x ), Mathf.Sign( a.y ), Mathf.Sign( a.z ), Mathf.Sign( a.w ) );
+	}
+	
+	//===========================================================
 	public static Vector2Int Clamped( this Vector2Int a, Vector2Int min, Vector2Int max ) {
 		return new Vector2Int( a.x.Clamp( min.x, max.x ), a.y.Clamp( min.y, max.y ) );
 	}
@@ -540,6 +558,16 @@ public static class VectorExtensions {
 		var factor = Mathf.Clamp01( maxChangeDegrees /angleDiff );
 		return Quaternion.Slerp( from, to, factor );
 	}
+#endregion
+	
+	
+#region Manhattan
+	public static int Manhattan( this Vector2Int v ) { return v.x.Abs() + v.y.Abs(); }
+	public static int Manhattan( this Vector3Int v ) { return v.x.Abs() + v.y.Abs() + v.z.Abs(); }
+	
+	public static float Manhattan( this Vector2 v ) { return v.x.Abs() + v.y.Abs(); }
+	public static float Manhattan( this Vector3 v ) { return v.x.Abs() + v.y.Abs() + v.z.Abs(); }
+	public static float Manhattan( this Vector4 v ) { return v.x.Abs() + v.y.Abs() + v.z.Abs() + v.w.Abs(); }
 #endregion
 	
 	
