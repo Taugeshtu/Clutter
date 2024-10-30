@@ -373,6 +373,62 @@ public static class VectorExtensions {
 		return v.WithMagnitude( Mathf.Min( v.magnitude, magnitude ) );
 	}
 	
+	public static Vector2Int MagnitudeClamped( this Vector2Int v, int magnitude ) {
+		var factor = (magnitude /(float)v.Manhattan()).AtMost( 1f );
+		var idealMahnattan = v.Manhattan().AtMost( magnitude );
+		
+		var allocations = v.ToVector2() *factor;
+		var result = new Vector2Int( (int)allocations.x, (int)allocations.y );
+		var error = (idealMahnattan - result.Manhattan()).Abs();
+		var fracRemainders = allocations - result;
+		var criteria = fracRemainders.Abs();
+		if( error > 0 ) {
+			if( criteria.x >= criteria.y ) {
+				result.x += System.Math.Sign( fracRemainders.x );
+			}
+			else {
+				result.y += System.Math.Sign( fracRemainders.y );
+			}
+		}
+		return result;
+	}
+	public static Vector3Int MagnitudeClamped( this Vector3Int v, int magnitude ) {
+		var factor = (magnitude /(float)v.Manhattan()).AtMost( 1f );
+		var idealMahnattan = v.Manhattan().AtMost( magnitude );
+		
+		var allocations = v.ToVector3() *factor;
+		var result = new Vector3Int( (int)allocations.x, (int)allocations.y, (int)allocations.z );
+		var error = (idealMahnattan - result.Manhattan()).Abs();
+		var fracRemainders = allocations - result;
+		var criteria = fracRemainders.Abs();
+		if( error > 0 ) {
+			if( criteria.x >= criteria.y && criteria.x >= criteria.z ) {
+				result.x += System.Math.Sign( fracRemainders.x );
+				criteria.x -= 1;
+			}
+			else if( criteria.y >= criteria.z ) {
+				result.y += System.Math.Sign( fracRemainders.y );
+				criteria.y -= 1;
+			}
+			else {
+				result.z += System.Math.Sign( fracRemainders.z );
+				criteria.z -= 1;
+			}
+		}
+		if( error == 2 ) {
+			if( criteria.x >= criteria.y && criteria.x >= criteria.z ) {
+				result.x += System.Math.Sign( fracRemainders.x );
+			}
+			else if( criteria.y >= criteria.z ) {
+				result.y += System.Math.Sign( fracRemainders.y );
+			}
+			else {
+				result.z += System.Math.Sign( fracRemainders.z );
+			}
+		}
+		return result;
+	}
+	
 	//===========================================================
 	public static Vector2Int Wrapped( this Vector2Int a, Vector2Int limits ) {
 		return new Vector2Int( a.x %limits.x, a.y %limits.y );
