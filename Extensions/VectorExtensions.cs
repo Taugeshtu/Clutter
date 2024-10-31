@@ -374,6 +374,8 @@ public static class VectorExtensions {
 	}
 	
 	public static Vector2Int MagnitudeClamped( this Vector2Int v, int magnitude ) {
+		if( v == Vector2Int.zero ) return v;
+		
 		var factor = (magnitude /(float)v.Manhattan()).AtMost( 1f );
 		var idealMahnattan = v.Manhattan().AtMost( magnitude );
 		
@@ -393,6 +395,8 @@ public static class VectorExtensions {
 		return result;
 	}
 	public static Vector3Int MagnitudeClamped( this Vector3Int v, int magnitude ) {
+		if( v == Vector3Int.zero ) return v;
+		
 		var factor = (magnitude /(float)v.Manhattan()).AtMost( 1f );
 		var idealMahnattan = v.Manhattan().AtMost( magnitude );
 		
