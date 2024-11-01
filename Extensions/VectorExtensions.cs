@@ -481,6 +481,13 @@ public static class VectorExtensions {
 	}
 	
 	//===========================================================
+	public static Vector2Int ComponentMul( this Vector2Int a, Vector2Int b ) {
+		return a *b;
+	}
+	public static Vector3Int ComponentMul( this Vector3Int a, Vector3Int b ) {
+		return a *b;
+	}
+	
 	public static Vector2 ComponentMul( this Vector2 a, Vector2 b ) {
 		return new Vector2( a.x *b.x, a.y *b.y );
 	}
@@ -596,6 +603,14 @@ public static class VectorExtensions {
 	//===========================================================
 	public static float Dot( this Vector3 a, Vector3 b ) {
 		return Vector3.Dot( a, b );
+	}
+	public static int Dot( this Vector2Int a, Vector2Int b ) {
+		var mul = a.ComponentMul( b );
+		return mul.x + mul.y;
+	}
+	public static int Dot( this Vector3Int a, Vector3Int b ) {
+		var mul = a.ComponentMul( b );
+		return mul.x + mul.y + mul.z;
 	}
 	
 	public static Vector3 Cross( this Vector3 a, Vector3 b ) {
