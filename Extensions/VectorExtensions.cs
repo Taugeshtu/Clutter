@@ -735,6 +735,19 @@ public static class VectorExtensions {
 	public static Vector3 LerpUnclamped( this Vector3 from, Vector3 to, float t ) { return Vector3.LerpUnclamped( from, to, t ); }
 	public static Vector4 LerpUnclamped( this Vector4 from, Vector4 to, float t ) { return Vector4.LerpUnclamped( from, to, t ); }
 	public static Color LerpUnclamped( this Color from, Color to, float t ) { return Color.LerpUnclamped( from, to, t ); }
+	
+	public static Vector2 SmoothTo( this Vector2 from, Vector2 to, float halfLife, float dt ) {
+		return to + (from - to) *Mathf.Pow( 2, -dt /halfLife );
+	}
+	public static Vector3 SmoothTo( this Vector3 from, Vector3 to, float halfLife, float dt ) {
+		return to + (from - to) *Mathf.Pow( 2, -dt /halfLife );
+	}
+	public static Vector4 SmoothTo( this Vector4 from, Vector4 to, float halfLife, float dt ) {
+		return to + (from - to) *Mathf.Pow( 2, -dt /halfLife );
+	}
+	public static Color SmoothTo( this Color from, Color to, float halfLife, float dt ) {
+		return to + (from - to) *Mathf.Pow( 2, -dt /halfLife );
+	}
 #endregion
 	
 	
