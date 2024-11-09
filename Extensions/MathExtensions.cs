@@ -77,6 +77,13 @@ public static class MathExtensions {
 	public static int Sign( this float x ) {
 		return Math.Sign( x );
 	}
+	
+	public static float SmoothTo( this float from, float to, float halfLife, float dt ) {
+		return to + (from - to) *((float) Math.Pow( 2, -dt /halfLife ));
+	}
+	public static double SmoothTo( this double from, double to, double halfLife, double dt ) {
+		return to + (from - to) *Math.Pow( 2, -dt /halfLife );
+	}
 #endregion
 	
 	
