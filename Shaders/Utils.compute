@@ -96,4 +96,19 @@ float2 rand_2_0004( in float2 uv ) {
 	float noiseY = frac( sin( dot( uv, float2( 12.9898, 78.233 ) *2.0 ) ) *43758.5453 );
 	return float2( noiseX, noiseY ) *0.004;
 }
+
+int GetBit( uint x, int bitIndex ) {
+	return (x & (1 << bitIndex)) != 0;
+}
+
+uint SetBit( uint x, int bitIndex, bool bitValue ) {
+	if( bitValue ) {
+		x |= 1 << bitIndex;
+	}
+	else {
+		x &= ~(1 << bitIndex);
+	}
+	return x;
+}
+
 #endif
