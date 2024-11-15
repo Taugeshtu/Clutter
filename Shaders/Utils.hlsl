@@ -61,10 +61,10 @@ float unlerp( float x, float min, float max ) {
 float2 Rotate( float2 v, float angleRadians ) {
 	/*
 	new = (1, 0) * (1)
-	      (0, 1)   (0)
+		  (0, 1)   (0)
 	
 	new = (newXAxis.x, newYAxis.x) * (1)
-	      (newXAxis.y, newYAxis.y)   (0)
+		  (newXAxis.y, newYAxis.y)   (0)
 	
 	newXAxis = (cos(angle), sin(angle))
 	newYAxis = (cos(angle + 90), sin(angle + 90))
@@ -102,6 +102,41 @@ float2 rand_2_0004( in float2 uv ) {
 	return float2( noiseX, noiseY ) *0.004;
 }
 
+// Perlin:
+// Hash function for Perlin noise
+float perlin_hash(float n) {
+	return frac(sin(n) * 43758.5453);
+}
+
+// 1D Perlin noise
+float perlin(float x) {
+	float i = floor(x);
+	float f = frac(x);
+	float u = f * f * (3.0 - 2.0 * f); // Smoothstep
+	return lerp(perlin_hash(i), perlin_hash(i + 1.0), u);
+}
+
+// 2D Perlin noise
+float perlin(float2 p) {
+	float2 i = floor(p);
+	float2 f = frac(p);
+	
+	// Four corners in 2D of a tile
+	float a = perlin_hash(dot(i, float2(1.0, 157.0)));
+	float b = perlin_hash(dot(i + float2(1.0, 0.0), float2(1.0, 157.0)));
+	float c = perlin_hash(dot(i + float2(0.0, 1.0), float2(1.0, 157.0)));
+	float d = perlin_hash(dot(i + float2(1.0, 1.0), float2(1.0, 157.0)));
+	
+	// Smooth interpolation
+	float2 u = f * f * (3.0 - 2.0 * f);
+	
+	// Mix 4 corners percentages
+	return lerp(a, b, u.x) +
+		   (c - a) * u.y * (1.0 - u.x) +
+		   (d - b) * u.x * u.y;
+}
+
+// Bit manipulation:
 int GetBit( uint x, int bitIndex ) {
 	return (x & (1 << bitIndex)) != 0;
 }
