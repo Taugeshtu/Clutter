@@ -51,6 +51,11 @@ uint2 To2D( uint id, uint2 mapSize ) {
 	return uint2( x, y );
 }
 
+float unlerp( float x, float min, float max ) {
+	float result = (x - min) /(max - min);
+	return result;
+}
+
 // Math
 // Convention: positive angle == counter-clockwise rotation
 float2 Rotate( float2 v, float angleRadians ) {
@@ -109,6 +114,11 @@ uint SetBit( uint x, int bitIndex, bool bitValue ) {
 		x &= ~(1 << bitIndex);
 	}
 	return x;
+}
+
+float remap( float x, float inputMin, float inputMax, float outMin, float outMax ) {
+	float factor = unlerp( x, inputMin, inputMax );
+	return lerp( outMin, outMax, factor );
 }
 
 #endif
