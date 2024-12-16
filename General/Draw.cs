@@ -347,4 +347,38 @@ public static class Draw {
 		}
 	}
 #endregion
+	
+	
+#region Frame
+	private static List<Vector3> s_framePoints = new List<Vector3>() {
+		Vector3.forward *3.5f,
+		Vector3.back *1f,
+		
+		Vector3.right *2f,
+		Vector3.left *2f,
+		
+		Vector3.right *1f,
+		Vector3.left *1f,
+		Vector3.up *1f
+	};
+	
+	public static void Frame( Pose pose, Color color, float scale = 1, float duration = 0 ) {
+		// cross
+		Line( pose.Transform( s_framePoints[0] *scale ), pose.Transform( s_framePoints[1] *scale ), color, duration );
+		Line( pose.Transform( s_framePoints[2] *scale ), pose.Transform( s_framePoints[3] *scale ), color, duration );
+		
+		// ass to wings
+		Line( pose.Transform( s_framePoints[1] *scale ), pose.Transform( s_framePoints[2] *scale ), color, duration );
+		Line( pose.Transform( s_framePoints[1] *scale ), pose.Transform( s_framePoints[3] *scale ), color, duration );
+		
+		// tip to shoulders
+		Line( pose.Transform( s_framePoints[0] *scale ), pose.Transform( s_framePoints[4] *scale ), color, duration );
+		Line( pose.Transform( s_framePoints[0] *scale ), pose.Transform( s_framePoints[5] *scale ), color, duration );
+		
+		// top hat
+		Line( pose.Transform( s_framePoints[6] *scale ), pose.Transform( s_framePoints[1] *scale ), color, duration );
+		Line( pose.Transform( s_framePoints[6] *scale ), pose.Transform( s_framePoints[4] *scale ), color, duration );
+		Line( pose.Transform( s_framePoints[6] *scale ), pose.Transform( s_framePoints[5] *scale ), color, duration );
+	}
+#endregion
 }
