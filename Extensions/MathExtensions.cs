@@ -174,6 +174,7 @@ public static class MathExtensions {
 	
 	
 #region Iterators
+	// Note: this is INCLUSIVE of the "to"!
 	public static IEnumerable<int> To( this int from, int to ) {
 		if( from < to ) {
 			while( from <= to ) {
