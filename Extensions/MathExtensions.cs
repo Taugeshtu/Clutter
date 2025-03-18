@@ -77,6 +77,13 @@ public static class MathExtensions {
 	public static int Sign( this float x ) {
 		return Math.Sign( x );
 	}
+	
+	public static float SmoothTo( this float from, float to, float halfLife, float dt ) {
+		return to + (from - to) *((float) Math.Pow( 2, -dt /halfLife ));
+	}
+	public static double SmoothTo( this double from, double to, double halfLife, double dt ) {
+		return to + (from - to) *Math.Pow( 2, -dt /halfLife );
+	}
 #endregion
 	
 	
@@ -224,19 +231,21 @@ public static class MathExtensions {
 	
 	
 #region Bit fuckery
-	public static bool GetBit( this byte x, int bitIndex ) {
-		return (x & (1 << bitIndex)) != 0;
-	}
+	public static bool GetBit( this byte x, int bitIndex ) { return (x & (1 << bitIndex)) != 0; }
+	public static bool GetBit( this ushort x, int bitIndex ) { return (x & (1 << bitIndex)) != 0; }
+	public static bool GetBit( this short x, int bitIndex ) { return (x & (1 << bitIndex)) != 0; }
+	public static bool GetBit( this int x, int bitIndex ) { return (x & (1 << bitIndex)) != 0; }
+	public static bool GetBit( this uint x, int bitIndex ) { return (x & (1 << bitIndex)) != 0; }
+	public static bool GetBit( this long x, int bitIndex ) { return (x & (1 << bitIndex)) != 0; }
+	public static bool GetBit( this ulong x, int bitIndex ) { return (x & ((ulong)1 << bitIndex)) != 0; }
 	
-	public static int SetBit( this ref int x, int bitIndex, bool bitValue ) {
-		if( bitValue ) {
-			x |= 1 << bitIndex;
-		}
-		else {
-			x &= ~(1 << bitIndex);
-		}
-		return x;
-	}
+	public static byte SetBit( this byte x, int bitIndex, bool bitValue ) { return (byte) (bitValue ? (x | 1 << bitIndex) : (x & ~(1 << bitIndex))); }
+	public static ushort SetBit( this ushort x, int bitIndex, bool bitValue ) { return (ushort)(bitValue ? (x | 1 << bitIndex) : (x & ~(1 << bitIndex))); }
+	public static short SetBit( this short x, int bitIndex, bool bitValue ) { return (short)(bitValue ? (x | 1 << bitIndex) : (x & ~(1 << bitIndex))); }
+	public static int SetBit( this int x, int bitIndex, bool bitValue ) { return bitValue ? (x | 1 << bitIndex) : (x & ~(1 << bitIndex)); }
+	public static uint SetBit( this uint x, int bitIndex, bool bitValue ) { return bitValue ? (x | (uint)(1 << bitIndex)) : (x & (uint)~(1 << bitIndex)); }
+	public static long SetBit( this long x, int bitIndex, bool bitValue ) { return bitValue ? (x | 1 << bitIndex) : (x & ~(1 << bitIndex)); }
+	public static ulong SetBit( this ulong x, int bitIndex, bool bitValue ) { return bitValue ? (x | (ulong)(1 << bitIndex)) : (x & (ulong)~(1 << bitIndex)); }
 	
 	public static int CeilToPOT( this int x ) {
 		var ceiledToPOT = 1;

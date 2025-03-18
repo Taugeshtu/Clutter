@@ -327,6 +327,24 @@ public static class VectorExtensions {
 	}
 	
 	//===========================================================
+	public static Vector2Int Sign( this Vector2Int a ) {
+		return new Vector2Int( System.Math.Sign( a.x ), System.Math.Sign( a.y ) );
+	}
+	public static Vector3Int Sign( this Vector3Int a ) {
+		return new Vector3Int( System.Math.Sign( a.x ), System.Math.Sign( a.y ), System.Math.Sign( a.z ) );
+	}
+	
+	public static Vector2 Sign( this Vector2 a ) {
+		return new Vector2( Mathf.Sign( a.x ), Mathf.Sign( a.y ) );;
+	}
+	public static Vector3 Sign( this Vector3 a ) {
+		return new Vector3( Mathf.Sign( a.x ), Mathf.Sign( a.y ), Mathf.Sign( a.z ) );
+	}
+	public static Vector4 Sign( this Vector4 a ) {
+		return new Vector4( Mathf.Sign( a.x ), Mathf.Sign( a.y ), Mathf.Sign( a.z ), Mathf.Sign( a.w ) );
+	}
+	
+	//===========================================================
 	public static Vector2Int Clamped( this Vector2Int a, Vector2Int min, Vector2Int max ) {
 		return new Vector2Int( a.x.Clamp( min.x, max.x ), a.y.Clamp( min.y, max.y ) );
 	}
@@ -353,6 +371,66 @@ public static class VectorExtensions {
 	}
 	public static Vector4 MagnitudeClamped( this Vector4 v, float magnitude ) {
 		return v.WithMagnitude( Mathf.Min( v.magnitude, magnitude ) );
+	}
+	
+	public static Vector2Int MagnitudeClamped( this Vector2Int v, int magnitude ) {
+		if( v == Vector2Int.zero ) return v;
+		
+		var factor = (magnitude /(float)v.Manhattan()).AtMost( 1f );
+		var idealMahnattan = v.Manhattan().AtMost( magnitude );
+		
+		var allocations = v.ToVector2() *factor;
+		var result = new Vector2Int( (int)allocations.x, (int)allocations.y );
+		var error = (idealMahnattan - result.Manhattan()).Abs();
+		var fracRemainders = allocations - result;
+		var criteria = fracRemainders.Abs();
+		if( error > 0 ) {
+			if( criteria.x >= criteria.y ) {
+				result.x += System.Math.Sign( fracRemainders.x );
+			}
+			else {
+				result.y += System.Math.Sign( fracRemainders.y );
+			}
+		}
+		return result;
+	}
+	public static Vector3Int MagnitudeClamped( this Vector3Int v, int magnitude ) {
+		if( v == Vector3Int.zero ) return v;
+		
+		var factor = (magnitude /(float)v.Manhattan()).AtMost( 1f );
+		var idealMahnattan = v.Manhattan().AtMost( magnitude );
+		
+		var allocations = v.ToVector3() *factor;
+		var result = new Vector3Int( (int)allocations.x, (int)allocations.y, (int)allocations.z );
+		var error = (idealMahnattan - result.Manhattan()).Abs();
+		var fracRemainders = allocations - result;
+		var criteria = fracRemainders.Abs();
+		if( error > 0 ) {
+			if( criteria.x >= criteria.y && criteria.x >= criteria.z ) {
+				result.x += System.Math.Sign( fracRemainders.x );
+				criteria.x -= 1;
+			}
+			else if( criteria.y >= criteria.z ) {
+				result.y += System.Math.Sign( fracRemainders.y );
+				criteria.y -= 1;
+			}
+			else {
+				result.z += System.Math.Sign( fracRemainders.z );
+				criteria.z -= 1;
+			}
+		}
+		if( error == 2 ) {
+			if( criteria.x >= criteria.y && criteria.x >= criteria.z ) {
+				result.x += System.Math.Sign( fracRemainders.x );
+			}
+			else if( criteria.y >= criteria.z ) {
+				result.y += System.Math.Sign( fracRemainders.y );
+			}
+			else {
+				result.z += System.Math.Sign( fracRemainders.z );
+			}
+		}
+		return result;
 	}
 	
 	//===========================================================
@@ -403,6 +481,13 @@ public static class VectorExtensions {
 	}
 	
 	//===========================================================
+	public static Vector2Int ComponentMul( this Vector2Int a, Vector2Int b ) {
+		return a *b;
+	}
+	public static Vector3Int ComponentMul( this Vector3Int a, Vector3Int b ) {
+		return a *b;
+	}
+	
 	public static Vector2 ComponentMul( this Vector2 a, Vector2 b ) {
 		return new Vector2( a.x *b.x, a.y *b.y );
 	}
@@ -519,6 +604,14 @@ public static class VectorExtensions {
 	public static float Dot( this Vector3 a, Vector3 b ) {
 		return Vector3.Dot( a, b );
 	}
+	public static int Dot( this Vector2Int a, Vector2Int b ) {
+		var mul = a.ComponentMul( b );
+		return mul.x + mul.y;
+	}
+	public static int Dot( this Vector3Int a, Vector3Int b ) {
+		var mul = a.ComponentMul( b );
+		return mul.x + mul.y + mul.z;
+	}
 	
 	public static Vector3 Cross( this Vector3 a, Vector3 b ) {
 		return Vector3.Cross( a, b );
@@ -540,6 +633,16 @@ public static class VectorExtensions {
 		var factor = Mathf.Clamp01( maxChangeDegrees /angleDiff );
 		return Quaternion.Slerp( from, to, factor );
 	}
+#endregion
+	
+	
+#region Manhattan
+	public static int Manhattan( this Vector2Int v ) { return v.x.Abs() + v.y.Abs(); }
+	public static int Manhattan( this Vector3Int v ) { return v.x.Abs() + v.y.Abs() + v.z.Abs(); }
+	
+	public static float Manhattan( this Vector2 v ) { return v.x.Abs() + v.y.Abs(); }
+	public static float Manhattan( this Vector3 v ) { return v.x.Abs() + v.y.Abs() + v.z.Abs(); }
+	public static float Manhattan( this Vector4 v ) { return v.x.Abs() + v.y.Abs() + v.z.Abs() + v.w.Abs(); }
 #endregion
 	
 	
@@ -632,6 +735,19 @@ public static class VectorExtensions {
 	public static Vector3 LerpUnclamped( this Vector3 from, Vector3 to, float t ) { return Vector3.LerpUnclamped( from, to, t ); }
 	public static Vector4 LerpUnclamped( this Vector4 from, Vector4 to, float t ) { return Vector4.LerpUnclamped( from, to, t ); }
 	public static Color LerpUnclamped( this Color from, Color to, float t ) { return Color.LerpUnclamped( from, to, t ); }
+	
+	public static Vector2 SmoothTo( this Vector2 from, Vector2 to, float halfLife, float dt ) {
+		return to + (from - to) *Mathf.Pow( 2, -dt /halfLife );
+	}
+	public static Vector3 SmoothTo( this Vector3 from, Vector3 to, float halfLife, float dt ) {
+		return to + (from - to) *Mathf.Pow( 2, -dt /halfLife );
+	}
+	public static Vector4 SmoothTo( this Vector4 from, Vector4 to, float halfLife, float dt ) {
+		return to + (from - to) *Mathf.Pow( 2, -dt /halfLife );
+	}
+	public static Color SmoothTo( this Color from, Color to, float halfLife, float dt ) {
+		return to + (from - to) *Mathf.Pow( 2, -dt /halfLife );
+	}
 #endregion
 	
 	
