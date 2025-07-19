@@ -109,7 +109,7 @@ public class CloudView : MonoBehaviour {
 					shift -= substractedSize;
 					
 					var softFactor = Mathf.InverseLerp( 0, (halfSumSize *_repulsionSoftZoneExpansion).magnitude, shift.magnitude );
-					softFactor = 1 - softFactor.Clamp01();
+					softFactor = 1 - softFactor.Clamped01();
 					shift *= softFactor;
 					
 					shift = Vector2.zero;

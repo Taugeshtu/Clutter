@@ -346,20 +346,20 @@ public static class VectorExtensions {
 	
 	//===========================================================
 	public static Vector2Int Clamped( this Vector2Int a, Vector2Int min, Vector2Int max ) {
-		return new Vector2Int( a.x.Clamp( min.x, max.x ), a.y.Clamp( min.y, max.y ) );
+		return new Vector2Int( a.x.Clamped( min.x, max.x ), a.y.Clamped( min.y, max.y ) );
 	}
 	public static Vector3Int Clamped( this Vector3Int a, Vector3Int min, Vector3Int max ) {
-		return new Vector3Int( a.x.Clamp( min.x, max.x ), a.y.Clamp( min.y, max.y ), a.z.Clamp( min.z, max.z ) );
+		return new Vector3Int( a.x.Clamped( min.x, max.x ), a.y.Clamped( min.y, max.y ), a.z.Clamped( min.z, max.z ) );
 	}
 	
 	public static Vector2 Clamped( this Vector2 a, Vector2 min, Vector2 max ) {
-		return new Vector2( a.x.Clamp( min.x, max.x ), a.y.Clamp( min.y, max.y ) );
+		return new Vector2( a.x.Clamped( min.x, max.x ), a.y.Clamped( min.y, max.y ) );
 	}
 	public static Vector3 Clamped( this Vector3 a, Vector3 min, Vector3 max ) {
-		return new Vector3( a.x.Clamp( min.x, max.x ), a.y.Clamp( min.y, max.y ), a.z.Clamp( min.z, max.z ) );
+		return new Vector3( a.x.Clamped( min.x, max.x ), a.y.Clamped( min.y, max.y ), a.z.Clamped( min.z, max.z ) );
 	}
 	public static Vector4 Clamped( this Vector4 a, Vector4 min, Vector4 max ) {
-		return new Vector4( a.x.Clamp( min.x, max.x ), a.y.Clamp( min.y, max.y ), a.z.Clamp( min.z, max.z ), a.w.Clamp( min.w, max.w ) );
+		return new Vector4( a.x.Clamped( min.x, max.x ), a.y.Clamped( min.y, max.y ), a.z.Clamped( min.z, max.z ), a.w.Clamped( min.w, max.w ) );
 	}
 	
 	//===========================================================
@@ -730,11 +730,15 @@ public static class VectorExtensions {
 	public static Vector3 Lerp( this Vector3 from, Vector3 to, float t ) { return Vector3.Lerp( from, to, t ); }
 	public static Vector4 Lerp( this Vector4 from, Vector4 to, float t ) { return Vector4.Lerp( from, to, t ); }
 	public static Color Lerp( this Color from, Color to, float t ) { return Color.Lerp( from, to, t ); }
+	public static Quaternion Lerp( this Quaternion from, Quaternion to, float t ) { return Quaternion.Lerp( from, to, t ); }
+	public static Quaternion Slerp( this Quaternion from, Quaternion to, float t ) { return Quaternion.Slerp( from, to, t ); }
 	
 	public static Vector2 LerpUnclamped( this Vector2 from, Vector2 to, float t ) { return Vector2.LerpUnclamped( from, to, t ); }
 	public static Vector3 LerpUnclamped( this Vector3 from, Vector3 to, float t ) { return Vector3.LerpUnclamped( from, to, t ); }
 	public static Vector4 LerpUnclamped( this Vector4 from, Vector4 to, float t ) { return Vector4.LerpUnclamped( from, to, t ); }
 	public static Color LerpUnclamped( this Color from, Color to, float t ) { return Color.LerpUnclamped( from, to, t ); }
+	public static Quaternion LerpUnclamped( this Quaternion from, Quaternion to, float t ) { return Quaternion.LerpUnclamped( from, to, t ); }
+	public static Quaternion SlerpUnclamped( this Quaternion from, Quaternion to, float t ) { return Quaternion.SlerpUnclamped( from, to, t ); }
 	
 	public static Vector2 SmoothTo( this Vector2 from, Vector2 to, float halfLife, float dt ) {
 		return to + (from - to) *Mathf.Pow( 2, -dt /halfLife );

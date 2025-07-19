@@ -88,11 +88,11 @@ public static class MathExtensions {
 	
 	
 #region Generic math
-	public static float Clamp01( this int x ) { return UnityEngine.Mathf.Clamp01( x ); }
-	public static float Clamp01( this float x ) { return UnityEngine.Mathf.Clamp01( x ); }
+	public static float Clamped01( this int x ) { return UnityEngine.Mathf.Clamp01( x ); }
+	public static float Clamped01( this float x ) { return UnityEngine.Mathf.Clamp01( x ); }
 	
 	// Note: this is INCLUSIVE on both ends
-	public static T Clamp<T>( this T x, T min, T max ) where T : IComparable<T> {
+	public static T Clamped<T>( this T x, T min, T max ) where T : IComparable<T> {
 		if( x.CompareTo( min ) < 0 ) {
 			return min;
 		}
@@ -165,7 +165,7 @@ public static class MathExtensions {
 	
 #region Double expansions
 	public static double Lerp( double from, double to, float t ) {
-		return LerpUnclamped( from, to, t.Clamp( 0f, 1f ) );
+		return LerpUnclamped( from, to, t.Clamped( 0f, 1f ) );
 	}
 	public static double LerpUnclamped( double from, double to, float t ) {
 		return from + t *(to - from);

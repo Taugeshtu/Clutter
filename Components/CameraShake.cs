@@ -23,7 +23,7 @@ public class CameraShake : MonoSingular<CameraShake> {
 		
 		public (Vector3 t, Vector3 r) Process() {
 			Trauma -= Time.deltaTime /_maxDuration;
-			Trauma = Trauma.Clamp01();
+			Trauma = Trauma.Clamped01();
 			var amplitude = Amplitude;
 			if( amplitude < _threshold )
 				return (Vector3.zero, Vector3.zero);
