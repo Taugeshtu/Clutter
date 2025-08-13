@@ -8,11 +8,14 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, 
 	protected Vector3 _startDragPointer;
 	
 	public bool IsDragged { get; protected set; }
+	public event Action a_dragStarted;
+	public event Action a_dragHappening;
+	public event Action a_dragEnded;
 	
 	public static Draggable CurrentDraggable { get; protected set; }
-	public static event Action<Draggable> a_dragStarted;
-	public static event Action<Draggable> a_dragHappening;
-	public static event Action<Draggable> a_dragEnded;
+	public static event Action<Draggable> a_globalDragStarted;
+	public static event Action<Draggable> a_globalDragHappening;
+	public static event Action<Draggable> a_globalDragEnded;
 	
 	public virtual void OnPointerDown(PointerEventData eventData) {
 		// Capture initial positions immediately when pointer goes down
@@ -25,13 +28,15 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, 
 	public virtual void OnBeginDrag( PointerEventData eventData ) {
 		IsDragged = true;
 		CurrentDraggable = this;
-		a_dragStarted?.Invoke( this );
+		a_dragStarted?.Invoke();
+		a_globalDragStarted?.Invoke( this );
 	}
 	
 	public virtual void OnEndDrag( PointerEventData eventData ) {
 		IsDragged = false;
 		CurrentDraggable = null;
-		a_dragEnded?.Invoke( this );
+		a_dragEnded?.Invoke();
+		a_globalDragEnded?.Invoke( this );
 	}
 	
 	public virtual void OnDrag( PointerEventData eventData ) {
@@ -42,6 +47,7 @@ public class Draggable : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, 
 			// Update the position of the object being dragged
 			transform.position = _startDragPosition + (pointer - _startDragPointer);
 		}
-		a_dragHappening?.Invoke( this );
+		a_dragHappening?.Invoke();
+		a_globalDragHappening?.Invoke( this );
 	}
 }
