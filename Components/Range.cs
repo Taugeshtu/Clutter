@@ -99,6 +99,16 @@ public struct Range {
 		return (other.m_max >= m_min);
 	}
 	
+	public bool Envelops( Range other ) {
+		if( !IsValid || !other.IsValid ) {
+			return false;
+		}
+		
+		if( other.m_min >= m_min && other.m_max <= m_max )
+			return true;
+		return false;
+	}
+	
 	public float Constrain( float x ) {
 		if( x < m_min ) { return m_min; }
 		if( x > m_max ) { return m_max; }
