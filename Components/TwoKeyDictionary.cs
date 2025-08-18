@@ -6,15 +6,11 @@ public class TwoKeyDictionary<TKey1, TKey2, TValue> : Dictionary<TKey1, Dictiona
 	
 	public TValue this[TKey1 key1, TKey2 key2] {
 		get {
-			Dictionary<TKey2, TValue> container;
-			if( TryGetValue( key1, out container ) ) {
-				return container[key2];
-			}
-			else {
-				var newContainer = new Dictionary<TKey2, TValue>();
-				this[key1] = newContainer;
-				return newContainer[key2];
-			}
+			if( !TryGetValue( key1, out var container ) )
+				throw new KeyNotFoundException( $"First Key '{key1}' not found" );
+			if( !container.TryGetValue( key2, out var value ) )
+				throw new KeyNotFoundException( $"Second Key '{key2}' not found in container '{key1}'" );
+			return value;
 		}
 		set {
 			Dictionary<TKey2, TValue> container;
