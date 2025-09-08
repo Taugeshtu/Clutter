@@ -277,12 +277,12 @@ public static class VectorExtensions {
 	public static float MaxComponent( this Vector4 v ) { return Mathf.Max( v.x, v.y, v.z, v.w ); }
 	
 	//===========================================================
-	public static float MinComponent( this Vector2Int v ) { return Mathf.Min( v.x, v.y ); }
-	public static float MinComponent( this Vector3Int v ) { return Mathf.Min( v.x, v.y, v.z ); }
+	public static int MinComponent( this Vector2Int v ) { return Mathf.Min( v.x, v.y ); }
+	public static int MinComponent( this Vector3Int v ) { return Mathf.Min( v.x, v.y, v.z ); }
 	
 	//===========================================================
-	public static float MaxComponent( this Vector2Int v ) { return Mathf.Max( v.x, v.y ); }
-	public static float MaxComponent( this Vector3Int v ) { return Mathf.Max( v.x, v.y, v.z ); }
+	public static int MaxComponent( this Vector2Int v ) { return Mathf.Max( v.x, v.y ); }
+	public static int MaxComponent( this Vector3Int v ) { return Mathf.Max( v.x, v.y, v.z ); }
 #endregion
 	
 	
